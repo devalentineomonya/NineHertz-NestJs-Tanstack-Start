@@ -1,0 +1,238 @@
+import {
+  Injectable,
+  NotFoundException,
+  BadRequestException,
+} from '@nestjs/common';
+import { InjectRepository } from '@nestjs/typeorm';
+import { Appointment } from './entities/appointment.entity';
+import {
+  Repository,
+  // FindOptionsWhere
+} from 'typeorm';
+// import { CreateAppointmentDto } from './dto/create-appointment.dto';
+import { UpdateAppointmentDto } from './dto/update-appointment.dto';
+import { AppointmentResponseDto } from './dto/appointment-response.dto';
+// import { AppointmentPaginatedDto } from './dto/appointment-paginated.dto';
+import { Patient } from '../patient/entities/patient.entity';
+import { Doctor } from '../doctor/entities/doctor.entity';
+import { AppointmentStatus } from 'src/enums/appointment.enum';
+// import { PaginationParams } from '../common/dto/pagination-params.dto';
+// import { AppointmentFilterParams } from './dto/appointment-filter-params.dto';
+
+@Injectable()
+export class AppointmentService {
+  constructor(
+    @InjectRepository(Appointment)
+    private appointmentRepository: Repository<Appointment>,
+    @InjectRepository(Patient)
+    private patientRepository: Repository<Patient>,
+    @InjectRepository(Doctor)
+    private doctorRepository: Repository<Doctor>,
+  ) {}
+
+  // async create(
+  //   createAppointmentDto: CreateAppointmentDto,
+  // ): Promise<AppointmentResponseDto> {
+  //   const { patientId, doctorId, ...appointmentData } = createAppointmentDto;
+
+  //   const patient = await this.patientRepository.findOne({
+  //     where: { id: patientId },
+  //   });
+  //   if (!patient) {
+  //     throw new NotFoundException(`Patient with ID ${patientId} not found`);
+  //   }
+
+  //   const doctor = await this.doctorRepository.findOne({
+  //     where: { id: doctorId },
+  //   });
+  //   if (!doctor) {
+  //     throw new NotFoundException(`Doctor with ID ${doctorId} not found`);
+  //   }
+
+  //   // Check for conflicting appointments
+  //   const conflict = await this.appointmentRepository.findOne({
+  //     where: {
+  //       doctor: { id: doctorId },
+  //       datetime: appointmentData.datetime,
+  //       status: 'scheduled',
+  //     },
+  //   });
+
+  //   if (conflict) {
+  //     throw new BadRequestException(
+  //       'Doctor already has an appointment at this time',
+  //     );
+  //   }
+
+  //   const appointment = this.appointmentRepository.create({
+  //     ...appointmentData,
+  //     patient,
+  //     doctor,
+  //   });
+
+  //   const savedAppointment = await this.appointmentRepository.save(appointment);
+  //   return this.mapToResponseDto(savedAppointment);
+  // }
+
+  // async findAll(
+  //   pagination: PaginationParams,
+  //   filters: AppointmentFilterParams,
+  // ): Promise<AppointmentPaginatedDto> {
+  //   const { page = 1, limit = 10 } = pagination;
+  //   const skip = (page - 1) * limit;
+
+  //   const where: FindOptionsWhere<Appointment> = {};
+
+  //   if (filters.status) {
+  //     where.status = filters.status;
+  //   }
+  //   if (filters.patientId) {
+  //     where.patient = { id: filters.patientId };
+  //   }
+  //   if (filters.doctorId) {
+  //     where.doctor = { id: filters.doctorId };
+  //   }
+
+  //   const [appointments, total] = await this.appointmentRepository.findAndCount(
+  //     {
+  //       where,
+  //       relations: ['patient', 'doctor', 'doctor.user', 'patient.user'],
+  //       take: limit,
+  //       skip,
+  //       order: { datetime: 'ASC' },
+  //     },
+  //   );
+
+  //   return {
+  //     data: appointments.map(this.mapToResponseDto),
+  //     total,
+  //     page,
+  //     limit,
+  //   };
+  // }
+
+  async findOne(id: string): Promise<AppointmentResponseDto> {
+    const appointment = await this.appointmentRepository.findOne({
+      where: { id },
+      relations: ['patient', 'doctor', 'doctor.user', 'patient.user'],
+    });
+
+    if (!appointment) {
+      throw new NotFoundException(`Appointment with ID ${id} not found`);
+    }
+
+    return this.mapToResponseDto(appointment);
+  }
+
+  async update(
+    id: string,
+    updateAppointmentDto: UpdateAppointmentDto,
+  ): Promise<AppointmentResponseDto> {
+    const appointment = await this.appointmentRepository.findOne({
+      where: { id },
+      relations: ['patient', 'doctor'],
+    });
+
+    if (!appointment) {
+      throw new NotFoundException(`Appointment with ID ${id} not found`);
+    }
+
+    if (updateAppointmentDto.patientId) {
+      const patient = await this.patientRepository.findOne({
+        where: { id: updateAppointmentDto.patientId },
+      });
+      if (!patient) {
+        throw new NotFoundException(
+          `Patient with ID ${updateAppointmentDto.patientId} not found`,
+        );
+      }
+      appointment.patient = patient;
+    }
+
+    if (updateAppointmentDto.doctorId) {
+      const doctor = await this.doctorRepository.findOne({
+        where: { id: updateAppointmentDto.doctorId },
+      });
+      if (!doctor) {
+        throw new NotFoundException(
+          `Doctor with ID ${updateAppointmentDto.doctorId} not found`,
+        );
+      }
+      appointment.doctor = doctor;
+    }
+
+    if (updateAppointmentDto.datetime) {
+      // Check for new conflicts only if datetime is changing
+      if (appointment.datetime !== updateAppointmentDto.datetime) {
+        const conflict = await this.appointmentRepository.findOne({
+          where: {
+            doctor: appointment.doctor,
+            datetime: updateAppointmentDto.datetime,
+            status: 'scheduled' as AppointmentStatus,
+          },
+        });
+
+        if (conflict && conflict.id !== id) {
+          throw new BadRequestException(
+            'Doctor already has an appointment at this time',
+          );
+        }
+      }
+      appointment.datetime = updateAppointmentDto.datetime;
+    }
+
+    if (updateAppointmentDto.status) {
+      appointment.status = updateAppointmentDto.status;
+    }
+
+    const updatedAppointment =
+      await this.appointmentRepository.save(appointment);
+    return this.mapToResponseDto(updatedAppointment);
+  }
+
+  async remove(id: string): Promise<void> {
+    const result = await this.appointmentRepository.delete(id);
+    if (result.affected === 0) {
+      throw new NotFoundException(`Appointment with ID ${id} not found`);
+    }
+  }
+
+  private mapToResponseDto(appointment: Appointment): AppointmentResponseDto {
+    return {
+      id: appointment.id,
+      datetime: appointment.datetime,
+      status: appointment.status,
+      patient: {
+        id: appointment.patient.id,
+        fullName: appointment.patient.fullName,
+        phone: appointment.patient.phone,
+        dateOfBirth: appointment.patient.dateOfBirth,
+        medicalHistory: appointment.patient.medicalHistory,
+        user: {
+          id: appointment.patient.user.id,
+          email: appointment.patient.user.email,
+          role: appointment.patient.user.role,
+          isEmailVerified: appointment.patient.user.isEmailVerified,
+          createdAt: appointment.patient.user.createdAt,
+        },
+      },
+      doctor: {
+        id: appointment.doctor.id,
+        fullName: appointment.doctor.fullName,
+        specialty: appointment.doctor.specialty,
+        consultationFee: appointment.doctor.consultationFee,
+        licenseNumber: appointment.doctor.licenseNumber,
+        availability: appointment.doctor.availability,
+        user: {
+          id: appointment.doctor.user.id,
+          email: appointment.doctor.user.email,
+          role: appointment.doctor.user.role,
+          isEmailVerified: appointment.doctor.user.isEmailVerified,
+          createdAt: appointment.doctor.user.createdAt,
+        },
+      },
+      createdAt: appointment.createdAt,
+      updatedAt: appointment.updatedAt,
+    };
+  }
+}

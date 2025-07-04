@@ -1,0 +1,48 @@
+# --- Root Level ---
+.env
+.env.*
+!.env.example
+.DS_Store
+.idea/
+.vscode/
+*.log
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+package-lock.json
+yarn.lock
+pnpm-lock.yaml
+lerna-debug.log*
+/.pnp
+.pnp.js
+
+# --- Client Directory ---
+client/.tanstack/
+client/dist/
+client/build/
+client/.env
+client/.env.*
+client/node_modules/
+client/coverage/
+client/*.tsbuildinfo
+
+# --- Server Directory ---
+server/dist/
+server/.env
+server/.env.*
+server/node_modules/
+server/coverage/
+server/attachment/
+server/upload/
+
+# --- Common Ignore Patterns ---
+**/node_modules/
+**/.env
+**/.env.*
+**/dist/
+**/build/
+**/coverage/
+**/logs/
+**/.cache/
+**/*.log
+**/temp/
