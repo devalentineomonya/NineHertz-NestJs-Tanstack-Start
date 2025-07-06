@@ -29,21 +29,12 @@ export class Admin {
   @OneToOne(() => User, (user) => user.adminProfile)
   user: User;
 
-  @Column()
-  specialty: string;
-
   @Column('simple-json')
   availability: {
     days: string[];
     hours: string[];
   };
 
-  @Column('decimal', { precision: 10, scale: 2 })
-  consultationFee: number;
-
   @Column()
-  licenseNumber: string;
-
-  @Column()
-  userEmail: string;
+  specialty: string;
 }

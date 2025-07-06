@@ -1,17 +1,12 @@
 import { Injectable, UnauthorizedException } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import { PassportStrategy } from '@nestjs/passport';
-import { Strategy, ExtractJwt } from 'passport-jwt';
 import { InjectRepository } from '@nestjs/typeorm';
-import { Repository } from 'typeorm';
-import { User } from 'src/user/entities/user.entity';
+import { ExtractJwt, Strategy } from 'passport-jwt';
 import { Admin } from 'src/admin/entities/admin.entity';
-
-type JWTPayload = {
-  sub: string;
-  userType: string;
-  role: string;
-};
+import { JWTPayload } from 'src/shared/types/jwt-payload.types';
+import { User } from 'src/user/entities/user.entity';
+import { Repository } from 'typeorm';
 
 @Injectable()
 export class AccessTokenStrategy extends PassportStrategy(
@@ -34,19 +29,13 @@ export class AccessTokenStrategy extends PassportStrategy(
   }
 
   async validate(payload: JWTPayload) {
-    let entity: User | Admin | null = null;
-    if (payload.userType === 'user') {
-      entity = await this.userRepository.findOneBy({ id: payload.sub });
-    } else if (payload.userType === 'admin') {
-      entity = await this.adminRepository.findOneBy({ id: payload.sub });
-    }
+    const user = await this.userRepository.findOneBy({ id: payload.sub });
 
-    if (!entity) throw new UnauthorizedException('User not found');
+    if (!user) throw new UnauthorizedException('User not found');
 
     return {
-      ...entity,
+      ...user,
       sub: payload.sub,
-      userType: payload.userType,
       role: payload.role,
     };
   }

@@ -10,7 +10,6 @@ import {
   IsOptional,
   IsDecimal,
 } from 'class-validator';
-// import { Type } from 'class-transformer';
 import { OrderStatus } from 'src/enums/order.enum';
 
 class CreateOrderItemDto {
@@ -59,7 +58,6 @@ export class CreateOrderDto {
   })
   @IsArray()
   @ValidateNested({ each: true })
-  // @Type(() => CreateOrderItemDto)
   items: CreateOrderItemDto[];
 
   @ApiProperty({

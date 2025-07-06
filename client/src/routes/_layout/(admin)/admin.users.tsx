@@ -1,3 +1,4 @@
+import { AdminUsers } from '@/screens/admin/users/users-table'
 import { createFileRoute } from '@tanstack/react-router'
 
 export const Route = createFileRoute('/_layout/(admin)/admin/users')({
@@ -5,5 +6,5 @@ export const Route = createFileRoute('/_layout/(admin)/admin/users')({
 })
 
 function RouteComponent() {
-  return <div>Hello "/_layout/(admin)/admin/users"!</div>
+  return <AdminUsers/>
 }

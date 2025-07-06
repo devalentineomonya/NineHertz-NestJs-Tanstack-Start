@@ -5,14 +5,11 @@ import { Consultation } from './entities/consultation.entity';
 import { TypeOrmModule } from '@nestjs/typeorm';
 import { Patient } from 'src/patient/entities/patient.entity';
 import { Doctor } from 'src/doctor/entities/doctor.entity';
-// import { StreamService } from 'src/stream/stream.service';
+import { StreamService } from 'src/stream/stream.service';
 
 @Module({
-  imports: [
-    TypeOrmModule.forFeature([Consultation, Doctor, Patient]),
-    // StreamService,
-  ],
+  imports: [TypeOrmModule.forFeature([Consultation, Doctor, Patient])],
   controllers: [ConsultationController],
-  providers: [ConsultationService],
+  providers: [ConsultationService, StreamService],
 })
 export class ConsultationModule {}

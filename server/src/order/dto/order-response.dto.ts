@@ -2,6 +2,7 @@ import { ApiProperty } from '@nestjs/swagger';
 import { OrderStatus } from 'src/enums/order.enum';
 import { PatientResponseDto } from '../../patient/dto/patient-response.dto';
 import { OrderItemResponseDto } from './order-item-response.dto';
+import { PharmacyResponseDto } from 'src/pharmacy/dto/pharmacy-response.dto';
 
 export class OrderResponseDto {
   @ApiProperty({
@@ -52,6 +53,12 @@ export class OrderResponseDto {
     description: 'Patient details',
   })
   patient: PatientResponseDto;
+
+  @ApiProperty({
+    type: PharmacyResponseDto,
+    description: 'Pharmacy details',
+  })
+  pharmacy: PharmacyResponseDto;
 
   @ApiProperty({
     type: [OrderItemResponseDto],

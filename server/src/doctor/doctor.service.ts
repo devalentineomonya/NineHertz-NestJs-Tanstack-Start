@@ -5,7 +5,8 @@ import { Repository } from 'typeorm';
 import { CreateDoctorDto } from './dto/create-doctor.dto';
 import { UpdateDoctorDto } from './dto/update-doctor.dto';
 import { DoctorResponseDto } from './dto/doctor-response.dto';
-
+import { PaginationDto } from 'src/shared/dto/pagination.dto';
+import { DoctorFilterDto } from './dto/doctor-filter.dto';
 @Injectable()
 export class DoctorService {
   constructor(
@@ -21,11 +22,57 @@ export class DoctorService {
     const savedDoctor = await this.doctorRepository.save(doctor);
     return this.mapToResponseDto(savedDoctor);
   }
+  async findAll(
+    pagination: PaginationDto,
+    filters?: DoctorFilterDto,
+  ): Promise<{ data: DoctorResponseDto[]; total: number }> {
+    const { page = 1, limit = 10 } = pagination;
+    const skip = (page - 1) * limit;
+
+    const query = this.doctorRepository
+      .createQueryBuilder('doctor')
+      .leftJoinAndSelect('doctor.user', 'user')
+      .leftJoinAndSelect('doctor.institution', 'institution')
+      .take(limit)
+      .skip(skip);
+
+    if (filters) {
+      if (filters.fullName) {
+        query.andWhere('doctor.fullName ILIKE :fullName', {
+          fullName: `%${filters.fullName}%`,
+        });
+      }
+
+      if (filters.specialty) {
+        query.andWhere('doctor.specialty = :specialty', {
+          specialty: filters.specialty,
+        });
+      }
+
+      if (filters.licenseNumber) {
+        query.andWhere('doctor.licenseNumber = :licenseNumber', {
+          licenseNumber: filters.licenseNumber,
+        });
+      }
+
+      if (filters.userEmail) {
+        query.andWhere('user.email = :email', { email: filters.userEmail });
+      }
+    }
+
+    // Execute query and get results
+    const [doctors, total] = await query.getManyAndCount();
+
+    // Map to response DTOs
+    const data = doctors.map((doctor) => this.mapToResponseDto(doctor));
+
+    return { data, total };
+  }
 
   async findOne(id: string): Promise<DoctorResponseDto> {
     const doctor = await this.doctorRepository.findOne({
       where: { id },
-      relations: ['institution', 'user'],
+      relations: ['user'],
     });
 
     if (!doctor) {

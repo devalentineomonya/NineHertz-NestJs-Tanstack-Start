@@ -3,14 +3,9 @@ import { PassportStrategy } from '@nestjs/passport';
 import { ExtractJwt, Strategy, StrategyOptionsWithRequest } from 'passport-jwt';
 import { Request } from 'express';
 import { ConfigService } from '@nestjs/config';
+import { JWTPayload } from 'src/shared/types/jwt-payload.types';
 
-interface JwtPayload {
-  sub: string;
-  userType: string;
-  [key: string]: string;
-}
-
-interface JwtPayloadWithRefreshToken extends JwtPayload {
+interface JwtPayloadWithRefreshToken extends JWTPayload {
   refreshToken: string;
 }
 
@@ -28,7 +23,7 @@ export class RefreshTokenStrategy extends PassportStrategy(
     super(options);
   }
 
-  validate(req: Request, payload: JwtPayload): JwtPayloadWithRefreshToken {
+  validate(req: Request, payload: JWTPayload): JwtPayloadWithRefreshToken {
     const authHeader = req.get('Authorization');
     if (!authHeader) {
       throw new Error('No refresh token provided');

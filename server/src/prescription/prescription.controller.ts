@@ -2,44 +2,49 @@ import {
   Controller,
   Get,
   Post,
-  Body,
   Patch,
-  Param,
   Delete,
+  Body,
+  Param,
+  ParseUUIDPipe,
+  HttpCode,
+  HttpStatus,
 } from '@nestjs/common';
 import { PrescriptionService } from './prescription.service';
 import { CreatePrescriptionDto } from './dto/create-prescription.dto';
 import { UpdatePrescriptionDto } from './dto/update-prescription.dto';
+import { Prescription } from './entities/prescription.entity';
 
-@Controller('prescription')
+@Controller('prescriptions')
 export class PrescriptionController {
   constructor(private readonly prescriptionService: PrescriptionService) {}
 
   @Post()
-  create(@Body() createPrescriptionDto: CreatePrescriptionDto) {
-    return this.prescriptionService.create(createPrescriptionDto);
+  async create(@Body() dto: CreatePrescriptionDto): Promise<Prescription> {
+    return this.prescriptionService.create(dto);
   }
 
   @Get()
-  findAll() {
+  async findAll(): Promise<Prescription[]> {
     return this.prescriptionService.findAll();
   }
 
   @Get(':id')
-  findOne(@Param('id') id: string) {
-    return this.prescriptionService.findOne(+id);
+  async findOne(@Param('id', ParseUUIDPipe) id: string): Promise<Prescription> {
+    return this.prescriptionService.findOne(id);
   }
 
   @Patch(':id')
-  update(
-    @Param('id') id: string,
-    @Body() updatePrescriptionDto: UpdatePrescriptionDto,
-  ) {
-    return this.prescriptionService.update(+id, updatePrescriptionDto);
+  async update(
+    @Param('id', ParseUUIDPipe) id: string,
+    @Body() dto: UpdatePrescriptionDto,
+  ): Promise<Prescription> {
+    return this.prescriptionService.update(id, dto);
   }
 
   @Delete(':id')
-  remove(@Param('id') id: string) {
-    return this.prescriptionService.remove(+id);
+  @HttpCode(HttpStatus.NO_CONTENT)
+  async remove(@Param('id', ParseUUIDPipe) id: string): Promise<void> {
+    return this.prescriptionService.remove(id);
   }
 }

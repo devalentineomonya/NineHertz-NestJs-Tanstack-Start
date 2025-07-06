@@ -2,7 +2,7 @@ import { useRef } from "react";
 import { motion, useInView } from "framer-motion";
 import { Button } from "@/components/ui/button";
 import { Link } from "@tanstack/react-router";
-import { ArrowRight } from "lucide-react";
+import { ArrowRight, Clock, Video, MessageSquare, Zap } from "lucide-react";
 import { Card } from "@/components/ui/card";
 
 const HomeHero = () => {
@@ -20,8 +20,54 @@ const HomeHero = () => {
     hidden: { y: 20, opacity: 0 },
     show: { y: 0, opacity: 1 },
   };
+
   const ref = useRef(null);
   const isInView = useInView(ref, { once: false, margin: "-100px" });
+
+  // Feature cards data
+  const features = [
+    {
+      title: "24/7 Availability",
+      icon: <Clock className="w-5 h-5" />,
+      color: "bg-green-500",
+      position: "top-0 left-0",
+      animation: {
+        y: [0, -10, 0],
+        transition: { duration: 3, repeat: Infinity },
+      },
+    },
+    {
+      title: "Telemedicine",
+      icon: <Video className="w-5 h-5" />,
+      color: "bg-blue-500",
+      position: "top-1/4 -right-10",
+      animation: {
+        y: [0, -15, 0],
+        transition: { duration: 4, repeat: Infinity },
+      },
+    },
+    {
+      title: "SMS Alerts",
+      icon: <MessageSquare className="w-5 h-5" />,
+      color: "bg-indigo-500",
+      position: "bottom-10 -left-10",
+      animation: {
+        y: [0, -8, 0],
+        rotate: [0, 5, 0, -5, 0],
+        transition: { duration: 5, repeat: Infinity },
+      },
+    },
+    {
+      title: "Instant Processing",
+      icon: <Zap className="w-5 h-5" />,
+      color: "bg-emerald-500",
+      position: "bottom-0 right-0",
+      animation: {
+        scale: [1, 1.1, 1],
+        transition: { duration: 2, repeat: Infinity },
+      },
+    },
+  ];
 
   return (
     <section ref={ref} id="hero" className="min-h-[70dvh] w-full py-32">
@@ -90,15 +136,34 @@ const HomeHero = () => {
           >
             {/* Gradient background */}
             <div className="absolute inset-0 bg-gradient-to-br from-green-200 to-green-500 rounded-full blur-2xl opacity-50 -z-10 animate-pulse" />
+
+            {/* Floating Feature Cards */}
+            {features.map((feature, index) => (
+              <motion.div
+                key={index}
+                className={`absolute ${feature.position} w-32 h-32 z-20`}
+                animate={feature.animation}
+                whileHover={{
+                  scale: 1.1,
+                  rotate: [0, 5, -5, 0],
+                  transition: { duration: 0.5 },
+                }}
+                whileTap={{ scale: 0.9 }}
+              >
+                <Card className="w-full h-full p-4 flex flex-col items-center justify-center text-center bg-white/90 backdrop-blur-sm shadow-lg">
+                  <div className={`${feature.color} p-2 rounded-full mb-2`}>
+                    {feature.icon}
+                  </div>
+                  <h3 className="font-semibold text-sm">{feature.title}</h3>
+                </Card>
+              </motion.div>
+            ))}
+
             {/* Gradient border effect */}
-            <div className="p-1 rounded-2xl shadow-lg">
-              <Card className="absolute -bottom-10 -left-10 h-20 aspect-video bg-gradient-to-b from-orange-50 to-orange-100 ">
-                <h2>24/7</h2>
-              </Card>
-              <Card className="absolute -top-10 -right-10 h-20 aspect-video bg-gradient-to-b from-blue-50 to-blue-100 "></Card>
+            <div className="p-1 rounded-2xl shadow-lg z-10 relative">
               <motion.img
                 src="/home-hero.png"
-                className="rounded-2xl shadow-inner"
+                className="rounded-2xl shadow-inner w-full max-w-md"
                 whileHover={{
                   scale: 1.03,
                   transition: { duration: 0.3 },

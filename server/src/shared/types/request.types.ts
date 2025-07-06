@@ -1,12 +1,10 @@
 import { Request } from 'express';
+import { UserRole } from 'src/user/entities/user.entity';
 export interface RequestWithUser extends Request {
   user: {
     sub: string;
-    userType: string;
-    role: string;
+    email: string;
+    role: UserRole;
     refreshToken: string;
-
-    user_id?: string;
-    admin_id?: string;
   };
 }

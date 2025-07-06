@@ -49,9 +49,10 @@ export function NavMain({
               <SidebarMenuButton tooltip={item.title}>
                 <Link
                   to={item.url}
-                  className="flex items-center gap-2 size-full"
+                  className="flex items-center gap-2 size-full hover:text-green-600 text-muted-foreground"
                 >
-                  {item.icon && <item.icon className="size-6"/>}
+                  {item.icon && <item.icon className="size-4 " />}
+
                   <span>{item.title}</span>
                 </Link>
               </SidebarMenuButton>

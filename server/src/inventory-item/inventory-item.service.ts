@@ -5,11 +5,15 @@ import {
 } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { InventoryItem } from './entities/inventory-item.entity';
-import { Repository } from 'typeorm';
+import { FindOptionsWhere, LessThan, Repository } from 'typeorm';
 import { CreateInventoryItemDto } from './dto/create-inventory-item.dto';
 import { UpdateInventoryItemDto } from './dto/update-inventory-item.dto';
 import { InventoryItemResponseDto } from './dto/inventory-item-response.dto';
+import { InventoryItemPaginatedDto } from './dto/inventory-item-paginated.dto';
 import { Medicine } from '../medicine/entities/medicine.entity';
+import { Pharmacy } from 'src/pharmacy/entity/pharmacy.entity';
+import { PaginationDto } from 'src/shared/dto/pagination.dto';
+import { InventoryFilter } from './dto/inventory-filter.dto';
 
 @Injectable()
 export class InventoryItemService {
@@ -18,6 +22,8 @@ export class InventoryItemService {
     private inventoryItemRepository: Repository<InventoryItem>,
     @InjectRepository(Medicine)
     private medicineRepository: Repository<Medicine>,
+    @InjectRepository(Pharmacy)
+    private pharmacyRepository: Repository<Pharmacy>,
   ) {}
 
   async create(
@@ -32,10 +38,21 @@ export class InventoryItemService {
       );
     }
 
+    const pharmacy = await this.pharmacyRepository.findOne({
+      where: { id: createDto.pharmacyId },
+      relations: ['institution'],
+    });
+    if (!pharmacy) {
+      throw new NotFoundException(
+        `Pharmacy with ID ${createDto.pharmacyId} not found`,
+      );
+    }
+
     // Check if item already exists
     const existingItem = await this.inventoryItemRepository.findOne({
       where: {
         medicine: { id: createDto.medicineId },
+        pharmacy: { id: createDto.pharmacyId },
       },
     });
 
@@ -49,11 +66,49 @@ export class InventoryItemService {
       quantity: createDto.quantity,
       reorderThreshold: createDto.reorderThreshold,
       medicine,
+      pharmacy,
       lastRestocked: new Date(),
     });
 
     const savedItem = await this.inventoryItemRepository.save(inventoryItem);
     return this.mapToResponseDto(savedItem);
+  }
+
+  async findAll(
+    pagination: PaginationDto,
+    filters: InventoryFilter,
+  ): Promise<InventoryItemPaginatedDto> {
+    const { page = 1, limit = 10 } = pagination;
+    const skip = (page - 1) * limit;
+
+    const where: FindOptionsWhere<InventoryItem> = {};
+
+    if (filters.pharmacyId) {
+      where.pharmacy = { id: filters.pharmacyId };
+    }
+
+    if (filters.medicineId) {
+      where.medicine = { id: filters.medicineId };
+    }
+
+    if (filters.lowStock) {
+      where.quantity = LessThan(filters.reorderThreshold || 0);
+    }
+
+    const [items, total] = await this.inventoryItemRepository.findAndCount({
+      where,
+      relations: ['medicine', 'pharmacy', 'pharmacy.institution'],
+      take: limit,
+      skip,
+      order: { lastRestocked: 'DESC' },
+    });
+
+    return {
+      data: items.map((item) => this.mapToResponseDto(item)),
+      total,
+      page,
+      limit,
+    };
   }
 
   async findOne(id: string): Promise<InventoryItemResponseDto> {
@@ -141,6 +196,18 @@ export class InventoryItemService {
         barcode: item.medicine.barcode,
         createdAt: item.medicine.createdAt,
         updatedAt: item.medicine.updatedAt,
+      },
+      pharmacy: {
+        id: item.pharmacy.id,
+        name: item.pharmacy.name,
+        address: item.pharmacy.address,
+        contactPhone: item.pharmacy.contactPhone,
+        licenseNumber: item.pharmacy.licenseNumber,
+        inventoryIds:
+          item.pharmacy.inventory?.map((inventory) => inventory.id) || [],
+        orderIds: item.pharmacy.orders?.map((order) => order.id) || [],
+        pharmacistIds:
+          item.pharmacy.pharmacists?.map((pharmacist) => pharmacist.id) || [],
       },
     };
   }

@@ -6,6 +6,7 @@ import { ConfigService } from '@nestjs/config';
 import { HttpAdapterHost, NestFactory } from '@nestjs/core';
 import helmet from 'helmet';
 import * as basicAuth from 'express-basic-auth';
+import { ResponseFormatInterceptor } from './response-filter.interceptor';
 
 async function bootstrap() {
   const app = await NestFactory.create(AppModule);
@@ -17,7 +18,7 @@ async function bootstrap() {
     origin: ['http://localhost:5173', 'https://react.dev.lo'],
 
     methods: 'GET,HEAD,PUT,PATCH,POST,DELETE',
-    // allowedHeaders: 'Content-Type, Accept, Authorization',
+    allowedHeaders: 'Content-Type, Accept, Authorization',
     credentials: true,
   });
 
@@ -32,6 +33,7 @@ async function bootstrap() {
   const { httpAdapter } = app.get(HttpAdapterHost);
 
   app.useGlobalFilters(new AllExceptionsFilter(httpAdapter));
+  app.useGlobalInterceptors(new ResponseFormatInterceptor());
 
   // Swagger configuration
   const config = new DocumentBuilder()

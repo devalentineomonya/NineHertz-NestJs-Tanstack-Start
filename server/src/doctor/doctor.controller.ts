@@ -6,7 +6,7 @@ import {
   Patch,
   Param,
   Delete,
-  // Query,
+  Query,
 } from '@nestjs/common';
 import { DoctorService } from './doctor.service';
 import { CreateDoctorDto } from './dto/create-doctor.dto';
@@ -16,10 +16,10 @@ import {
   ApiOperation,
   ApiResponse,
   ApiBearerAuth,
-  // ApiQuery,
 } from '@nestjs/swagger';
 import { DoctorResponseDto } from './dto/doctor-response.dto';
-// import { DoctorPaginatedDto } from './dto/doctor-paginated.dto';
+import { PaginationDto } from 'src/shared/dto/pagination.dto';
+import { DoctorFilterDto } from './dto/doctor-filter.dto';
 
 @ApiTags('Doctor')
 @ApiBearerAuth()
@@ -40,48 +40,13 @@ export class DoctorController {
     return this.doctorService.create(createDoctorDto);
   }
 
-  // @Get()
-  // @ApiOperation({ summary: 'Get all doctors with pagination' })
-  // @ApiResponse({
-  //   status: 200,
-  //   description: 'List of doctors',
-  //   type: DoctorPaginatedDto,
-  // })
-  // @ApiQuery({
-  //   name: 'page',
-  //   required: false,
-  //   type: Number,
-  //   description: 'Page number (default: 1)',
-  // })
-  // @ApiQuery({
-  //   name: 'limit',
-  //   required: false,
-  //   type: Number,
-  //   description: 'Items per page (default: 10)',
-  // })
-  // @ApiQuery({
-  //   name: 'specialty',
-  //   required: false,
-  //   type: String,
-  //   description: 'Filter by specialty',
-  // })
-  // @ApiQuery({
-  //   name: 'institutionId',
-  //   required: false,
-  //   type: String,
-  //   description: 'Filter by institution ID',
-  // })
-  // findAll(
-  //   @Query('page') page = 1,
-  //   @Query('limit') limit = 10,
-  //   @Query('specialty') specialty?: string,
-  //   @Query('institutionId') institutionId?: string,
-  // ) {
-  //   return this.doctorService.findAll(
-  //     { page, limit },
-  //     { specialty, institutionId },
-  //   );
-  // }
+  @Get()
+  async findAll(
+    @Query() pagination: PaginationDto,
+    @Query() filters: DoctorFilterDto,
+  ) {
+    return this.doctorService.findAll(pagination, filters);
+  }
 
   @Get(':id')
   @ApiOperation({ summary: 'Get doctor by ID' })

@@ -4,15 +4,20 @@ import {
   Column,
   OneToOne,
   JoinColumn,
+  BeforeInsert,
+  BeforeUpdate,
 } from 'typeorm';
 import { Patient } from '../../patient/entities/patient.entity';
 import { Doctor } from '../../doctor/entities/doctor.entity';
 import { Admin } from '../../admin/entities/admin.entity';
+import { Pharmacist } from 'src/pharmacist/entities/pharmacist.entity';
+import * as bcrypt from 'bcrypt';
 
 export enum UserRole {
   PATIENT = 'patient',
   DOCTOR = 'doctor',
   ADMIN = 'admin',
+  PHARMACIST = 'pharmacist',
 }
 
 @Entity()
@@ -34,7 +39,7 @@ export class User {
 
   @Column({
     type: 'enum',
-    enum: ['patient', 'doctor', 'admin'],
+    enum: ['patient', 'doctor', 'admin', 'pharmacist'],
     default: 'patient',
   })
   role: string;
@@ -52,10 +57,31 @@ export class User {
   patientProfile?: Patient;
 
   @OneToOne(() => Doctor, (doctor) => doctor.user, { cascade: true })
-  @JoinColumn()
+@JoinColumn()
   doctorProfile?: Doctor;
 
   @OneToOne(() => Admin, (admin) => admin.user, { cascade: true })
   @JoinColumn()
   adminProfile?: Admin;
+
+  @OneToOne(() => Pharmacist, (pharmacist) => pharmacist.user, {
+    cascade: true,
+  })
+  @JoinColumn()
+  pharmacistProfile?: Pharmacist;
+
+  @BeforeInsert()
+  @BeforeUpdate()
+  async hashPassword() {
+    if (this.passwordHash) {
+      const salt = await bcrypt.genSalt(10);
+      this.passwordHash = await bcrypt.hash(this.passwordHash, salt);
+    }
+  }
+
+  async comparePassword(attempt: string): Promise<boolean> {
+    return this.passwordHash
+      ? await bcrypt.compare(attempt, this.passwordHash)
+      : false;
+  }
 }

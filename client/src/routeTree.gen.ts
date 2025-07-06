@@ -14,6 +14,7 @@ import { Route as IndexRouteImport } from './routes/index'
 import { Route as AuthSignupRouteImport } from './routes/auth/signup'
 import { Route as AuthSigninRouteImport } from './routes/auth/signin'
 import { Route as AuthForgetPasswordRouteImport } from './routes/auth/forget-password'
+import { Route as AuthCallbackRouteImport } from './routes/auth/callback'
 import { Route as LayoutadminAdminUsersRouteImport } from './routes/_layout/(admin)/admin.users'
 import { Route as LayoutadminAdminTransactionsRouteImport } from './routes/_layout/(admin)/admin.transactions'
 import { Route as LayoutadminAdminPrescriptionsRouteImport } from './routes/_layout/(admin)/admin.prescriptions'
@@ -48,6 +49,11 @@ const AuthSigninRoute = AuthSigninRouteImport.update({
 const AuthForgetPasswordRoute = AuthForgetPasswordRouteImport.update({
   id: '/auth/forget-password',
   path: '/auth/forget-password',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const AuthCallbackRoute = AuthCallbackRouteImport.update({
+  id: '/auth/callback',
+  path: '/auth/callback',
   getParentRoute: () => rootRouteImport,
 } as any)
 const LayoutadminAdminUsersRoute = LayoutadminAdminUsersRouteImport.update({
@@ -116,6 +122,7 @@ const LayoutadminAdminAppointmentsRoute =
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
+  '/auth/callback': typeof AuthCallbackRoute
   '/auth/forget-password': typeof AuthForgetPasswordRoute
   '/auth/signin': typeof AuthSigninRoute
   '/auth/signup': typeof AuthSignupRoute
@@ -133,6 +140,7 @@ export interface FileRoutesByFullPath {
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
+  '/auth/callback': typeof AuthCallbackRoute
   '/auth/forget-password': typeof AuthForgetPasswordRoute
   '/auth/signin': typeof AuthSigninRoute
   '/auth/signup': typeof AuthSignupRoute
@@ -152,6 +160,7 @@ export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/': typeof IndexRoute
   '/_layout': typeof LayoutRouteRouteWithChildren
+  '/auth/callback': typeof AuthCallbackRoute
   '/auth/forget-password': typeof AuthForgetPasswordRoute
   '/auth/signin': typeof AuthSigninRoute
   '/auth/signup': typeof AuthSignupRoute
@@ -171,6 +180,7 @@ export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
   fullPaths:
     | '/'
+    | '/auth/callback'
     | '/auth/forget-password'
     | '/auth/signin'
     | '/auth/signup'
@@ -188,6 +198,7 @@ export interface FileRouteTypes {
   fileRoutesByTo: FileRoutesByTo
   to:
     | '/'
+    | '/auth/callback'
     | '/auth/forget-password'
     | '/auth/signin'
     | '/auth/signup'
@@ -206,6 +217,7 @@ export interface FileRouteTypes {
     | '__root__'
     | '/'
     | '/_layout'
+    | '/auth/callback'
     | '/auth/forget-password'
     | '/auth/signin'
     | '/auth/signup'
@@ -225,6 +237,7 @@ export interface FileRouteTypes {
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
   LayoutRouteRoute: typeof LayoutRouteRouteWithChildren
+  AuthCallbackRoute: typeof AuthCallbackRoute
   AuthForgetPasswordRoute: typeof AuthForgetPasswordRoute
   AuthSigninRoute: typeof AuthSigninRoute
   AuthSignupRoute: typeof AuthSignupRoute
@@ -265,6 +278,13 @@ declare module '@tanstack/react-router' {
       path: '/auth/forget-password'
       fullPath: '/auth/forget-password'
       preLoaderRoute: typeof AuthForgetPasswordRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/auth/callback': {
+      id: '/auth/callback'
+      path: '/auth/callback'
+      fullPath: '/auth/callback'
+      preLoaderRoute: typeof AuthCallbackRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/_layout/(admin)/admin/users': {
@@ -382,6 +402,7 @@ const LayoutRouteRouteWithChildren = LayoutRouteRoute._addFileChildren(
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
   LayoutRouteRoute: LayoutRouteRouteWithChildren,
+  AuthCallbackRoute: AuthCallbackRoute,
   AuthForgetPasswordRoute: AuthForgetPasswordRoute,
   AuthSigninRoute: AuthSigninRoute,
   AuthSignupRoute: AuthSignupRoute,

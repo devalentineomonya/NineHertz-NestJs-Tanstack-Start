@@ -5,7 +5,7 @@ import {
 } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Order } from './entities/order.entity';
-import { Repository } from 'typeorm';
+import { Between, LessThanOrEqual, MoreThanOrEqual, Repository } from 'typeorm';
 import { UpdateOrderDto } from './dto/update-order.dto';
 import { OrderResponseDto } from './dto/order-response.dto';
 
@@ -16,6 +16,13 @@ import { Medicine } from '../medicine/entities/medicine.entity';
 
 import { OrderStatus } from 'src/enums/order.enum';
 import { OrderItemResponseDto } from './dto/order-item-response.dto';
+import { StripeService } from 'src/payment/stripe.service';
+import { PaystackService } from 'src/payment/paystack.service';
+import { CreateOrderDto } from './dto/create-order.dto';
+import { Pharmacy } from 'src/pharmacy/entity/pharmacy.entity';
+import { OrderFilterDto } from './dto/order-filter.dto';
+import { OrderPaginatedDto } from './dto/order-paginated.dto';
+import { PaginationDto } from 'src/shared/dto/pagination.dto';
 
 @Injectable()
 export class OrderService {
@@ -26,121 +33,128 @@ export class OrderService {
     private patientRepository: Repository<Patient>,
     @InjectRepository(OrderItem)
     private orderItemRepository: Repository<OrderItem>,
+    @InjectRepository(OrderItem)
+    private pharmacyRepository: Repository<Pharmacy>,
     @InjectRepository(Medicine)
     private medicineRepository: Repository<Medicine>,
-    // private stripeService: StripeService,
-    // private paystackService: PaystackService,
+    private stripeService: StripeService,
+    private paystackService: PaystackService,
   ) {}
 
-  // async create(createDto: CreateOrderDto): Promise<OrderResponseDto> {
-  //   const patient = await this.patientRepository.findOne({
-  //     where: { id: createDto.patientId },
-  //     relations: ['user'],
-  //   });
-  //   if (!patient) {
-  //     throw new NotFoundException(
-  //       `Patient with ID ${createDto.patientId} not found`,
-  //     );
-  //   }
+  async create(createDto: CreateOrderDto): Promise<OrderResponseDto> {
+    const patient = await this.patientRepository.findOne({
+      where: { id: createDto.patientId },
+      relations: ['user'],
+    });
+    if (!patient) {
+      throw new NotFoundException(
+        `Patient with ID ${createDto.patientId} not found`,
+      );
+    }
 
-  //   const pharmacy = await this.pharmacyRepository.findOne({
-  //     where: { id: createDto.pharmacyId },
-  //     relations: ['institution'],
-  //   });
-  //   if (!pharmacy) {
-  //     throw new NotFoundException(
-  //       `Pharmacy with ID ${createDto.pharmacyId} not found`,
-  //     );
-  //   }
+    const pharmacy = await this.pharmacyRepository.findOne({
+      where: { id: createDto.pharmacyId },
+      relations: ['institution'],
+    });
+    if (!pharmacy) {
+      throw new NotFoundException(
+        `Pharmacy with ID ${createDto.pharmacyId} not found`,
+      );
+    }
 
-  //   // Verify all medicines exist
-  //   const medicineIds = createDto.items.map((item) => item.medicineId);
-  //   const medicines = await this.medicineRepository.findByIds(medicineIds);
-  //   if (medicines.length !== medicineIds.length) {
-  //     const foundIds = medicines.map((m) => m.id);
-  //     const missingIds = medicineIds.filter((id) => !foundIds.includes(id));
-  //     throw new NotFoundException(
-  //       `Medicines not found: ${missingIds.join(', ')}`,
-  //     );
-  //   }
+    // Verify all medicines exist
+    const medicineIds = createDto.items.map((item) => item.medicineId);
+    const medicines = await this.medicineRepository.findByIds(medicineIds);
+    if (medicines.length !== medicineIds.length) {
+      const foundIds = medicines.map((m) => m.id);
+      const missingIds = medicineIds.filter((id) => !foundIds.includes(id));
+      throw new NotFoundException(
+        `Medicines not found: ${missingIds.join(', ')}`,
+      );
+    }
 
-  //   // Create order
-  //   const order = this.orderRepository.create({
-  //     status: createDto.status || OrderStatus.PENDING,
-  //     totalAmount: createDto.totalAmount,
-  //     patient,
-  //     pharmacy,
-  //   });
+    // Create order
+    const order = this.orderRepository.create({
+      status: createDto.status || OrderStatus.PENDING,
+      totalAmount: createDto.totalAmount,
+      patient,
+      pharmacy,
+    });
 
-  //   // Create order items
-  //   const orderItems = createDto.items.map((itemDto) => {
-  //     const medicine = medicines.find((m) => m.id === itemDto.medicineId);
-  //     return this.orderItemRepository.create({
-  //       quantity: itemDto.quantity,
-  //       pricePerUnit: itemDto.pricePerUnit,
-  //       medicine,
-  //     });
-  //   });
+    // Create order items
+    const orderItems = createDto.items.map((itemDto) => {
+      const medicine = medicines.find((m) => m.id === itemDto.medicineId);
+      return this.orderItemRepository.create({
+        quantity: itemDto.quantity,
+        pricePerUnit: itemDto.pricePerUnit,
+        medicine,
+      });
+    });
 
-  //   order.items = orderItems;
-  //   const savedOrder = await this.orderRepository.save(order);
-  //   return this.mapToResponseDto(savedOrder);
-  // }
+    order.items = orderItems;
+    const savedOrder = await this.orderRepository.save(order);
+    return this.mapToResponseDto(savedOrder);
+  }
 
-  // async findAll(
-  //   pagination: PaginationParams,
-  //   filters: OrderFilterParams,
-  // ): Promise<OrderPaginatedDto> {
-  //   const { page = 1, limit = 10 } = pagination;
-  //   const skip = (page - 1) * limit;
+  async findAll(
+    pagination: PaginationDto,
+    filters: OrderFilterDto,
+  ): Promise<OrderPaginatedDto> {
+    const { page = 1, limit = 10 } = pagination;
+    const skip = (page - 1) * limit;
 
-  //   const where: any = {};
+    const where: {
+      status?: OrderStatus;
+      patient?: { id: string };
+      pharmacy?: { id: string };
+      orderDate?: any;
+    } = {};
 
-  //   if (filters.status) {
-  //     where.status = filters.status;
-  //   }
+    if (filters.status) {
+      where.status = filters.status;
+    }
 
-  //   if (filters.patientId) {
-  //     where.patient = { id: filters.patientId };
-  //   }
+    if (filters.patientId) {
+      where.patient = { id: filters.patientId };
+    }
 
-  //   if (filters.pharmacyId) {
-  //     where.pharmacy = { id: filters.pharmacyId };
-  //   }
+    if (filters.pharmacyId) {
+      where.pharmacy = { id: filters.pharmacyId };
+    }
 
-  //   if (filters.fromDate && filters.toDate) {
-  //     where.orderDate = Between(
-  //       new Date(filters.fromDate),
-  //       new Date(filters.toDate),
-  //     );
-  //   } else if (filters.fromDate) {
-  //     where.orderDate = MoreThanOrEqual(new Date(filters.fromDate));
-  //   } else if (filters.toDate) {
-  //     where.orderDate = LessThanOrEqual(new Date(filters.toDate));
-  //   }
+    if (filters.fromDate && filters.toDate) {
+      where.orderDate = Between(
+        new Date(filters.fromDate),
+        new Date(filters.toDate),
+      );
+    } else if (filters.fromDate) {
+      where.orderDate = MoreThanOrEqual(new Date(filters.fromDate));
+    } else if (filters.toDate) {
+      where.orderDate = LessThanOrEqual(new Date(filters.toDate));
+    }
 
-  //   const [orders, total] = await this.orderRepository.findAndCount({
-  //     where,
-  //     relations: [
-  //       'patient',
-  //       'patient.user',
-  //       'pharmacy',
-  //       'pharmacy.institution',
-  //       'items',
-  //       'items.medicine',
-  //     ],
-  //     take: limit,
-  //     skip,
-  //     order: { orderDate: 'DESC' },
-  //   });
+    const [orders, total] = await this.orderRepository.findAndCount({
+      where,
+      relations: [
+        'patient',
+        'patient.user',
+        'pharmacy',
+        'pharmacy.institution',
+        'items',
+        'items.medicine',
+      ],
+      take: limit,
+      skip,
+      order: { orderDate: 'DESC' },
+    });
 
-  //   return {
-  //     data: orders.map(this.mapToResponseDto),
-  //     total,
-  //     page,
-  //     limit,
-  //   };
-  // }
+    return {
+      data: orders.map((order) => this.mapToResponseDto(order)),
+      total,
+      page,
+      limit,
+    };
+  }
 
   async findOne(id: string): Promise<OrderResponseDto> {
     const order = await this.orderRepository.findOne({
@@ -339,7 +353,7 @@ export class OrderService {
     }
   }
 
-  private mapToResponseDto(order: Order): OrderResponseDto {
+  private mapToResponseDto = (order: Order): OrderResponseDto => {
     return {
       id: order.id,
       orderDate: order.orderDate,
@@ -362,12 +376,24 @@ export class OrderService {
           createdAt: order.patient.user.createdAt,
         },
       },
+      pharmacy: {
+        id: order.pharmacy.id,
+        name: order.pharmacy.name,
+        address: order.pharmacy.address,
+        contactPhone: order.pharmacy.contactPhone,
+        licenseNumber: order.pharmacy.licenseNumber,
+        inventoryIds:
+          order.pharmacy.inventory?.map((inventory) => inventory.id) || [],
+        orderIds: order.pharmacy.orders?.map((order) => order.id) || [],
+        pharmacistIds:
+          order.pharmacy.pharmacists?.map((pharmacist) => pharmacist.id) || [],
+      },
 
       items: order.items.map((item) => this.mapItemToResponseDto(item)),
       createdAt: order.createdAt,
       updatedAt: order.updatedAt,
     };
-  }
+  };
 
   private mapItemToResponseDto(item: OrderItem): OrderItemResponseDto {
     return {

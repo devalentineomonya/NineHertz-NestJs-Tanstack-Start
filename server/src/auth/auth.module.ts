@@ -8,6 +8,10 @@ import { AccessTokenStrategy } from './strategy/access-token.strategy';
 import { PermissionHelper } from 'src/shared/helpers/permission.helper';
 import { ContactHelper } from 'src/shared/helpers/contact.helper';
 import { GoogleStrategy } from './strategy/google.strategy';
+import { User } from 'src/user/entities/user.entity';
+import { TypeOrmModule } from '@nestjs/typeorm';
+import { Admin } from 'src/admin/entities/admin.entity';
+import { UserService } from 'src/user/user.service';
 
 @Module({
   imports: [
@@ -15,6 +19,7 @@ import { GoogleStrategy } from './strategy/google.strategy';
       global: true,
     }),
     PassportModule,
+    TypeOrmModule.forFeature([User, Admin]),
   ],
   controllers: [AuthController],
   providers: [
@@ -24,6 +29,7 @@ import { GoogleStrategy } from './strategy/google.strategy';
     GoogleStrategy,
     PermissionHelper,
     ContactHelper,
+    UserService,
   ],
 })
 export class AuthModule {}

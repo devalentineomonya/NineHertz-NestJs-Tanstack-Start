@@ -1,26 +1,126 @@
-import { Injectable } from '@nestjs/common';
+import {
+  Injectable,
+  NotFoundException,
+  BadRequestException,
+} from '@nestjs/common';
+import { InjectRepository } from '@nestjs/typeorm';
+import { Repository } from 'typeorm';
+import { Prescription } from './entities/prescription.entity';
 import { CreatePrescriptionDto } from './dto/create-prescription.dto';
 import { UpdatePrescriptionDto } from './dto/update-prescription.dto';
+import { Patient } from '../patient/entities/patient.entity';
+import { Doctor } from '../doctor/entities/doctor.entity';
+import { Pharmacy } from '../pharmacy/entity/pharmacy.entity';
 
 @Injectable()
 export class PrescriptionService {
-  create(createPrescriptionDto: CreatePrescriptionDto) {
-    return 'This action adds a new prescription';
+  constructor(
+    @InjectRepository(Prescription)
+    private readonly prescriptionRepo: Repository<Prescription>,
+    @InjectRepository(Patient)
+    private readonly patientRepo: Repository<Patient>,
+    @InjectRepository(Doctor)
+    private readonly doctorRepo: Repository<Doctor>,
+    @InjectRepository(Pharmacy)
+    private readonly pharmacyRepo: Repository<Pharmacy>,
+  ) {}
+
+  async create(dto: CreatePrescriptionDto): Promise<Prescription> {
+    const patient = await this.patientRepo.findOneBy({ id: dto.patientId });
+    if (!patient) throw new NotFoundException('Patient not found');
+
+    const doctor = await this.doctorRepo.findOneBy({ id: dto.doctorId });
+    if (!doctor) throw new NotFoundException('Doctor not found');
+
+    let pharmacy: Pharmacy | undefined = undefined;
+    if (dto.pharmacyId) {
+      pharmacy =
+        (await this.pharmacyRepo.findOneBy({ id: dto.pharmacyId })) ||
+        undefined;
+      if (!pharmacy) throw new NotFoundException('Pharmacy not found');
+    }
+
+    const prescription = this.prescriptionRepo.create({
+      medicationDetails: dto.medicationDetails,
+      issueDate: new Date(dto.issueDate),
+      expiryDate: new Date(dto.expiryDate),
+      patient,
+      prescribedBy: doctor,
+      fulfilledBy: pharmacy,
+      isFulfilled: !!dto.pharmacyId,
+    });
+
+    return this.prescriptionRepo.save(prescription);
   }
 
-  findAll() {
-    return `This action returns all prescription`;
+  async findAll(): Promise<Prescription[]> {
+    return this.prescriptionRepo.find({
+      relations: ['patient', 'prescribedBy', 'fulfilledBy'],
+    });
   }
 
-  findOne(id: number) {
-    return `This action returns a #${id} prescription`;
+  async findOne(id: string): Promise<Prescription> {
+    const prescription = await this.prescriptionRepo.findOne({
+      where: { id },
+      relations: ['patient', 'prescribedBy', 'fulfilledBy'],
+    });
+    if (!prescription) throw new NotFoundException('Prescription not found');
+    return prescription;
   }
 
-  update(id: number, updatePrescriptionDto: UpdatePrescriptionDto) {
-    return `This action updates a #${id} prescription`;
+  async update(id: string, dto: UpdatePrescriptionDto): Promise<Prescription> {
+    const prescription = await this.findOne(id);
+
+    // Handle pharmacy fulfillment
+    if (
+      dto.isFulfilled === true &&
+      !dto.pharmacyId &&
+      !prescription.fulfilledBy
+    ) {
+      throw new BadRequestException(
+        'Pharmacy ID is required when fulfilling prescription',
+      );
+    }
+
+    // Update relationships
+    if (dto.patientId) {
+      const patient = await this.patientRepo.findOneBy({ id: dto.patientId });
+      if (!patient) throw new NotFoundException('Patient not found');
+      prescription.patient = patient;
+    }
+
+    if (dto.doctorId) {
+      const doctor = await this.doctorRepo.findOneBy({ id: dto.doctorId });
+      if (!doctor) throw new NotFoundException('Doctor not found');
+      prescription.prescribedBy = doctor;
+    }
+
+    if (dto.pharmacyId) {
+      const pharmacy = await this.pharmacyRepo.findOneBy({
+        id: dto.pharmacyId,
+      });
+      if (!pharmacy) throw new NotFoundException('Pharmacy not found');
+      prescription.fulfilledBy = pharmacy;
+      prescription.isFulfilled = true;
+    }
+
+    // Update direct fields
+    if (dto.medicationDetails)
+      prescription.medicationDetails = dto.medicationDetails;
+    if (dto.issueDate) prescription.issueDate = new Date(dto.issueDate);
+    if (dto.expiryDate) prescription.expiryDate = new Date(dto.expiryDate);
+    if (dto.isFulfilled === false) {
+      prescription.isFulfilled = false;
+      prescription.fulfilledBy = undefined;
+    }
+
+    return this.prescriptionRepo.save(prescription);
   }
 
-  remove(id: number) {
-    return `This action removes a #${id} prescription`;
+  async remove(id: string): Promise<void> {
+    const result = await this.prescriptionRepo.delete(id);
+    if (result.affected === 0) {
+      throw new NotFoundException('Prescription not found');
+    }
   }
 }

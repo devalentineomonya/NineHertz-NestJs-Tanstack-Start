@@ -1,7 +1,7 @@
 import { Entity, PrimaryGeneratedColumn, Column, ManyToOne } from 'typeorm';
-import { Patient } from '../../patient/entities/patient.entity';
-import { Doctor } from '../../doctor/entities/doctor.entity';
-
+import { Patient } from 'src/patient/entities/patient.entity';
+import { Doctor } from 'src/doctor/entities/doctor.entity';
+import { Pharmacy } from 'src/pharmacy/entity/pharmacy.entity';
 @Entity()
 export class Prescription {
   @PrimaryGeneratedColumn('uuid')
@@ -24,4 +24,7 @@ export class Prescription {
 
   @ManyToOne(() => Doctor, (doctor) => doctor.prescriptions)
   prescribedBy: Doctor;
+
+  @ManyToOne(() => Pharmacy, { nullable: true })
+  fulfilledBy?: Pharmacy;
 }

@@ -6,7 +6,7 @@ import {
   Patch,
   Param,
   Delete,
-  // Query,
+  Query,
 } from '@nestjs/common';
 import { InventoryItemService } from './inventory-item.service';
 import { CreateInventoryItemDto } from './dto/create-inventory-item.dto';
@@ -16,10 +16,11 @@ import {
   ApiOperation,
   ApiResponse,
   ApiBearerAuth,
-  // ApiQuery,
 } from '@nestjs/swagger';
 import { InventoryItemResponseDto } from './dto/inventory-item-response.dto';
-// import { InventoryItemPaginatedDto } from './dto/inventory-item-paginated.dto';
+import { InventoryItemPaginatedDto } from './dto/inventory-item-paginated.dto';
+import { InventoryFilter } from './dto/inventory-filter.dto';
+import { PaginationDto } from 'src/shared/dto/pagination.dto';
 
 @ApiTags('Inventory')
 @ApiBearerAuth()
@@ -40,55 +41,19 @@ export class InventoryItemController {
     return this.inventoryItemService.create(createInventoryItemDto);
   }
 
-  // @Get()
-  // @ApiOperation({ summary: 'Get all inventory items with pagination' })
-  // @ApiResponse({
-  //   status: 200,
-  //   description: 'List of inventory items',
-  //   type: InventoryItemPaginatedDto,
-  // })
-  // @ApiQuery({
-  //   name: 'page',
-  //   required: false,
-  //   type: Number,
-  //   description: 'Page number (default: 1)',
-  // })
-  // @ApiQuery({
-  //   name: 'limit',
-  //   required: false,
-  //   type: Number,
-  //   description: 'Items per page (default: 10)',
-  // })
-  // @ApiQuery({
-  //   name: 'pharmacyId',
-  //   required: false,
-  //   type: String,
-  //   description: 'Filter by pharmacy ID',
-  // })
-  // @ApiQuery({
-  //   name: 'medicineId',
-  //   required: false,
-  //   type: String,
-  //   description: 'Filter by medicine ID',
-  // })
-  // @ApiQuery({
-  //   name: 'lowStock',
-  //   required: false,
-  //   type: Boolean,
-  //   description: 'Filter items below reorder threshold',
-  // })
-  // findAll(
-  //   @Query('page') page = 1,
-  //   @Query('limit') limit = 10,
-  //   @Query('pharmacyId') pharmacyId?: string,
-  //   @Query('medicineId') medicineId?: string,
-  //   @Query('lowStock') lowStock?: boolean,
-  // ) {
-  //   return this.inventoryItemService.findAll(
-  //     { page, limit },
-  //     { pharmacyId, medicineId, lowStock },
-  //   );
-  // }
+  @Get()
+  @ApiOperation({ summary: 'Get all inventory items with pagination' })
+  @ApiResponse({
+    status: 200,
+    description: 'List of inventory items',
+    type: InventoryItemPaginatedDto,
+  })
+  findAll(
+    @Query() pagination: PaginationDto,
+    @Query() filters: InventoryFilter,
+  ) {
+    return this.inventoryItemService.findAll(pagination, filters);
+  }
 
   @Get(':id')
   @ApiOperation({ summary: 'Get inventory item by ID' })

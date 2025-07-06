@@ -6,7 +6,7 @@ import {
   Patch,
   Param,
   Delete,
-  // Query,
+  Query,
 } from '@nestjs/common';
 import { MedicineService } from './medicine.service';
 import { CreateMedicineDto } from './dto/create-medicine.dto';
@@ -16,10 +16,11 @@ import {
   ApiOperation,
   ApiResponse,
   ApiBearerAuth,
-  // ApiQuery,
 } from '@nestjs/swagger';
 import { MedicineResponseDto } from './dto/medicine-response.dto';
-// import { MedicinePaginatedDto } from './dto/medicine-paginated.dto';
+import { MedicinePaginatedDto } from './dto/medicine-paginated.dto';
+import { PaginationDto } from 'src/shared/dto/pagination.dto';
+import { MedicineFilter } from './dto/medicine-filter.dto';
 
 @ApiTags('Medicine')
 @ApiBearerAuth()
@@ -39,62 +40,16 @@ export class MedicineController {
     return this.medicineService.create(createMedicineDto);
   }
 
-  // @Get()
-  // @ApiOperation({ summary: 'Get all medicines with pagination' })
-  // @ApiResponse({
-  //   status: 200,
-  //   description: 'List of medicines',
-  //   type: MedicinePaginatedDto,
-  // })
-  // @ApiQuery({
-  //   name: 'page',
-  //   required: false,
-  //   type: Number,
-  //   description: 'Page number (default: 1)',
-  // })
-  // @ApiQuery({
-  //   name: 'limit',
-  //   required: false,
-  //   type: Number,
-  //   description: 'Items per page (default: 10)',
-  // })
-  // @ApiQuery({
-  //   name: 'search',
-  //   required: false,
-  //   type: String,
-  //   description: 'Search by name or generic name',
-  // })
-  // @ApiQuery({
-  //   name: 'manufacturer',
-  //   required: false,
-  //   type: String,
-  //   description: 'Filter by manufacturer',
-  // })
-  // @ApiQuery({
-  //   name: 'minPrice',
-  //   required: false,
-  //   type: Number,
-  //   description: 'Minimum price filter',
-  // })
-  // @ApiQuery({
-  //   name: 'maxPrice',
-  //   required: false,
-  //   type: Number,
-  //   description: 'Maximum price filter',
-  // })
-  // findAll(
-  //   @Query('page') page = 1,
-  //   @Query('limit') limit = 10,
-  //   @Query('search') search?: string,
-  //   @Query('manufacturer') manufacturer?: string,
-  //   @Query('minPrice') minPrice?: number,
-  //   @Query('maxPrice') maxPrice?: number,
-  // ) {
-  //   return this.medicineService.findAll(
-  //     { page, limit },
-  //     { search, manufacturer, minPrice, maxPrice },
-  //   );
-  // }
+  @Get()
+  @ApiOperation({ summary: 'Get all medicines with pagination' })
+  @ApiResponse({
+    status: 200,
+    description: 'List of medicines',
+    type: MedicinePaginatedDto,
+  })
+  findAll(@Query() pagination: PaginationDto, filter: MedicineFilter) {
+    return this.medicineService.findAll(pagination, filter);
+  }
 
   @Get(':id')
   @ApiOperation({ summary: 'Get medicine by ID' })

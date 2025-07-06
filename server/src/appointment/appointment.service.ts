@@ -5,19 +5,16 @@ import {
 } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Appointment } from './entities/appointment.entity';
-import {
-  Repository,
-  // FindOptionsWhere
-} from 'typeorm';
-// import { CreateAppointmentDto } from './dto/create-appointment.dto';
+import { Repository, FindOptionsWhere } from 'typeorm';
+import { CreateAppointmentDto } from './dto/create-appointment.dto';
 import { UpdateAppointmentDto } from './dto/update-appointment.dto';
 import { AppointmentResponseDto } from './dto/appointment-response.dto';
-// import { AppointmentPaginatedDto } from './dto/appointment-paginated.dto';
+import { AppointmentPaginatedDto } from './dto/appointment-paginated.dto';
 import { Patient } from '../patient/entities/patient.entity';
 import { Doctor } from '../doctor/entities/doctor.entity';
 import { AppointmentStatus } from 'src/enums/appointment.enum';
-// import { PaginationParams } from '../common/dto/pagination-params.dto';
-// import { AppointmentFilterParams } from './dto/appointment-filter-params.dto';
+import { PaginationDto } from 'src/shared/dto/pagination.dto';
+import { AppointmentFilter } from './dto/appointment-filter.dto';
 
 @Injectable()
 export class AppointmentService {
@@ -30,86 +27,89 @@ export class AppointmentService {
     private doctorRepository: Repository<Doctor>,
   ) {}
 
-  // async create(
-  //   createAppointmentDto: CreateAppointmentDto,
-  // ): Promise<AppointmentResponseDto> {
-  //   const { patientId, doctorId, ...appointmentData } = createAppointmentDto;
+  async create(
+    createAppointmentDto: CreateAppointmentDto,
+  ): Promise<AppointmentResponseDto> {
+    const { patientId, doctorId, ...appointmentData } = createAppointmentDto;
 
-  //   const patient = await this.patientRepository.findOne({
-  //     where: { id: patientId },
-  //   });
-  //   if (!patient) {
-  //     throw new NotFoundException(`Patient with ID ${patientId} not found`);
-  //   }
+    const patient = await this.patientRepository.findOne({
+      where: { id: patientId },
+    });
+    if (!patient) {
+      throw new NotFoundException(`Patient with ID ${patientId} not found`);
+    }
 
-  //   const doctor = await this.doctorRepository.findOne({
-  //     where: { id: doctorId },
-  //   });
-  //   if (!doctor) {
-  //     throw new NotFoundException(`Doctor with ID ${doctorId} not found`);
-  //   }
+    const doctor = await this.doctorRepository.findOne({
+      where: { id: doctorId },
+    });
+    if (!doctor) {
+      throw new NotFoundException(`Doctor with ID ${doctorId} not found`);
+    }
 
-  //   // Check for conflicting appointments
-  //   const conflict = await this.appointmentRepository.findOne({
-  //     where: {
-  //       doctor: { id: doctorId },
-  //       datetime: appointmentData.datetime,
-  //       status: 'scheduled',
-  //     },
-  //   });
+    // Check for conflicting appointments
+    const conflict = await this.appointmentRepository.findOne({
+      where: {
+        doctor: { id: doctorId },
+        datetime: appointmentData.datetime,
+        status: AppointmentStatus.SCHEDULED as AppointmentStatus,
+      },
+    });
 
-  //   if (conflict) {
-  //     throw new BadRequestException(
-  //       'Doctor already has an appointment at this time',
-  //     );
-  //   }
+    if (conflict) {
+      throw new BadRequestException(
+        'Doctor already has an appointment at this time',
+      );
+    }
 
-  //   const appointment = this.appointmentRepository.create({
-  //     ...appointmentData,
-  //     patient,
-  //     doctor,
-  //   });
+    const appointment = this.appointmentRepository.create({
+      ...appointmentData,
+      patient,
+      doctor,
+      status: appointmentData.status as AppointmentStatus,
+    });
 
-  //   const savedAppointment = await this.appointmentRepository.save(appointment);
-  //   return this.mapToResponseDto(savedAppointment);
-  // }
+    const savedAppointment = await this.appointmentRepository.save(appointment);
+    return this.mapToResponseDto(savedAppointment);
+  }
 
-  // async findAll(
-  //   pagination: PaginationParams,
-  //   filters: AppointmentFilterParams,
-  // ): Promise<AppointmentPaginatedDto> {
-  //   const { page = 1, limit = 10 } = pagination;
-  //   const skip = (page - 1) * limit;
+  async findAll(
+    pagination: PaginationDto,
+    filters: AppointmentFilter,
+  ): Promise<AppointmentPaginatedDto> {
+    const { page = 1, limit = 10 } = pagination;
+    const skip = (page - 1) * limit;
 
-  //   const where: FindOptionsWhere<Appointment> = {};
+    const where: FindOptionsWhere<Appointment> = {};
 
-  //   if (filters.status) {
-  //     where.status = filters.status;
-  //   }
-  //   if (filters.patientId) {
-  //     where.patient = { id: filters.patientId };
-  //   }
-  //   if (filters.doctorId) {
-  //     where.doctor = { id: filters.doctorId };
-  //   }
+    if (filters.status) {
+      where.status = filters.status;
+    }
+    if (filters.patientId) {
+      where.patient = { id: filters.patientId };
+    }
+    if (filters.doctorId) {
+      where.doctor = { id: filters.doctorId };
+    }
 
-  //   const [appointments, total] = await this.appointmentRepository.findAndCount(
-  //     {
-  //       where,
-  //       relations: ['patient', 'doctor', 'doctor.user', 'patient.user'],
-  //       take: limit,
-  //       skip,
-  //       order: { datetime: 'ASC' },
-  //     },
-  //   );
+    const [appointments, total] = await this.appointmentRepository.findAndCount(
+      {
+        where,
+        relations: ['patient', 'doctor', 'doctor.user', 'patient.user'],
+        take: limit,
+        skip,
+        order: { datetime: 'ASC' },
+      },
+    );
 
-  //   return {
-  //     data: appointments.map(this.mapToResponseDto),
-  //     total,
-  //     page,
-  //     limit,
-  //   };
-  // }
+    return {
+      data: appointments.map((appointment) =>
+        this.mapToResponseDto(appointment),
+      ),
+      total,
+      page,
+      limit,
+    };
+  }
 
   async findOne(id: string): Promise<AppointmentResponseDto> {
     const appointment = await this.appointmentRepository.findOne({

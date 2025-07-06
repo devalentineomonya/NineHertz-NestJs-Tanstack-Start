@@ -17,6 +17,9 @@ import { createKeyv, Keyv } from '@keyv/redis';
 import { CacheableMemory } from 'cacheable';
 import { ThrottlerGuard, ThrottlerModule } from '@nestjs/throttler';
 import { APP_INTERCEPTOR, APP_GUARD } from '@nestjs/core';
+import { AuthModule } from './auth/auth.module';
+import { PharmacyModule } from './pharmacy/pharmacy.module';
+import { PharmacistModule } from './pharmacist/pharmacist.module';
 
 @Module({
   imports: [
@@ -24,14 +27,17 @@ import { APP_INTERCEPTOR, APP_GUARD } from '@nestjs/core';
     PatientModule,
     DoctorModule,
     AdminModule,
+    PharmacistModule,
     AppointmentModule,
     ConsultationModule,
     PrescriptionModule,
     MedicineModule,
     InventoryItemModule,
+    PharmacyModule,
     OrderModule,
     StreamModule,
     DatabaseModule,
+    AuthModule,
     CacheModule.registerAsync({
       imports: [ConfigModule],
       inject: [ConfigService],

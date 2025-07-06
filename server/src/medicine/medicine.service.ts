@@ -9,9 +9,9 @@ import { Repository } from 'typeorm';
 import { CreateMedicineDto } from './dto/create-medicine.dto';
 import { UpdateMedicineDto } from './dto/update-medicine.dto';
 import { MedicineResponseDto } from './dto/medicine-response.dto';
-// import { MedicinePaginatedDto } from './dto/medicine-paginated.dto';
-// import { PaginationParams } from '../common/dto/pagination-params.dto';
-// import { MedicineFilterParams } from './dto/medicine-filter-params.dto';
+import { MedicinePaginatedDto } from './dto/medicine-paginated.dto';
+import { PaginationDto } from 'src/shared/dto/pagination.dto';
+import { MedicineFilter } from './dto/medicine-filter.dto';
 import { InventoryItem } from '../inventory-item/entities/inventory-item.entity';
 
 @Injectable()
@@ -41,52 +41,52 @@ export class MedicineService {
     return this.mapToResponseDto(savedMedicine);
   }
 
-  // async findAll(
-  //   pagination: PaginationParams,
-  //   filters: MedicineFilterParams,
-  // ): Promise<MedicinePaginatedDto> {
-  //   const { page = 1, limit = 10 } = pagination;
-  //   const skip = (page - 1) * limit;
+  async findAll(
+    pagination: PaginationDto,
+    filters: MedicineFilter,
+  ): Promise<MedicinePaginatedDto> {
+    const { page = 1, limit = 10 } = pagination;
+    const skip = (page - 1) * limit;
 
-  //   const query = this.medicineRepository
-  //     .createQueryBuilder('medicine')
-  //     .take(limit)
-  //     .skip(skip);
+    const query = this.medicineRepository
+      .createQueryBuilder('medicine')
+      .take(limit)
+      .skip(skip);
 
-  //   if (filters.search) {
-  //     query.andWhere(
-  //       `(medicine.name ILIKE :search OR medicine.genericName ILIKE :search)`,
-  //       { search: `%${filters.search}%` },
-  //     );
-  //   }
+    if (filters.search) {
+      query.andWhere(
+        `(medicine.name ILIKE :search OR medicine.genericName ILIKE :search)`,
+        { search: `%${filters.search}%` },
+      );
+    }
 
-  //   if (filters.manufacturer) {
-  //     query.andWhere('medicine.manufacturer ILIKE :manufacturer', {
-  //       manufacturer: `%${filters.manufacturer}%`,
-  //     });
-  //   }
+    if (filters.manufacturer) {
+      query.andWhere('medicine.manufacturer ILIKE :manufacturer', {
+        manufacturer: `%${filters.manufacturer}%`,
+      });
+    }
 
-  //   if (filters.minPrice !== undefined) {
-  //     query.andWhere('medicine.price >= :minPrice', {
-  //       minPrice: filters.minPrice,
-  //     });
-  //   }
+    if (filters.minPrice !== undefined) {
+      query.andWhere('medicine.price >= :minPrice', {
+        minPrice: filters.minPrice,
+      });
+    }
 
-  //   if (filters.maxPrice !== undefined) {
-  //     query.andWhere('medicine.price <= :maxPrice', {
-  //       maxPrice: filters.maxPrice,
-  //     });
-  //   }
+    if (filters.maxPrice !== undefined) {
+      query.andWhere('medicine.price <= :maxPrice', {
+        maxPrice: filters.maxPrice,
+      });
+    }
 
-  //   const [medicines, total] = await query.getManyAndCount();
+    const [medicines, total] = await query.getManyAndCount();
 
-  //   return {
-  //     data: medicines.map(this.mapToResponseDto),
-  //     total,
-  //     page,
-  //     limit,
-  //   };
-  // }
+    return {
+      data: medicines.map((medicine) => this.mapToResponseDto(medicine)),
+      total,
+      page,
+      limit,
+    };
+  }
 
   async findOne(id: string): Promise<MedicineResponseDto> {
     const medicine = await this.medicineRepository.findOne({

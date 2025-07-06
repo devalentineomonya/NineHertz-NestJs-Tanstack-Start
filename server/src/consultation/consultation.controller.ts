@@ -6,7 +6,7 @@ import {
   Patch,
   Param,
   Delete,
-  // Query,
+  Query,
 } from '@nestjs/common';
 import { ConsultationService } from './consultation.service';
 import { CreateConsultationDto } from './dto/create-consultation.dto';
@@ -16,10 +16,10 @@ import {
   ApiOperation,
   ApiResponse,
   ApiBearerAuth,
-  // ApiQuery,
+  ApiQuery,
 } from '@nestjs/swagger';
 import { ConsultationResponseDto } from './dto/consultation-response.dto';
-// import { ConsultationPaginatedDto } from './dto/consultation-paginated.dto';
+import { ConsultationPaginatedDto } from './dto/consultation-paginated.dto';
 
 @ApiTags('Consultation')
 @ApiBearerAuth()
@@ -40,55 +40,55 @@ export class ConsultationController {
     return this.consultationService.create(createConsultationDto);
   }
 
-  // @Get()
-  // @ApiOperation({ summary: 'Get all consultations with pagination' })
-  // @ApiResponse({
-  //   status: 200,
-  //   description: 'List of consultations',
-  //   type: ConsultationPaginatedDto,
-  // })
-  // @ApiQuery({
-  //   name: 'page',
-  //   required: false,
-  //   type: Number,
-  //   description: 'Page number (default: 1)',
-  // })
-  // @ApiQuery({
-  //   name: 'limit',
-  //   required: false,
-  //   type: Number,
-  //   description: 'Items per page (default: 10)',
-  // })
-  // @ApiQuery({
-  //   name: 'patientId',
-  //   required: false,
-  //   type: String,
-  //   description: 'Filter by patient ID',
-  // })
-  // @ApiQuery({
-  //   name: 'doctorId',
-  //   required: false,
-  //   type: String,
-  //   description: 'Filter by doctor ID',
-  // })
-  // @ApiQuery({
-  //   name: 'date',
-  //   required: false,
-  //   type: String,
-  //   description: 'Filter by date (YYYY-MM-DD)',
-  // })
-  // findAll(
-  //   @Query('page') page = 1,
-  //   @Query('limit') limit = 10,
-  //   @Query('patientId') patientId?: string,
-  //   @Query('doctorId') doctorId?: string,
-  //   @Query('date') date?: string,
-  // ) {
-  //   return this.consultationService.findAll(
-  //     { page, limit },
-  //     { patientId, doctorId, date },
-  //   );
-  // }
+  @Get()
+  @ApiOperation({ summary: 'Get all consultations with pagination' })
+  @ApiResponse({
+    status: 200,
+    description: 'List of consultations',
+    type: ConsultationPaginatedDto,
+  })
+  @ApiQuery({
+    name: 'page',
+    required: false,
+    type: Number,
+    description: 'Page number (default: 1)',
+  })
+  @ApiQuery({
+    name: 'limit',
+    required: false,
+    type: Number,
+    description: 'Items per page (default: 10)',
+  })
+  @ApiQuery({
+    name: 'patientId',
+    required: false,
+    type: String,
+    description: 'Filter by patient ID',
+  })
+  @ApiQuery({
+    name: 'doctorId',
+    required: false,
+    type: String,
+    description: 'Filter by doctor ID',
+  })
+  @ApiQuery({
+    name: 'date',
+    required: false,
+    type: String,
+    description: 'Filter by date (YYYY-MM-DD)',
+  })
+  findAll(
+    @Query('page') page = 1,
+    @Query('limit') limit = 10,
+    @Query('patientId') patientId?: string,
+    @Query('doctorId') doctorId?: string,
+    @Query('date') date?: string,
+  ) {
+    return this.consultationService.findAll(
+      { page, limit },
+      { patientId, doctorId, date },
+    );
+  }
 
   @Get(':id')
   @ApiOperation({ summary: 'Get consultation by ID' })

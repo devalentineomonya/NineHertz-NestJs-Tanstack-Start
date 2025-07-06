@@ -9,7 +9,7 @@ import { AdminPaginatedDto } from './dto/admin-paginated.dto';
 import { UserService } from '../user/user.service';
 import { AdminType } from 'src/enums/admin.enum';
 import { UserRole } from 'src/user/entities/user.entity';
-
+import { PaginationDto } from 'src/shared/dto/pagination.dto';
 @Injectable()
 export class AdminService {
   constructor(
@@ -35,7 +35,7 @@ export class AdminService {
   }
 
   async findAll(
-    pagination: AdminPaginatedDto,
+    pagination: PaginationDto,
     type?: string,
   ): Promise<AdminPaginatedDto> {
     const { page = 1, limit = 10 } = pagination;
