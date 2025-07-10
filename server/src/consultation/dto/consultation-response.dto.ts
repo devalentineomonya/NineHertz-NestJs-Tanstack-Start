@@ -1,7 +1,7 @@
-// src/consultation/dto/consultation-response.dto.ts
 import { ApiProperty } from '@nestjs/swagger';
 import { PatientResponseDto } from '../../patient/dto/patient-response.dto';
 import { DoctorResponseDto } from '../../doctor/dto/doctor-response.dto';
+import { ConsultationStatus } from '../entities/consultation.entity';
 
 export class ConsultationResponseDto {
   @ApiProperty({
@@ -63,4 +63,11 @@ export class ConsultationResponseDto {
     description: 'Last update timestamp',
   })
   updatedAt: Date;
+
+  @ApiProperty({
+    example: 'ACTIVE',
+    description: 'Consultation status',
+    enum: ConsultationStatus,
+  })
+  status: ConsultationStatus;
 }

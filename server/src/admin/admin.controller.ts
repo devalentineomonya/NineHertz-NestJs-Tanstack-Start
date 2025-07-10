@@ -52,7 +52,7 @@ export class AdminController {
   @ApiQuery({
     name: 'type',
     required: false,
-    enum: ['superadmin', 'support'],
+    enum: ['super', 'support'],
     description: 'Filter by admin type',
   })
   findAll(@Query() pagination: PaginationDto, @Query('type') type?: string) {

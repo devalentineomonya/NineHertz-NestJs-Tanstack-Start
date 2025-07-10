@@ -4,6 +4,7 @@ import {
   Column,
   OneToOne,
   OneToMany,
+  Index,
 } from 'typeorm';
 import { User } from '../../user/entities/user.entity';
 import { Appointment } from '../../appointment/entities/appointment.entity';
@@ -11,6 +12,7 @@ import { Consultation } from '../../consultation/entities/consultation.entity';
 import { Prescription } from '../../prescription/entities/prescription.entity';
 
 @Entity()
+@Index(['specialty', 'status'])
 export class Doctor {
   @PrimaryGeneratedColumn('uuid')
   id: string;
@@ -29,6 +31,7 @@ export class Doctor {
 
   @Column({ nullable: true })
   licenseNumber: string;
+
   @Column({ type: 'timestamp', default: () => 'CURRENT_TIMESTAMP' })
   createdAt: Date;
 
@@ -38,6 +41,14 @@ export class Doctor {
     onUpdate: 'CURRENT_TIMESTAMP',
   })
   updatedAt: Date;
+
+  @Column({
+    type: 'varchar',
+    default: 'active',
+    enum: ['active', 'inactive'],
+  })
+  status: 'active' | 'inactive';
+
   @OneToOne(() => User, (user) => user.doctorProfile)
   user: User;
 

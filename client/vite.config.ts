@@ -17,5 +17,7 @@ export default defineConfig({
     tailwindcss(),
 
   ],
-  
+  optimizeDeps: {
+    include: ['stream-chat', 'stream-chat-react'],
+  },
 })

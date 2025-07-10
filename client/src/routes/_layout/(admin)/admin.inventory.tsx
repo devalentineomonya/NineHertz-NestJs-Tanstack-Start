@@ -1,4 +1,4 @@
-import { AdminInventoryTable } from '@/screens/admin/inventory/inventory-table'
+import { AdminInventoryTable } from '@/screens/inventory/inventory-table'
 import { createFileRoute } from '@tanstack/react-router'
 
 export const Route = createFileRoute('/_layout/(admin)/admin/inventory')({

@@ -1,0 +1,645 @@
+// File: ./admin/entities/admin.entity.ts
+import { Entity, PrimaryGeneratedColumn, Column, OneToOne } from 'typeorm';
+import { User } from '../../user/entities/user.entity';
+
+@Entity()
+export class Admin {
+  @PrimaryGeneratedColumn('uuid')
+  id: string;
+
+  @Column()
+  fullName: string;
+
+  @Column({
+    type: 'enum',
+    enum: ['super', 'support'],
+    default: 'support',
+  })
+  adminType: string;
+
+  @Column({ type: 'timestamp', default: () => 'CURRENT_TIMESTAMP' })
+  createdAt: Date;
+
+  @Column({
+    type: 'timestamp',
+    default: () => 'CURRENT_TIMESTAMP',
+    onUpdate: 'CURRENT_TIMESTAMP',
+  })
+  updatedAt: Date;
+
+  @OneToOne(() => User, (user) => user.adminProfile)
+  user: User;
+
+  @Column('simple-json')
+  availability: {
+    days: string[];
+    hours: string[];
+  };
+
+  @Column()
+  specialty: string;
+}
+// File: ./appointment/entities/appointment.entity.ts
+import {
+  Entity,
+  PrimaryGeneratedColumn,
+  Column,
+  ManyToOne,
+  CreateDateColumn,
+  UpdateDateColumn,
+} from 'typeorm';
+import { Patient } from '../../patient/entities/patient.entity';
+import { Doctor } from '../../doctor/entities/doctor.entity';
+import { AppointmentStatus } from 'src/enums/appointment.enum';
+
+export enum AppointmentType {
+  VIRTUAL = 'virtual',
+  PHYSICAL = 'physical',
+}
+
+@Entity()
+export class Appointment {
+  @PrimaryGeneratedColumn('uuid')
+  id: string;
+
+  @Column({ type: 'timestamp' })
+  datetime: Date;
+
+  @Column({
+    type: 'enum',
+    enum: AppointmentStatus,
+    default: AppointmentStatus.SCHEDULED,
+  })
+  status: AppointmentStatus;
+
+  @Column({
+    type: 'enum',
+    enum: AppointmentType,
+    default: AppointmentType.PHYSICAL,
+  })
+  type: AppointmentType;
+
+  @ManyToOne(() => Patient, (patient) => patient.appointments)
+  patient: Patient;
+
+  @ManyToOne(() => Doctor, (doctor) => doctor.appointments)
+  doctor: Doctor;
+
+  @CreateDateColumn()
+  createdAt: Date;
+
+  @UpdateDateColumn()
+  updatedAt: Date;
+}
+// File: ./consultation/entities/consultation.entity.ts
+import {
+  Entity,
+  PrimaryGeneratedColumn,
+  Column,
+  ManyToOne,
+  CreateDateColumn,
+  UpdateDateColumn,
+} from 'typeorm';
+import { Patient } from '../../patient/entities/patient.entity';
+import { Doctor } from '../../doctor/entities/doctor.entity';
+
+@Entity()
+export class Consultation {
+  @PrimaryGeneratedColumn('uuid')
+  id: string;
+
+  @Column({ type: 'timestamp' })
+  startTime: Date;
+
+  @Column({ type: 'timestamp', nullable: true })
+  endTime: Date;
+
+  @Column({ nullable: true })
+  videoSessionId: string;
+
+  @Column({ nullable: true })
+  duration: number;
+
+  @Column({ type: 'text', nullable: true })
+  notes: string;
+
+  @Column({ nullable: true })
+  recordingUrl: string;
+
+  @Column({ type: 'jsonb', nullable: true })
+  aiAnalysis: Record<string, any>;
+
+  @ManyToOne(() => Patient, (patient) => patient.consultations)
+  patient: Patient;
+
+  @ManyToOne(() => Doctor, (doctor) => doctor.consultations)
+  doctor: Doctor;
+
+  @CreateDateColumn()
+  createdAt: Date;
+
+  @UpdateDateColumn()
+  updatedAt: Date;
+}
+// File: ./doctor/entities/doctor.entity.ts
+import {
+  Entity,
+  PrimaryGeneratedColumn,
+  Column,
+  OneToOne,
+  OneToMany,
+} from 'typeorm';
+import { User } from '../../user/entities/user.entity';
+import { Appointment } from '../../appointment/entities/appointment.entity';
+import { Consultation } from '../../consultation/entities/consultation.entity';
+import { Prescription } from '../../prescription/entities/prescription.entity';
+
+@Entity()
+export class Doctor {
+  @PrimaryGeneratedColumn('uuid')
+  id: string;
+
+  @Column()
+  fullName: string;
+
+  @Column()
+  specialty: string;
+
+  @Column({ type: 'jsonb' })
+  availability: { days: string[]; hours: string[] };
+
+  @Column({ type: 'decimal' })
+  consultationFee: number;
+
+  @Column({ nullable: true })
+  licenseNumber: string;
+
+  @Column({ type: 'timestamp', default: () => 'CURRENT_TIMESTAMP' })
+  createdAt: Date;
+
+  @Column({
+    type: 'timestamp',
+    default: () => 'CURRENT_TIMESTAMP',
+    onUpdate: 'CURRENT_TIMESTAMP',
+  })
+  updatedAt: Date;
+
+  @Column({
+    type: 'varchar',
+    default: 'active',
+    enum: ['active', 'inactive'],
+  })
+  status: 'active' | 'inactive';
+
+  @OneToOne(() => User, (user) => user.doctorProfile)
+  user: User;
+
+  @OneToMany(() => Appointment, (appointment) => appointment.doctor)
+  appointments: Appointment[];
+
+  @OneToMany(() => Consultation, (consultation) => consultation.doctor)
+  consultations: Consultation[];
+
+  @OneToMany(() => Prescription, (prescription) => prescription.prescribedBy)
+  prescriptions: Prescription[];
+}
+// File: ./inventory-item/entities/inventory-item.entity.ts
+import {
+  Entity,
+  PrimaryGeneratedColumn,
+  Column,
+  ManyToOne,
+  CreateDateColumn,
+  UpdateDateColumn,
+} from 'typeorm';
+import { Medicine } from '../../medicine/entities/medicine.entity';
+import { Pharmacy } from 'src/pharmacy/entity/pharmacy.entity';
+
+@Entity()
+export class InventoryItem {
+  @PrimaryGeneratedColumn('uuid')
+  id: string;
+
+  @Column()
+  quantity: number;
+
+  @Column()
+  reorderThreshold: number;
+
+  @Column({ type: 'timestamp', default: () => 'CURRENT_TIMESTAMP' })
+  lastRestocked: Date;
+
+  @ManyToOne(() => Medicine, (medicine) => medicine.inventoryItems)
+  medicine: Medicine;
+
+  @ManyToOne(() => Pharmacy, (pharmacy) => pharmacy.inventory)
+  pharmacy: Pharmacy;
+
+  @CreateDateColumn()
+  createdAt: Date;
+
+  @UpdateDateColumn()
+  updatedAt: Date;
+}
+// File: ./medicine/entities/medicine.entity.ts
+import {
+  Entity,
+  PrimaryGeneratedColumn,
+  Column,
+  CreateDateColumn,
+  UpdateDateColumn,
+  OneToMany,
+} from 'typeorm';
+import { InventoryItem } from '../../inventory-item/entities/inventory-item.entity';
+import { OrderItem } from '../../order/entities/order-item.entity';
+
+@Entity()
+export class Medicine {
+  @PrimaryGeneratedColumn('uuid')
+  id: string;
+
+  @Column()
+  name: string;
+
+  @Column()
+  genericName: string;
+
+  @Column()
+  description: string;
+
+  @Column({ type: 'decimal', precision: 10, scale: 2 })
+  price: number;
+
+  @Column()
+  manufacturer: string;
+
+  @Column({ nullable: true, unique: true })
+  barcode: string;
+
+  @OneToMany(() => InventoryItem, (item) => item.medicine)
+  inventoryItems: InventoryItem[];
+
+  @OneToMany(() => OrderItem, (item) => item.medicine)
+  orderItems: OrderItem[];
+
+  @CreateDateColumn()
+  createdAt: Date;
+
+  @UpdateDateColumn()
+  updatedAt: Date;
+}
+// File: ./order/entities/order-item.entity.ts
+import { Entity, PrimaryGeneratedColumn, Column, ManyToOne } from 'typeorm';
+import { Order } from './order.entity';
+import { Medicine } from '../../medicine/entities/medicine.entity';
+
+@Entity()
+export class OrderItem {
+  @PrimaryGeneratedColumn('uuid')
+  id: string;
+
+  @Column()
+  quantity: number;
+
+  @Column({ type: 'decimal', precision: 10, scale: 2 })
+  pricePerUnit: number;
+
+  @ManyToOne(() => Order, (order) => order.items, { onDelete: 'CASCADE' })
+  order: Order;
+
+  @ManyToOne(() => Medicine)
+  medicine: Medicine;
+}
+// File: ./order/entities/order.entity.ts
+import {
+  Entity,
+  PrimaryGeneratedColumn,
+  Column,
+  ManyToOne,
+  OneToMany,
+  CreateDateColumn,
+  UpdateDateColumn,
+} from 'typeorm';
+import { Patient } from '../../patient/entities/patient.entity';
+import { OrderItem } from './order-item.entity';
+import { OrderStatus } from 'src/enums/order.enum';
+import { Pharmacy } from 'src/pharmacy/entity/pharmacy.entity';
+
+@Entity()
+export class Order {
+  @PrimaryGeneratedColumn('uuid')
+  id: string;
+
+  @Column({ type: 'timestamp', default: () => 'CURRENT_TIMESTAMP' })
+  orderDate: Date;
+
+  @Column({
+    type: 'enum',
+    enum: OrderStatus,
+    default: OrderStatus.PENDING,
+  })
+  status: OrderStatus;
+
+  @Column({ type: 'decimal', precision: 10, scale: 2 })
+  totalAmount: number;
+
+  @Column({ nullable: true })
+  stripePaymentId: string;
+
+  @Column({ nullable: true })
+  paystackReference: string;
+
+  @Column({
+    type: 'enum',
+    enum: ['unpaid', 'paid', 'refunded'],
+    default: 'unpaid',
+  })
+  paymentStatus: string;
+
+  @ManyToOne(() => Patient, (patient) => patient.orders)
+  patient: Patient;
+
+  @OneToMany(() => OrderItem, (item) => item.order, { cascade: true })
+  items: OrderItem[];
+
+  @ManyToOne(() => Pharmacy, (pharmacy) => pharmacy.orders)
+  pharmacy: Pharmacy;
+
+  @CreateDateColumn()
+  createdAt: Date;
+
+  @UpdateDateColumn()
+  updatedAt: Date;
+}
+// File: ./patient/entities/patient.entity.ts
+import {
+  Entity,
+  PrimaryGeneratedColumn,
+  Column,
+  OneToOne,
+  OneToMany,
+  JoinColumn,
+} from 'typeorm';
+import { User } from '../../user/entities/user.entity';
+import { Appointment } from '../../appointment/entities/appointment.entity';
+import { Consultation } from '../../consultation/entities/consultation.entity';
+import { Prescription } from '../../prescription/entities/prescription.entity';
+import { Order } from '../../order/entities/order.entity';
+
+@Entity()
+export class Patient {
+  @PrimaryGeneratedColumn('uuid')
+  id: string;
+
+  @Column()
+  fullName: string;
+
+  @Column({ unique: true })
+  phone: string;
+
+  @Column({ type: 'date', nullable: true })
+  dateOfBirth: Date;
+
+  @Column({ type: 'jsonb', nullable: true })
+  medicalHistory: Record<string, any>;
+
+  @Column({ type: 'enum', enum: ['active', 'inactive'], default: 'active' })
+  status: 'active' | 'inactive';
+
+  @OneToOne(() => User, (user) => user.patientProfile, {
+    onDelete: 'CASCADE',
+    // eager: true,
+  })
+  @JoinColumn()
+  user: User;
+
+  @OneToMany(() => Appointment, (appointment) => appointment.patient, {
+    // eager: true,
+  })
+  appointments: Appointment[];
+
+  @OneToMany(() => Consultation, (consultation) => consultation.patient, {
+    // eager: true,
+  })
+  consultations: Consultation[];
+
+  @OneToMany(() => Prescription, (prescription) => prescription.patient, {
+    // eager: true,
+  })
+  prescriptions: Prescription[];
+
+  @OneToMany(() => Order, (order) => order.patient, {
+    eager: true,
+  })
+  orders: Order[];
+}
+// File: ./pharmacist/entities/pharmacist.entity.ts
+import { Pharmacy } from 'src/pharmacy/entity/pharmacy.entity';
+import { User } from 'src/user/entities/user.entity';
+import {
+  Column,
+  Entity,
+  JoinColumn,
+  ManyToOne,
+  OneToOne,
+  PrimaryGeneratedColumn,
+} from 'typeorm';
+
+@Entity()
+export class Pharmacist {
+  @PrimaryGeneratedColumn('uuid')
+  id: string;
+
+  @Column()
+  fullName: string;
+
+  @Column({ unique: true })
+  licenseNumber: string;
+
+  @OneToOne(() => User)
+  @JoinColumn()
+  user: User;
+
+  @ManyToOne(() => Pharmacy, (pharmacy) => pharmacy.pharmacists)
+  pharmacy: Pharmacy;
+}
+// File: ./pharmacy/entity/pharmacy.entity.ts
+import { InventoryItem } from 'src/inventory-item/entities/inventory-item.entity';
+import { Order } from 'src/order/entities/order.entity';
+import { Pharmacist } from 'src/pharmacist/entities/pharmacist.entity';
+import { Entity, PrimaryGeneratedColumn, Column, OneToMany } from 'typeorm';
+
+@Entity()
+export class Pharmacy {
+  @PrimaryGeneratedColumn('uuid')
+  id: string;
+
+  @Column()
+  name: string;
+
+  @Column()
+  address: string;
+
+  @Column()
+  contactPhone: string;
+
+  @Column()
+  licenseNumber: string;
+
+  @OneToMany(() => InventoryItem, (item) => item.pharmacy)
+  inventory: InventoryItem[];
+
+  @OneToMany(() => Order, (order) => order.pharmacy)
+  orders: Order[];
+
+  @OneToMany(() => Pharmacist, (pharmacist) => pharmacist.pharmacy)
+  pharmacists: Pharmacist[];
+}
+// File: ./prescription/entities/prescription.entity.ts
+import { Entity, PrimaryGeneratedColumn, Column, ManyToOne } from 'typeorm';
+import { Patient } from 'src/patient/entities/patient.entity';
+import { Doctor } from 'src/doctor/entities/doctor.entity';
+import { Pharmacy } from 'src/pharmacy/entity/pharmacy.entity';
+@Entity()
+export class Prescription {
+  @PrimaryGeneratedColumn('uuid')
+  id: string;
+
+  @Column({ type: 'text' })
+  medicationDetails: string;
+
+  @Column({ type: 'date' })
+  issueDate: Date;
+
+  @Column({ type: 'date' })
+  expiryDate: Date;
+
+  @Column({ default: false })
+  isFulfilled: boolean;
+
+  @ManyToOne(() => Patient, (patient) => patient.prescriptions)
+  patient: Patient;
+
+  @ManyToOne(() => Doctor, (doctor) => doctor.prescriptions)
+  prescribedBy: Doctor;
+
+  @ManyToOne(() => Pharmacy, { nullable: true })
+  fulfilledBy?: Pharmacy;
+}
+// File: ./stream/entities/stream.entity.ts
+export class Stream {}
+// File: ./user/entities/user.entity.ts
+import {
+  Entity,
+  PrimaryGeneratedColumn,
+  Column,
+  OneToOne,
+  JoinColumn,
+  BeforeInsert,
+  BeforeUpdate,
+} from 'typeorm';
+import { Patient } from '../../patient/entities/patient.entity';
+import { Doctor } from '../../doctor/entities/doctor.entity';
+import { Admin } from '../../admin/entities/admin.entity';
+import { Pharmacist } from 'src/pharmacist/entities/pharmacist.entity';
+import * as bcrypt from 'bcrypt';
+
+export enum UserRole {
+  PATIENT = 'patient',
+  DOCTOR = 'doctor',
+  ADMIN = 'admin',
+  PHARMACIST = 'pharmacist',
+}
+
+@Entity()
+export class User {
+  @PrimaryGeneratedColumn('uuid')
+  id: string;
+
+  @Column({ unique: true })
+  email: string;
+
+  @Column({ nullable: true, select: false })
+  passwordHash?: string;
+
+  @Column({ nullable: true, select: false })
+  otpHash?: string;
+
+  @Column({ type: 'timestamp', nullable: true })
+  otpExpiry?: Date;
+
+  @Column({ nullable: true, unique: true })
+  googleId?: string;
+
+  @Column({ default: false })
+  isEmailVerified: boolean;
+
+  @Column({
+    type: 'enum',
+    enum: ['patient', 'doctor', 'admin', 'pharmacist'],
+    default: 'patient',
+  })
+  role: string;
+  @Column({ type: 'timestamp', default: () => 'CURRENT_TIMESTAMP' })
+  createdAt: Date;
+
+  @Column({
+    type: 'timestamp',
+    default: () => 'CURRENT_TIMESTAMP',
+    onUpdate: 'CURRENT_TIMESTAMP',
+  })
+  updatedAt: Date;
+
+  @OneToOne(() => Patient, (patient) => patient.user, {
+    cascade: true,
+  })
+  @JoinColumn()
+  patientProfile?: Patient;
+
+  @OneToOne(() => Doctor, (doctor) => doctor.user, {
+    cascade: true,
+    eager: true,
+  })
+  @JoinColumn()
+  doctorProfile?: Doctor;
+
+  @OneToOne(() => Admin, (admin) => admin.user, { cascade: true, eager: true })
+  @JoinColumn()
+  adminProfile?: Admin;
+
+  @OneToOne(() => Pharmacist, (pharmacist) => pharmacist.user, {
+    cascade: true,
+    eager: true,
+  })
+  @JoinColumn()
+  pharmacistProfile?: Pharmacist;
+
+  @BeforeInsert()
+  @BeforeUpdate()
+  async hashPassword() {
+    if (this.passwordHash) {
+      const salt = await bcrypt.genSalt(10);
+      this.passwordHash = await bcrypt.hash(this.passwordHash, salt);
+    }
+  }
+
+  async comparePassword(attempt: string): Promise<boolean> {
+    return this.passwordHash
+      ? await bcrypt.compare(attempt, this.passwordHash)
+      : false;
+  }
+
+  async setOtp(otp: string, expiresInMinutes = 30) {
+    const salt = await bcrypt.genSalt(10);
+    this.otpHash = await bcrypt.hash(otp, salt);
+
+    const expiryDate = new Date();
+    expiryDate.setMinutes(expiryDate.getMinutes() + expiresInMinutes);
+    this.otpExpiry = expiryDate;
+  }
+
+  clearOtp() {
+    this.otpHash = undefined;
+    this.otpExpiry = undefined;
+  }
+}

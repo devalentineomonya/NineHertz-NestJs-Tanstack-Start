@@ -1,5 +1,6 @@
 import { DataTable } from "@/components/data-table/data-table";
 import { DataTableColumnHeader } from "@/components/data-table/data-table-column-header";
+import { DataTableSkeleton } from "@/components/data-table/data-table-skeleton";
 import { DataTableToolbar } from "@/components/data-table/data-table-toolbar";
 
 import { Badge } from "@/components/ui/badge";
@@ -12,14 +13,13 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import { useDataTable } from "@/hooks/use-data-table";
-import { useAddAppointment } from "@/store/use-add-appointment-sidebar";
-
+import { useGetAppointments } from "@/services/appointments/use-get-appointments";
+import { useAddAppointmentStore } from "@/stores/use-add-appointment-store";
+import { Avatar, AvatarFallback, AvatarImage } from "@radix-ui/react-avatar";
 import type { ColumnDef } from "@tanstack/react-table";
 import {
   Calendar,
-  CalendarCheck,
   CheckCircle,
-  CircleSlash,
   Clock,
   MoreHorizontal,
   Plus,
@@ -29,132 +29,17 @@ import {
 } from "lucide-react";
 import { parseAsArrayOf, parseAsString, useQueryState } from "nuqs";
 import * as React from "react";
+import { format } from "date-fns";
 
 enum AppointmentStatus {
-  SCHEDULED = "SCHEDULED",
-  COMPLETED = "COMPLETED",
-  CANCELLED = "CANCELLED",
-  RESCHEDULED = "RESCHEDULED",
-  NO_SHOW = "NO_SHOW",
+  SCHEDULED = "scheduled",
+  COMPLETED = "completed",
+  CANCELLED = "cancelled",
 }
-
-interface Appointment {
-  id: string;
-  datetime: Date;
-  status: AppointmentStatus;
-  patient: {
-    id: string;
-    fullName: string;
-  };
-  doctor: {
-    id: string;
-    fullName: string;
-    specialty: string;
-  };
-  createdAt: Date;
-  updatedAt: Date;
-}
-
-const data: Appointment[] = [
-  {
-    id: "1",
-    datetime: new Date(2024, 5, 15, 10, 30),
-    status: AppointmentStatus.SCHEDULED,
-    patient: {
-      id: "p1",
-      fullName: "John Doe",
-    },
-    doctor: {
-      id: "d1",
-      fullName: "Dr. Sarah Johnson",
-      specialty: "Cardiology",
-    },
-    createdAt: new Date(2024, 5, 1),
-    updatedAt: new Date(2024, 5, 1),
-  },
-  {
-    id: "2",
-    datetime: new Date(2024, 5, 16, 14, 0),
-    status: AppointmentStatus.COMPLETED,
-    patient: {
-      id: "p2",
-      fullName: "Jane Smith",
-    },
-    doctor: {
-      id: "d2",
-      fullName: "Dr. Michael Chen",
-      specialty: "Neurology",
-    },
-    createdAt: new Date(2024, 4, 20),
-    updatedAt: new Date(2024, 5, 16, 15, 30),
-  },
-  {
-    id: "3",
-    datetime: new Date(2024, 5, 17, 11, 15),
-    status: AppointmentStatus.CANCELLED,
-    patient: {
-      id: "p3",
-      fullName: "Robert Johnson",
-    },
-    doctor: {
-      id: "d3",
-      fullName: "Dr. Emily Rodriguez",
-      specialty: "Pediatrics",
-    },
-    createdAt: new Date(2024, 5, 5),
-    updatedAt: new Date(2024, 5, 10),
-  },
-  {
-    id: "4",
-    datetime: new Date(2024, 5, 18, 9, 0),
-    status: AppointmentStatus.SCHEDULED,
-    patient: {
-      id: "p4",
-      fullName: "Emily Wilson",
-    },
-    doctor: {
-      id: "d4",
-      fullName: "Dr. James Wilson",
-      specialty: "Orthopedics",
-    },
-    createdAt: new Date(2024, 4, 25),
-    updatedAt: new Date(2024, 4, 25),
-  },
-  {
-    id: "5",
-    datetime: new Date(2024, 5, 19, 13, 45),
-    status: AppointmentStatus.RESCHEDULED,
-    patient: {
-      id: "p5",
-      fullName: "Michael Brown",
-    },
-    doctor: {
-      id: "d5",
-      fullName: "Dr. Priya Sharma",
-      specialty: "Dermatology",
-    },
-    createdAt: new Date(2024, 5, 2),
-    updatedAt: new Date(2024, 5, 10),
-  },
-  {
-    id: "6",
-    datetime: new Date(2024, 5, 20, 15, 30),
-    status: AppointmentStatus.NO_SHOW,
-    patient: {
-      id: "p3",
-      fullName: "Robert Johnson",
-    },
-    doctor: {
-      id: "d1",
-      fullName: "Dr. Sarah Johnson",
-      specialty: "Cardiology",
-    },
-    createdAt: new Date(2024, 4, 15),
-    updatedAt: new Date(2024, 5, 20, 16, 0),
-  },
-];
 
 export function AdminAppointments() {
+  const { data, isLoading } = useGetAppointments();
+  const { onOpen } = useAddAppointmentStore();
   const [patientName] = useQueryState(
     "patientName",
     parseAsString.withDefault("")
@@ -173,7 +58,7 @@ export function AdminAppointments() {
   );
 
   const filteredData = React.useMemo(() => {
-    return data.filter((appointment) => {
+    return data?.data.filter((appointment) => {
       const matchesPatient =
         patientName === "" ||
         appointment.patient.fullName
@@ -200,19 +85,15 @@ export function AdminAppointments() {
     [AppointmentStatus.SCHEDULED]: Calendar,
     [AppointmentStatus.COMPLETED]: CheckCircle,
     [AppointmentStatus.CANCELLED]: XCircle,
-    [AppointmentStatus.RESCHEDULED]: CalendarCheck,
-    [AppointmentStatus.NO_SHOW]: CircleSlash,
   };
 
   const statusVariants = {
-    [AppointmentStatus.SCHEDULED]: "secondary",
-    [AppointmentStatus.COMPLETED]: "default",
+    [AppointmentStatus.SCHEDULED]: "warning",
+    [AppointmentStatus.COMPLETED]: "success",
     [AppointmentStatus.CANCELLED]: "destructive",
-    [AppointmentStatus.RESCHEDULED]: "warning",
-    [AppointmentStatus.NO_SHOW]: "outline",
   };
 
-  const columns = React.useMemo<ColumnDef<Appointment>[]>(
+  const columns = React.useMemo<ColumnDef<AppointmentResponseDto>[]>(
     () => [
       {
         id: "select",
@@ -251,14 +132,14 @@ export function AdminAppointments() {
             <div className="flex flex-col">
               <div className="flex items-center gap-2">
                 <Calendar className="size-4 text-gray-500" />
-                <span className="font-medium">{date.toLocaleDateString()}</span>
+                <span className="font-medium">
+                  {" "}
+                  {format(date, "MMMM dd, yyyy")}
+                </span>
               </div>
               <div className="flex items-center gap-2 text-sm text-gray-500">
                 <Clock className="size-4 text-gray-500" />
-                {date.toLocaleTimeString([], {
-                  hour: "2-digit",
-                  minute: "2-digit",
-                })}
+                {format(date, "hh:mm a")}
               </div>
             </div>
           );
@@ -278,7 +159,24 @@ export function AdminAppointments() {
         ),
         cell: ({ row }) => (
           <div className="flex items-center gap-3">
-            <div className="bg-gray-200 border-2 border-dashed rounded-xl w-8 h-8" />
+            <Avatar className="w-10 h-10 rounded-md overflow-hidden">
+              <AvatarImage
+                src={`https://avatar.vercel.sh/${
+                  row.original.id
+                }.png?name=${encodeURIComponent(
+                  row.original.patient.fullName
+                )}`}
+                alt={row.original.patient.fullName}
+              />
+              <AvatarFallback>
+                {row.original.patient.fullName
+                  .split(" ")
+                  .map((n) => n[0])
+                  .join("")
+                  .slice(0, 2)
+                  .toUpperCase()}
+              </AvatarFallback>
+            </Avatar>
             <div className="font-medium">{row.original.patient.fullName}</div>
           </div>
         ),
@@ -298,7 +196,22 @@ export function AdminAppointments() {
         ),
         cell: ({ row }) => (
           <div className="flex items-center gap-3">
-            <div className="bg-gray-200 border-2 border-dashed rounded-xl w-8 h-8" />
+            <Avatar className="w-10 h-10 rounded-md overflow-hidden">
+              <AvatarImage
+                src={`https://avatar.vercel.sh/${
+                  row.original.id
+                }.png?name=${encodeURIComponent(row.original.doctor.fullName)}`}
+                alt={row.original.doctor.fullName}
+              />
+              <AvatarFallback>
+                {row.original.doctor.fullName
+                  .split(" ")
+                  .map((n) => n[0])
+                  .join("")
+                  .slice(0, 2)
+                  .toUpperCase()}
+              </AvatarFallback>
+            </Avatar>
             <div>
               <div className="font-medium">{row.original.doctor.fullName}</div>
               <div className="text-sm text-gray-500">
@@ -333,8 +246,8 @@ export function AdminAppointments() {
 
           return (
             <Badge variant={variant} className="capitalize gap-2">
-              <Icon className="size-4" />
-              {status.toLowerCase()}
+              {/* <Icon className="size-4" /> */}
+              {status ?? "null"}
             </Badge>
           );
         },
@@ -357,16 +270,6 @@ export function AdminAppointments() {
               value: AppointmentStatus.CANCELLED,
               icon: XCircle,
             },
-            {
-              label: "Rescheduled",
-              value: AppointmentStatus.RESCHEDULED,
-              icon: CalendarCheck,
-            },
-            {
-              label: "No Show",
-              value: AppointmentStatus.NO_SHOW,
-              icon: CircleSlash,
-            },
           ],
         },
         enableColumnFilter: true,
@@ -381,7 +284,7 @@ export function AdminAppointments() {
           const date = cell.getValue<Date>();
           return (
             <div className="text-sm text-gray-500">
-              {date.toLocaleDateString()}
+              {format(date, "MMMM dd, yyyy")}
             </div>
           );
         },
@@ -426,16 +329,42 @@ export function AdminAppointments() {
   );
 
   const { table } = useDataTable({
-    data: filteredData,
+    data: filteredData ?? [],
     columns,
-    pageCount: Math.ceil(filteredData.length / 10),
+    pageCount: Math.ceil((filteredData?.length || 10) / 10),
     initialState: {
       sorting: [{ id: "datetime", desc: false }],
       columnPinning: { right: ["actions"] },
     },
     getRowId: (row) => row.id,
   });
-  const { onOpen } = useAddAppointment();
+
+  if (isLoading) {
+    return (
+      <div className="space-y-4">
+        <DataTableSkeleton
+          columnCount={columns.length}
+          rowCount={10}
+          filterCount={5}
+          optionsCount={2}
+          withViewOptions={true}
+          withPagination={true}
+          cellWidths={[
+            "40px",
+            "120px",
+            "200px",
+            "180px",
+            "180px",
+            "120px",
+            "100px",
+            "140px",
+            "140px",
+            "40px",
+          ]}
+        />
+      </div>
+    );
+  }
   return (
     <div className="data-table-container">
       <div className="my-4">

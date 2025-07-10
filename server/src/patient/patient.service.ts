@@ -23,6 +23,11 @@ export class PatientService {
     if (!user) {
       throw new NotFoundException(`User with ID ${userId} not found`);
     }
+    if (user.role !== 'patient') {
+      throw new NotFoundException(
+        `User with id ${userId} doesn't have the required role`,
+      );
+    }
 
     const patient = this.patientRepository.create({
       ...createPatientDto,
@@ -33,7 +38,7 @@ export class PatientService {
   }
 
   async findAll(): Promise<Patient[]> {
-    return this.patientRepository.find({ relations: ['user'] });
+    return this.patientRepository.find({ relations: ['user', 'appointments'] });
   }
 
   async findOne(id: string): Promise<Patient> {

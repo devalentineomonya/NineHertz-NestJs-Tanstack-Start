@@ -5,9 +5,17 @@ import {
   ManyToOne,
   CreateDateColumn,
   UpdateDateColumn,
+  Index,
 } from 'typeorm';
 import { Patient } from '../../patient/entities/patient.entity';
 import { Doctor } from '../../doctor/entities/doctor.entity';
+
+export enum ConsultationStatus {
+  COMPLETED = 'completed',
+  IN_PROGRESS = 'in progress',
+  CANCELLED = 'cancelled',
+  SCHEDULED = 'scheduled',
+}
 
 @Entity()
 export class Consultation {
@@ -46,4 +54,12 @@ export class Consultation {
 
   @UpdateDateColumn()
   updatedAt: Date;
+
+  @Index()
+  @Column({
+    type: 'enum',
+    enum: ConsultationStatus,
+    default: ConsultationStatus.SCHEDULED,
+  })
+  status: ConsultationStatus;
 }

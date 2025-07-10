@@ -1,4 +1,3 @@
-// src/order/dto/create-order.dto.ts
 import { ApiProperty } from '@nestjs/swagger';
 import {
   IsUUID,

@@ -17,7 +17,7 @@ export class AdminResponseDto {
 
   @ApiProperty({
     enum: AdminType,
-    example: AdminType.INSTITUTION_ADMIN,
+    example: AdminType.SUPPORT_ADMIN,
     description: 'Type of admin role',
   })
   adminType: AdminType;

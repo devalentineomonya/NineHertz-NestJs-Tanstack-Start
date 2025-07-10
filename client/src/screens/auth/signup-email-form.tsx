@@ -1,7 +1,7 @@
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-// import { useSignupService } from "@/services/auth/use-user-signup";
-// import { useSignUpStore } from "@/store/signup-store";
+import { useSignupService } from "@/services/auth/use-user-signup";
+import { useSignUpStore } from "@/services/users/stores/use-signup-store";
 import { useForm } from "@tanstack/react-form";
 import { AxiosError } from "axios";
 import { ArrowLeft, Loader } from "lucide-react";
@@ -17,8 +17,8 @@ export const SignUpEmailForm: React.FC<SignUpEmailFormProps> = ({
   handlePrev,
   handleNext,
 }) => {
-  // const handler = useSignupService();
-  // const { setUser, user } = useSignUpStore();
+  const handler = useSignupService();
+  const { setUser } = useSignUpStore();
 
   const form = useForm({
     defaultValues: {
@@ -32,16 +32,15 @@ export const SignUpEmailForm: React.FC<SignUpEmailFormProps> = ({
     },
     onSubmit: async ({ value }) => {
       try {
-        // const response = await handler.mutateAsync({
-        //   ...user,
-        //   email: value.email,
-        // });
-        // if (response.success) {
-        // setUser({ email: value.email, user_id: response.data.user_id });
-        handleNext();
-        // } else {
-        //   toast.error("Failed to initialize user account");
-        // }
+        const response = await handler.mutateAsync({
+          email: value.email,
+        });
+        if (response.data.id) {
+          setUser({ email: value.email, id: response.data.id });
+          handleNext();
+        } else {
+          toast.error("Failed to initialize user account");
+        }
       } catch (error) {
         let message = "An unknown error occurred while initializing user";
         if (error instanceof AxiosError && error.response?.data?.message) {
@@ -88,12 +87,8 @@ export const SignUpEmailForm: React.FC<SignUpEmailFormProps> = ({
           )}
         </form.Field>
         <div className="flex flex-col items-center gap-4 mt-4">
-          <Button
-            variant="primary"
-            type="submit"
-            // disabled={handler.isPending}
-          >
-            {false ? (
+          <Button variant="primary" type="submit" disabled={handler.isPending}>
+            {handler.isPending ? (
               <div className="flex items-center gap-2">
                 <Loader className="animate-spin" size={16} />
                 Processing...
@@ -104,7 +99,7 @@ export const SignUpEmailForm: React.FC<SignUpEmailFormProps> = ({
           </Button>
 
           <Button
-            // disabled={handler.isPending}
+            disabled={handler.isPending}
             onClick={handlePrev}
             type="button"
             variant="outline"

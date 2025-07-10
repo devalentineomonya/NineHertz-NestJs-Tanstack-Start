@@ -1,5 +1,5 @@
-import { ResetPasswordForm } from "@/screens/auth/auth-forget-password";
 import { AuthLayout } from "@/screens/auth/auth-layout";
+import { ResetPasswordForm } from "@/screens/users/auth-forget-password";
 import { createFileRoute } from "@tanstack/react-router";
 import { AnimatePresence, motion } from "framer-motion";
 

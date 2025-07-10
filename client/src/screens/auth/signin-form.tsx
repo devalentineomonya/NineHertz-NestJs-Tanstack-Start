@@ -1,7 +1,7 @@
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-// import { useSignInService } from "@/services/auth/use-user-signin";
-// import useUserSessionStore from "@/store/user-session-store";
+import { useSignInService } from "@/services/auth/use-user-signin";
+import { useUserSessionStore } from "@/stores/user-session-store";
 import { useForm } from "@tanstack/react-form";
 import { Link, useRouter } from "@tanstack/react-router";
 import { AxiosError } from "axios";
@@ -15,9 +15,11 @@ interface SignInFormProps {
 }
 
 export const SignInForm: React.FC<SignInFormProps> = ({ handlePrev }) => {
-  // const handler = useSignInService();
+  const handler = useSignInService();
   const [showPassword, setShowPassword] = useState(false);
-  // const { setSession } = useUserSessionStore();
+  const [redirecting, setRedirecting] = useState(false);
+  const { setSession, getCurrentUser } = useUserSessionStore();
+  const user = getCurrentUser();
   const router = useRouter();
 
   const form = useForm({
@@ -45,21 +47,20 @@ export const SignInForm: React.FC<SignInFormProps> = ({ handlePrev }) => {
     },
     onSubmit: async ({ value }) => {
       try {
-        // const response = await handler.mutateAsync({
-        //   email: value.email,
-        //   password: value.password,
-        //   userType: "user",
-        // });
-        // if (response.success) {
-        //   setSession({
-        //     accessToken: response.data.accessToken,
-        //     refreshToken: response.data.accessToken,
-        //     userId: response.data.userId,
-        //   });
-        //   router.navigate({ to: "/dashboard/user" });
-        // } else {
-        //   toast.error("Failed to authenticate user");
-        // }
+        const response = await handler.mutateAsync({
+          email: value.email,
+          password: value.password,
+        });
+        if (response.data.accessToken && response.data.refreshToken) {
+          setSession({
+            accessToken: response.data.accessToken,
+            refreshToken: response.data.accessToken,
+          });
+          setRedirecting(true);
+          await router.navigate({ to: `/${user?.role}/dashboard` });
+        } else {
+          toast.error("Failed to authenticate user");
+        }
       } catch (error) {
         let message = "An unknown error occurred while signing in";
         if (error instanceof AxiosError && error.response?.data?.message) {
@@ -68,6 +69,8 @@ export const SignInForm: React.FC<SignInFormProps> = ({ handlePrev }) => {
           message = error.message;
         }
         toast.error(message);
+      } finally {
+        setRedirecting(false);
       }
     },
   });
@@ -154,10 +157,10 @@ export const SignInForm: React.FC<SignInFormProps> = ({ handlePrev }) => {
           <Button
             variant="primary"
             type="submit"
-            // disabled={handler.isPending}
+            disabled={handler.isPending || redirecting}
             className="w-full"
           >
-            {false ? (
+            {handler.isPending ? (
               <div className="flex items-center gap-2">
                 <Loader className="animate-spin" size={16} />
                 Signing in...
@@ -168,6 +171,7 @@ export const SignInForm: React.FC<SignInFormProps> = ({ handlePrev }) => {
           </Button>
 
           <Button
+            disabled={handler.isPending || redirecting}
             onClick={handlePrev}
             type="button"
             variant="outline"

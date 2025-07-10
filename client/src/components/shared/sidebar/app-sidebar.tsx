@@ -1,18 +1,3 @@
-import * as React from "react";
-import {
-  User,
-  Stethoscope,
-  ClipboardList,
-  Calendar,
-  ClipboardCheck,
-  Pill,
-  Package,
-  ShoppingCart,
-  Settings,
-  Home,
-  Users,
-} from "lucide-react";
-
 import { NavMain } from "@/components/shared/sidebar/nav-main";
 import { NavUser } from "@/components/shared/sidebar/nav-user";
 import {
@@ -21,73 +6,111 @@ import {
   SidebarFooter,
   SidebarHeader,
 } from "@/components/ui/sidebar";
+import { useUserSessionStore } from "@/stores/user-session-store";
+import { useLocation } from "@tanstack/react-router";
+import {
+  BriefcaseMedical,
+  Calendar,
+  ClipboardCheck,
+  ClipboardList,
+  Home,
+  Hospital,
+  Package,
+  Pill,
+  Settings,
+  ShoppingCart,
+  Stethoscope,
+  User,
+  Users,
+} from "lucide-react";
+import * as React from "react";
 
-const user = {
-  name: "Dr. Jane Smith",
-  email: "jane@clinic.com",
-  avatar: "/avatars/doctor-avatar.jpg",
-  role: "Doctor",
-};
+const ALL_NAV_ITEMS = [
+  {
+    title: "Dashboard",
+    url: "dashboard",
+    icon: Home,
+    roles: ["admin", "doctor", "patient", "pharmacist"],
+  },
+  {
+    title: "Patients",
+    url: "patients",
+    icon: User,
+    roles: ["admin", "doctor"],
+  },
+  { title: "Doctors", url: "doctors", icon: Stethoscope, roles: ["admin"] },
+  { title: "Pharmacist", url: "pharmacist", icon: BriefcaseMedical, roles: ["admin"] },
+  {
+    title: "Appointments",
+    url: "appointments",
+    icon: Calendar,
+    roles: ["admin", "doctor", "patient"],
+  },
+  {
+    title: "Consultations",
+    url: "consultations",
+    icon: ClipboardList,
+    roles: ["admin", "doctor", "patient"],
+  },
+  {
+    title: "Prescriptions",
+    url: "prescriptions",
+    icon: ClipboardCheck,
+    roles: ["admin", "doctor", "patient", "pharmacist"],
+  },
+
+  {
+    title: "Pharmacy",
+    url: "Pharmacy",
+    icon: Hospital,
+    roles: ["admin", "pharmacist"],
+  },
+  {
+    title: "Medicines",
+    url: "medicine",
+    icon: Pill,
+    roles: ["admin", "pharmacist"],
+  },
+  {
+    title: "Inventory",
+    url: "inventory",
+    icon: Package,
+    roles: ["admin", "pharmacist"],
+  },
+  {
+    title: "Orders",
+    url: "orders",
+    icon: ShoppingCart,
+    roles: ["admin", "pharmacist"],
+  },
+  { title: "Admin", url: "admins", icon: Users, roles: ["admin"] },
+  { title: "Users", url: "users", icon: Users, roles: ["admin"] },
+  {
+    title: "Settings",
+    url: "settings",
+    icon: Settings,
+    roles: ["admin", "doctor", "patient", "pharmacist"],
+  },
+];
 
 export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
-  const navItems = [
-    {
-      title: "Dashboard",
-      url: "/admin/dashboard",
-      icon: Home,
-      isActive: true,
-    },
-    {
-      title: "Patients",
-      url: "/admin/patients",
-      icon: User,
-    },
-    {
-      title: "Doctors",
-      url: "/admin/doctors",
-      icon: Stethoscope,
-    },
-    {
-      title: "Appointments",
-      url: "/admin/appointments",
-      icon: Calendar,
-    },
-    {
-      title: "Consultations",
-      url: "/admin/consultations",
-      icon: ClipboardList,
-    },
-    {
-      title: "Prescriptions",
-      url: "/admin/prescriptions",
-      icon: ClipboardCheck,
-    },
-    {
-      title: "Medicines",
-      url: "/admin/medicine",
-      icon: Pill,
-    },
-    {
-      title: "Inventory",
-      url: "/admin/inventory",
-      icon: Package,
-    },
-    {
-      title: "Orders",
-      url: "/admin/orders",
-      icon: ShoppingCart,
-    },
-    {
-      title: "Admin",
-      url: "/admin/admins",
-      icon: Users,
-    },
-    {
-      title: "Settings",
-      url: "/admin/settings",
-      icon: Settings,
-    },
-  ];
+  const { getCurrentUser } = useUserSessionStore();
+  const user = getCurrentUser();
+  const location = useLocation();
+  const userRole = user?.role.toLowerCase() || "guest";
+  const navItems = React.useMemo(() => {
+    return ALL_NAV_ITEMS.filter((item) => item.roles.includes(userRole)).map(
+      (item) => {
+        const fullUrl = `/${userRole}/${item.url}`;
+        return {
+          ...item,
+          url: fullUrl,
+
+          isActive: location.pathname.startsWith(fullUrl),
+        };
+      }
+    );
+  }, [userRole, location.pathname]);
 
   return (
     <Sidebar

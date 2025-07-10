@@ -69,6 +69,7 @@ export class AppointmentService {
     });
 
     const savedAppointment = await this.appointmentRepository.save(appointment);
+    console.log(savedAppointment);
     return this.mapToResponseDto(savedAppointment);
   }
 
@@ -224,11 +225,11 @@ export class AppointmentService {
         licenseNumber: appointment.doctor.licenseNumber,
         availability: appointment.doctor.availability,
         user: {
-          id: appointment.doctor.user.id,
-          email: appointment.doctor.user.email,
-          role: appointment.doctor.user.role,
-          isEmailVerified: appointment.doctor.user.isEmailVerified,
-          createdAt: appointment.doctor.user.createdAt,
+          id: appointment.doctor.user?.id ?? null,
+          email: appointment.doctor.user?.email ?? null,
+          role: appointment.doctor.user?.role ?? null,
+          isEmailVerified: appointment.doctor.user?.isEmailVerified ?? false,
+          createdAt: appointment.doctor.user?.createdAt ?? null,
         },
       },
       createdAt: appointment.createdAt,

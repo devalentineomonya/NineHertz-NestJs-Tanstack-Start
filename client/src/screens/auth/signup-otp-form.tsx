@@ -1,8 +1,8 @@
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-// import { useVerifyWithOTP } from "@/services/auth/use-verify-with-otp";
-// import { useSignUpStore } from "@/store/signup-store";
-// import useUserSessionStore from "@/store/user-session-store";
+import { useVerifyWithOTP } from "@/services/auth/use-verify-with-otp";
+import { useSignUpStore } from "@/services/users/stores/use-signup-store";
+import { useUserSessionStore } from "@/services/users/stores/user-session-store";
 import { useForm } from "@tanstack/react-form";
 import { AxiosError } from "axios";
 import { ArrowLeft, Loader } from "lucide-react";
@@ -18,9 +18,9 @@ export const SignUpOTPForm: React.FC<SignUpOTPFormProps> = ({
   handlePrev,
   handleNext,
 }) => {
-  //   const handler = useVerifyWithOTP();
-  //   const { user } = useSignUpStore();
-  //   const { setSession } = useUserSessionStore();
+  const handler = useVerifyWithOTP();
+  const { user } = useSignUpStore();
+  const { setSession } = useUserSessionStore();
   const form = useForm({
     defaultValues: {
       otp: "",
@@ -29,20 +29,19 @@ export const SignUpOTPForm: React.FC<SignUpOTPFormProps> = ({
     validators: {
       onSubmit: async ({ value }) => {
         try {
-          // const response = await handler.mutateAsync({
-          //   email: user.email,
-          //   code: value.otp,
-          // });
-          // if (response.success) {
-          //   setSession({
-          //     accessToken: response.accessToken,
-          //     refreshToken: response.refreshToken,
-          //     userId: response.data.user_id as string,
-          //   });
-          handleNext();
-          // } else {
-          //   toast.error("Failed to initialize user account");
-          // }
+          const response = await handler.mutateAsync({
+            email: user.email,
+            otp: value.otp,
+          });
+          if (response.data.accessToken) {
+            setSession({
+              accessToken: response.data.accessToken,
+              refreshToken: response.data.refreshToken,
+            });
+            handleNext();
+          } else {
+            toast.error("Failed to initialize user account");
+          }
         } catch (error) {
           let message = "An unknown error occurred while initializing user";
           if (error instanceof AxiosError && error.response?.data?.message) {
@@ -74,7 +73,6 @@ export const SignUpOTPForm: React.FC<SignUpOTPFormProps> = ({
           name="otp"
         >
           {(field) => {
-            console.log(field.state.meta.errors);
             return (
               <>
                 <Input
@@ -105,10 +103,10 @@ export const SignUpOTPForm: React.FC<SignUpOTPFormProps> = ({
         <div className="flex flex-col items-center gap-4 mt-4">
           <Button
             variant={"primary"}
-            // disabled={handler.isPending}
+            disabled={handler.isPending}
             type="submit"
           >
-            {true ? (
+            {handler.isPending ? (
               <div className="flex items-center gap-2">
                 <Loader className="animate-spin" size={16} />
                 Submitting...
@@ -118,7 +116,7 @@ export const SignUpOTPForm: React.FC<SignUpOTPFormProps> = ({
             )}
           </Button>
           <Button
-            // disabled={handler.isPending}
+            disabled={handler.isPending}
             onClick={handlePrev}
             type="button"
             variant={"outline"}

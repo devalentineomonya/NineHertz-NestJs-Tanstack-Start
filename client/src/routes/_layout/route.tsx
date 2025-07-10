@@ -1,15 +1,34 @@
-import { createFileRoute, Outlet } from "@tanstack/react-router";
 import { AppSidebar } from "@/components/shared/sidebar/app-sidebar";
-
-import { SidebarInset, SidebarProvider } from "@/components/ui/sidebar";
 import { SiteHeader } from "@/components/shared/sidebar/site-header";
+import { SidebarInset, SidebarProvider } from "@/components/ui/sidebar";
 import { SheetProvider } from "@/providers/sheet-provider";
+import { useUserSessionStore } from "@/stores/user-session-store";
+import { createFileRoute, Outlet, useRouter } from "@tanstack/react-router";
+import { useEffect } from "react";
 
 export const Route = createFileRoute("/_layout")({
   component: RouteComponent,
 });
 
 function RouteComponent() {
+  const { session } = useUserSessionStore();
+  const router = useRouter();
+
+  useEffect(() => {
+    if (!session) {
+      router.navigate({
+        to: "/auth/signin",
+        search: {
+          redirect: router.state.location.href,
+        },
+      });
+    }
+  }, [session, router]);
+
+  if (!session) {
+    return null;
+  }
+
   return (
     <SidebarProvider
       style={

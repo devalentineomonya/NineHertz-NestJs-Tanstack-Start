@@ -15,6 +15,23 @@ import { Route as AuthSignupRouteImport } from './routes/auth/signup'
 import { Route as AuthSigninRouteImport } from './routes/auth/signin'
 import { Route as AuthForgetPasswordRouteImport } from './routes/auth/forget-password'
 import { Route as AuthCallbackRouteImport } from './routes/auth/callback'
+import { Route as LayoutpharmacistPharmacistSettingsRouteImport } from './routes/_layout/(pharmacist)/pharmacist.settings'
+import { Route as LayoutpharmacistPharmacistPrescriptionsRouteImport } from './routes/_layout/(pharmacist)/pharmacist.prescriptions'
+import { Route as LayoutpharmacistPharmacistOrdersRouteImport } from './routes/_layout/(pharmacist)/pharmacist.orders'
+import { Route as LayoutpharmacistPharmacistMedicineRouteImport } from './routes/_layout/(pharmacist)/pharmacist.medicine'
+import { Route as LayoutpharmacistPharmacistInventoryRouteImport } from './routes/_layout/(pharmacist)/pharmacist.inventory'
+import { Route as LayoutpharmacistPharmacistDashboardRouteImport } from './routes/_layout/(pharmacist)/pharmacist.dashboard'
+import { Route as LayoutpatientsPatientSettingsRouteImport } from './routes/_layout/(patients)/patient.settings'
+import { Route as LayoutpatientsPatientPrescriptionsRouteImport } from './routes/_layout/(patients)/patient.prescriptions'
+import { Route as LayoutpatientsPatientDashboardRouteImport } from './routes/_layout/(patients)/patient.dashboard'
+import { Route as LayoutpatientsPatientConsultationsRouteImport } from './routes/_layout/(patients)/patient.consultations'
+import { Route as LayoutpatientsPatientAppointmentsRouteImport } from './routes/_layout/(patients)/patient.appointments'
+import { Route as LayoutdoctorsDoctorSettingsRouteImport } from './routes/_layout/(doctors)/doctor.settings'
+import { Route as LayoutdoctorsDoctorPrescriptionsRouteImport } from './routes/_layout/(doctors)/doctor.prescriptions'
+import { Route as LayoutdoctorsDoctorPatientsRouteImport } from './routes/_layout/(doctors)/doctor.patients'
+import { Route as LayoutdoctorsDoctorDashboardRouteImport } from './routes/_layout/(doctors)/doctor.dashboard'
+import { Route as LayoutdoctorsDoctorConsultationsRouteImport } from './routes/_layout/(doctors)/doctor.consultations'
+import { Route as LayoutdoctorsDoctorAppointmentsRouteImport } from './routes/_layout/(doctors)/doctor.appointments'
 import { Route as LayoutadminAdminUsersRouteImport } from './routes/_layout/(admin)/admin.users'
 import { Route as LayoutadminAdminTransactionsRouteImport } from './routes/_layout/(admin)/admin.transactions'
 import { Route as LayoutadminAdminPrescriptionsRouteImport } from './routes/_layout/(admin)/admin.prescriptions'
@@ -26,6 +43,7 @@ import { Route as LayoutadminAdminDoctorsRouteImport } from './routes/_layout/(a
 import { Route as LayoutadminAdminDashboardRouteImport } from './routes/_layout/(admin)/admin.dashboard'
 import { Route as LayoutadminAdminConsultationsRouteImport } from './routes/_layout/(admin)/admin.consultations'
 import { Route as LayoutadminAdminAppointmentsRouteImport } from './routes/_layout/(admin)/admin.appointments'
+import { Route as callCallJoinCallIdRouteImport } from './routes/(call)/call.join.$callId'
 
 const LayoutRouteRoute = LayoutRouteRouteImport.update({
   id: '/_layout',
@@ -56,6 +74,108 @@ const AuthCallbackRoute = AuthCallbackRouteImport.update({
   path: '/auth/callback',
   getParentRoute: () => rootRouteImport,
 } as any)
+const LayoutpharmacistPharmacistSettingsRoute =
+  LayoutpharmacistPharmacistSettingsRouteImport.update({
+    id: '/(pharmacist)/pharmacist/settings',
+    path: '/pharmacist/settings',
+    getParentRoute: () => LayoutRouteRoute,
+  } as any)
+const LayoutpharmacistPharmacistPrescriptionsRoute =
+  LayoutpharmacistPharmacistPrescriptionsRouteImport.update({
+    id: '/(pharmacist)/pharmacist/prescriptions',
+    path: '/pharmacist/prescriptions',
+    getParentRoute: () => LayoutRouteRoute,
+  } as any)
+const LayoutpharmacistPharmacistOrdersRoute =
+  LayoutpharmacistPharmacistOrdersRouteImport.update({
+    id: '/(pharmacist)/pharmacist/orders',
+    path: '/pharmacist/orders',
+    getParentRoute: () => LayoutRouteRoute,
+  } as any)
+const LayoutpharmacistPharmacistMedicineRoute =
+  LayoutpharmacistPharmacistMedicineRouteImport.update({
+    id: '/(pharmacist)/pharmacist/medicine',
+    path: '/pharmacist/medicine',
+    getParentRoute: () => LayoutRouteRoute,
+  } as any)
+const LayoutpharmacistPharmacistInventoryRoute =
+  LayoutpharmacistPharmacistInventoryRouteImport.update({
+    id: '/(pharmacist)/pharmacist/inventory',
+    path: '/pharmacist/inventory',
+    getParentRoute: () => LayoutRouteRoute,
+  } as any)
+const LayoutpharmacistPharmacistDashboardRoute =
+  LayoutpharmacistPharmacistDashboardRouteImport.update({
+    id: '/(pharmacist)/pharmacist/dashboard',
+    path: '/pharmacist/dashboard',
+    getParentRoute: () => LayoutRouteRoute,
+  } as any)
+const LayoutpatientsPatientSettingsRoute =
+  LayoutpatientsPatientSettingsRouteImport.update({
+    id: '/(patients)/patient/settings',
+    path: '/patient/settings',
+    getParentRoute: () => LayoutRouteRoute,
+  } as any)
+const LayoutpatientsPatientPrescriptionsRoute =
+  LayoutpatientsPatientPrescriptionsRouteImport.update({
+    id: '/(patients)/patient/prescriptions',
+    path: '/patient/prescriptions',
+    getParentRoute: () => LayoutRouteRoute,
+  } as any)
+const LayoutpatientsPatientDashboardRoute =
+  LayoutpatientsPatientDashboardRouteImport.update({
+    id: '/(patients)/patient/dashboard',
+    path: '/patient/dashboard',
+    getParentRoute: () => LayoutRouteRoute,
+  } as any)
+const LayoutpatientsPatientConsultationsRoute =
+  LayoutpatientsPatientConsultationsRouteImport.update({
+    id: '/(patients)/patient/consultations',
+    path: '/patient/consultations',
+    getParentRoute: () => LayoutRouteRoute,
+  } as any)
+const LayoutpatientsPatientAppointmentsRoute =
+  LayoutpatientsPatientAppointmentsRouteImport.update({
+    id: '/(patients)/patient/appointments',
+    path: '/patient/appointments',
+    getParentRoute: () => LayoutRouteRoute,
+  } as any)
+const LayoutdoctorsDoctorSettingsRoute =
+  LayoutdoctorsDoctorSettingsRouteImport.update({
+    id: '/(doctors)/doctor/settings',
+    path: '/doctor/settings',
+    getParentRoute: () => LayoutRouteRoute,
+  } as any)
+const LayoutdoctorsDoctorPrescriptionsRoute =
+  LayoutdoctorsDoctorPrescriptionsRouteImport.update({
+    id: '/(doctors)/doctor/prescriptions',
+    path: '/doctor/prescriptions',
+    getParentRoute: () => LayoutRouteRoute,
+  } as any)
+const LayoutdoctorsDoctorPatientsRoute =
+  LayoutdoctorsDoctorPatientsRouteImport.update({
+    id: '/(doctors)/doctor/patients',
+    path: '/doctor/patients',
+    getParentRoute: () => LayoutRouteRoute,
+  } as any)
+const LayoutdoctorsDoctorDashboardRoute =
+  LayoutdoctorsDoctorDashboardRouteImport.update({
+    id: '/(doctors)/doctor/dashboard',
+    path: '/doctor/dashboard',
+    getParentRoute: () => LayoutRouteRoute,
+  } as any)
+const LayoutdoctorsDoctorConsultationsRoute =
+  LayoutdoctorsDoctorConsultationsRouteImport.update({
+    id: '/(doctors)/doctor/consultations',
+    path: '/doctor/consultations',
+    getParentRoute: () => LayoutRouteRoute,
+  } as any)
+const LayoutdoctorsDoctorAppointmentsRoute =
+  LayoutdoctorsDoctorAppointmentsRouteImport.update({
+    id: '/(doctors)/doctor/appointments',
+    path: '/doctor/appointments',
+    getParentRoute: () => LayoutRouteRoute,
+  } as any)
 const LayoutadminAdminUsersRoute = LayoutadminAdminUsersRouteImport.update({
   id: '/(admin)/admin/users',
   path: '/admin/users',
@@ -119,6 +239,11 @@ const LayoutadminAdminAppointmentsRoute =
     path: '/admin/appointments',
     getParentRoute: () => LayoutRouteRoute,
   } as any)
+const callCallJoinCallIdRoute = callCallJoinCallIdRouteImport.update({
+  id: '/(call)/call/join/$callId',
+  path: '/call/join/$callId',
+  getParentRoute: () => rootRouteImport,
+} as any)
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
@@ -126,6 +251,7 @@ export interface FileRoutesByFullPath {
   '/auth/forget-password': typeof AuthForgetPasswordRoute
   '/auth/signin': typeof AuthSigninRoute
   '/auth/signup': typeof AuthSignupRoute
+  '/call/join/$callId': typeof callCallJoinCallIdRoute
   '/admin/appointments': typeof LayoutadminAdminAppointmentsRoute
   '/admin/consultations': typeof LayoutadminAdminConsultationsRoute
   '/admin/dashboard': typeof LayoutadminAdminDashboardRoute
@@ -137,6 +263,23 @@ export interface FileRoutesByFullPath {
   '/admin/prescriptions': typeof LayoutadminAdminPrescriptionsRoute
   '/admin/transactions': typeof LayoutadminAdminTransactionsRoute
   '/admin/users': typeof LayoutadminAdminUsersRoute
+  '/doctor/appointments': typeof LayoutdoctorsDoctorAppointmentsRoute
+  '/doctor/consultations': typeof LayoutdoctorsDoctorConsultationsRoute
+  '/doctor/dashboard': typeof LayoutdoctorsDoctorDashboardRoute
+  '/doctor/patients': typeof LayoutdoctorsDoctorPatientsRoute
+  '/doctor/prescriptions': typeof LayoutdoctorsDoctorPrescriptionsRoute
+  '/doctor/settings': typeof LayoutdoctorsDoctorSettingsRoute
+  '/patient/appointments': typeof LayoutpatientsPatientAppointmentsRoute
+  '/patient/consultations': typeof LayoutpatientsPatientConsultationsRoute
+  '/patient/dashboard': typeof LayoutpatientsPatientDashboardRoute
+  '/patient/prescriptions': typeof LayoutpatientsPatientPrescriptionsRoute
+  '/patient/settings': typeof LayoutpatientsPatientSettingsRoute
+  '/pharmacist/dashboard': typeof LayoutpharmacistPharmacistDashboardRoute
+  '/pharmacist/inventory': typeof LayoutpharmacistPharmacistInventoryRoute
+  '/pharmacist/medicine': typeof LayoutpharmacistPharmacistMedicineRoute
+  '/pharmacist/orders': typeof LayoutpharmacistPharmacistOrdersRoute
+  '/pharmacist/prescriptions': typeof LayoutpharmacistPharmacistPrescriptionsRoute
+  '/pharmacist/settings': typeof LayoutpharmacistPharmacistSettingsRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
@@ -144,6 +287,7 @@ export interface FileRoutesByTo {
   '/auth/forget-password': typeof AuthForgetPasswordRoute
   '/auth/signin': typeof AuthSigninRoute
   '/auth/signup': typeof AuthSignupRoute
+  '/call/join/$callId': typeof callCallJoinCallIdRoute
   '/admin/appointments': typeof LayoutadminAdminAppointmentsRoute
   '/admin/consultations': typeof LayoutadminAdminConsultationsRoute
   '/admin/dashboard': typeof LayoutadminAdminDashboardRoute
@@ -155,6 +299,23 @@ export interface FileRoutesByTo {
   '/admin/prescriptions': typeof LayoutadminAdminPrescriptionsRoute
   '/admin/transactions': typeof LayoutadminAdminTransactionsRoute
   '/admin/users': typeof LayoutadminAdminUsersRoute
+  '/doctor/appointments': typeof LayoutdoctorsDoctorAppointmentsRoute
+  '/doctor/consultations': typeof LayoutdoctorsDoctorConsultationsRoute
+  '/doctor/dashboard': typeof LayoutdoctorsDoctorDashboardRoute
+  '/doctor/patients': typeof LayoutdoctorsDoctorPatientsRoute
+  '/doctor/prescriptions': typeof LayoutdoctorsDoctorPrescriptionsRoute
+  '/doctor/settings': typeof LayoutdoctorsDoctorSettingsRoute
+  '/patient/appointments': typeof LayoutpatientsPatientAppointmentsRoute
+  '/patient/consultations': typeof LayoutpatientsPatientConsultationsRoute
+  '/patient/dashboard': typeof LayoutpatientsPatientDashboardRoute
+  '/patient/prescriptions': typeof LayoutpatientsPatientPrescriptionsRoute
+  '/patient/settings': typeof LayoutpatientsPatientSettingsRoute
+  '/pharmacist/dashboard': typeof LayoutpharmacistPharmacistDashboardRoute
+  '/pharmacist/inventory': typeof LayoutpharmacistPharmacistInventoryRoute
+  '/pharmacist/medicine': typeof LayoutpharmacistPharmacistMedicineRoute
+  '/pharmacist/orders': typeof LayoutpharmacistPharmacistOrdersRoute
+  '/pharmacist/prescriptions': typeof LayoutpharmacistPharmacistPrescriptionsRoute
+  '/pharmacist/settings': typeof LayoutpharmacistPharmacistSettingsRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
@@ -164,6 +325,7 @@ export interface FileRoutesById {
   '/auth/forget-password': typeof AuthForgetPasswordRoute
   '/auth/signin': typeof AuthSigninRoute
   '/auth/signup': typeof AuthSignupRoute
+  '/(call)/call/join/$callId': typeof callCallJoinCallIdRoute
   '/_layout/(admin)/admin/appointments': typeof LayoutadminAdminAppointmentsRoute
   '/_layout/(admin)/admin/consultations': typeof LayoutadminAdminConsultationsRoute
   '/_layout/(admin)/admin/dashboard': typeof LayoutadminAdminDashboardRoute
@@ -175,6 +337,23 @@ export interface FileRoutesById {
   '/_layout/(admin)/admin/prescriptions': typeof LayoutadminAdminPrescriptionsRoute
   '/_layout/(admin)/admin/transactions': typeof LayoutadminAdminTransactionsRoute
   '/_layout/(admin)/admin/users': typeof LayoutadminAdminUsersRoute
+  '/_layout/(doctors)/doctor/appointments': typeof LayoutdoctorsDoctorAppointmentsRoute
+  '/_layout/(doctors)/doctor/consultations': typeof LayoutdoctorsDoctorConsultationsRoute
+  '/_layout/(doctors)/doctor/dashboard': typeof LayoutdoctorsDoctorDashboardRoute
+  '/_layout/(doctors)/doctor/patients': typeof LayoutdoctorsDoctorPatientsRoute
+  '/_layout/(doctors)/doctor/prescriptions': typeof LayoutdoctorsDoctorPrescriptionsRoute
+  '/_layout/(doctors)/doctor/settings': typeof LayoutdoctorsDoctorSettingsRoute
+  '/_layout/(patients)/patient/appointments': typeof LayoutpatientsPatientAppointmentsRoute
+  '/_layout/(patients)/patient/consultations': typeof LayoutpatientsPatientConsultationsRoute
+  '/_layout/(patients)/patient/dashboard': typeof LayoutpatientsPatientDashboardRoute
+  '/_layout/(patients)/patient/prescriptions': typeof LayoutpatientsPatientPrescriptionsRoute
+  '/_layout/(patients)/patient/settings': typeof LayoutpatientsPatientSettingsRoute
+  '/_layout/(pharmacist)/pharmacist/dashboard': typeof LayoutpharmacistPharmacistDashboardRoute
+  '/_layout/(pharmacist)/pharmacist/inventory': typeof LayoutpharmacistPharmacistInventoryRoute
+  '/_layout/(pharmacist)/pharmacist/medicine': typeof LayoutpharmacistPharmacistMedicineRoute
+  '/_layout/(pharmacist)/pharmacist/orders': typeof LayoutpharmacistPharmacistOrdersRoute
+  '/_layout/(pharmacist)/pharmacist/prescriptions': typeof LayoutpharmacistPharmacistPrescriptionsRoute
+  '/_layout/(pharmacist)/pharmacist/settings': typeof LayoutpharmacistPharmacistSettingsRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
@@ -184,6 +363,7 @@ export interface FileRouteTypes {
     | '/auth/forget-password'
     | '/auth/signin'
     | '/auth/signup'
+    | '/call/join/$callId'
     | '/admin/appointments'
     | '/admin/consultations'
     | '/admin/dashboard'
@@ -195,6 +375,23 @@ export interface FileRouteTypes {
     | '/admin/prescriptions'
     | '/admin/transactions'
     | '/admin/users'
+    | '/doctor/appointments'
+    | '/doctor/consultations'
+    | '/doctor/dashboard'
+    | '/doctor/patients'
+    | '/doctor/prescriptions'
+    | '/doctor/settings'
+    | '/patient/appointments'
+    | '/patient/consultations'
+    | '/patient/dashboard'
+    | '/patient/prescriptions'
+    | '/patient/settings'
+    | '/pharmacist/dashboard'
+    | '/pharmacist/inventory'
+    | '/pharmacist/medicine'
+    | '/pharmacist/orders'
+    | '/pharmacist/prescriptions'
+    | '/pharmacist/settings'
   fileRoutesByTo: FileRoutesByTo
   to:
     | '/'
@@ -202,6 +399,7 @@ export interface FileRouteTypes {
     | '/auth/forget-password'
     | '/auth/signin'
     | '/auth/signup'
+    | '/call/join/$callId'
     | '/admin/appointments'
     | '/admin/consultations'
     | '/admin/dashboard'
@@ -213,6 +411,23 @@ export interface FileRouteTypes {
     | '/admin/prescriptions'
     | '/admin/transactions'
     | '/admin/users'
+    | '/doctor/appointments'
+    | '/doctor/consultations'
+    | '/doctor/dashboard'
+    | '/doctor/patients'
+    | '/doctor/prescriptions'
+    | '/doctor/settings'
+    | '/patient/appointments'
+    | '/patient/consultations'
+    | '/patient/dashboard'
+    | '/patient/prescriptions'
+    | '/patient/settings'
+    | '/pharmacist/dashboard'
+    | '/pharmacist/inventory'
+    | '/pharmacist/medicine'
+    | '/pharmacist/orders'
+    | '/pharmacist/prescriptions'
+    | '/pharmacist/settings'
   id:
     | '__root__'
     | '/'
@@ -221,6 +436,7 @@ export interface FileRouteTypes {
     | '/auth/forget-password'
     | '/auth/signin'
     | '/auth/signup'
+    | '/(call)/call/join/$callId'
     | '/_layout/(admin)/admin/appointments'
     | '/_layout/(admin)/admin/consultations'
     | '/_layout/(admin)/admin/dashboard'
@@ -232,6 +448,23 @@ export interface FileRouteTypes {
     | '/_layout/(admin)/admin/prescriptions'
     | '/_layout/(admin)/admin/transactions'
     | '/_layout/(admin)/admin/users'
+    | '/_layout/(doctors)/doctor/appointments'
+    | '/_layout/(doctors)/doctor/consultations'
+    | '/_layout/(doctors)/doctor/dashboard'
+    | '/_layout/(doctors)/doctor/patients'
+    | '/_layout/(doctors)/doctor/prescriptions'
+    | '/_layout/(doctors)/doctor/settings'
+    | '/_layout/(patients)/patient/appointments'
+    | '/_layout/(patients)/patient/consultations'
+    | '/_layout/(patients)/patient/dashboard'
+    | '/_layout/(patients)/patient/prescriptions'
+    | '/_layout/(patients)/patient/settings'
+    | '/_layout/(pharmacist)/pharmacist/dashboard'
+    | '/_layout/(pharmacist)/pharmacist/inventory'
+    | '/_layout/(pharmacist)/pharmacist/medicine'
+    | '/_layout/(pharmacist)/pharmacist/orders'
+    | '/_layout/(pharmacist)/pharmacist/prescriptions'
+    | '/_layout/(pharmacist)/pharmacist/settings'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
@@ -241,6 +474,7 @@ export interface RootRouteChildren {
   AuthForgetPasswordRoute: typeof AuthForgetPasswordRoute
   AuthSigninRoute: typeof AuthSigninRoute
   AuthSignupRoute: typeof AuthSignupRoute
+  callCallJoinCallIdRoute: typeof callCallJoinCallIdRoute
 }
 
 declare module '@tanstack/react-router' {
@@ -286,6 +520,125 @@ declare module '@tanstack/react-router' {
       fullPath: '/auth/callback'
       preLoaderRoute: typeof AuthCallbackRouteImport
       parentRoute: typeof rootRouteImport
+    }
+    '/_layout/(pharmacist)/pharmacist/settings': {
+      id: '/_layout/(pharmacist)/pharmacist/settings'
+      path: '/pharmacist/settings'
+      fullPath: '/pharmacist/settings'
+      preLoaderRoute: typeof LayoutpharmacistPharmacistSettingsRouteImport
+      parentRoute: typeof LayoutRouteRoute
+    }
+    '/_layout/(pharmacist)/pharmacist/prescriptions': {
+      id: '/_layout/(pharmacist)/pharmacist/prescriptions'
+      path: '/pharmacist/prescriptions'
+      fullPath: '/pharmacist/prescriptions'
+      preLoaderRoute: typeof LayoutpharmacistPharmacistPrescriptionsRouteImport
+      parentRoute: typeof LayoutRouteRoute
+    }
+    '/_layout/(pharmacist)/pharmacist/orders': {
+      id: '/_layout/(pharmacist)/pharmacist/orders'
+      path: '/pharmacist/orders'
+      fullPath: '/pharmacist/orders'
+      preLoaderRoute: typeof LayoutpharmacistPharmacistOrdersRouteImport
+      parentRoute: typeof LayoutRouteRoute
+    }
+    '/_layout/(pharmacist)/pharmacist/medicine': {
+      id: '/_layout/(pharmacist)/pharmacist/medicine'
+      path: '/pharmacist/medicine'
+      fullPath: '/pharmacist/medicine'
+      preLoaderRoute: typeof LayoutpharmacistPharmacistMedicineRouteImport
+      parentRoute: typeof LayoutRouteRoute
+    }
+    '/_layout/(pharmacist)/pharmacist/inventory': {
+      id: '/_layout/(pharmacist)/pharmacist/inventory'
+      path: '/pharmacist/inventory'
+      fullPath: '/pharmacist/inventory'
+      preLoaderRoute: typeof LayoutpharmacistPharmacistInventoryRouteImport
+      parentRoute: typeof LayoutRouteRoute
+    }
+    '/_layout/(pharmacist)/pharmacist/dashboard': {
+      id: '/_layout/(pharmacist)/pharmacist/dashboard'
+      path: '/pharmacist/dashboard'
+      fullPath: '/pharmacist/dashboard'
+      preLoaderRoute: typeof LayoutpharmacistPharmacistDashboardRouteImport
+      parentRoute: typeof LayoutRouteRoute
+    }
+    '/_layout/(patients)/patient/settings': {
+      id: '/_layout/(patients)/patient/settings'
+      path: '/patient/settings'
+      fullPath: '/patient/settings'
+      preLoaderRoute: typeof LayoutpatientsPatientSettingsRouteImport
+      parentRoute: typeof LayoutRouteRoute
+    }
+    '/_layout/(patients)/patient/prescriptions': {
+      id: '/_layout/(patients)/patient/prescriptions'
+      path: '/patient/prescriptions'
+      fullPath: '/patient/prescriptions'
+      preLoaderRoute: typeof LayoutpatientsPatientPrescriptionsRouteImport
+      parentRoute: typeof LayoutRouteRoute
+    }
+    '/_layout/(patients)/patient/dashboard': {
+      id: '/_layout/(patients)/patient/dashboard'
+      path: '/patient/dashboard'
+      fullPath: '/patient/dashboard'
+      preLoaderRoute: typeof LayoutpatientsPatientDashboardRouteImport
+      parentRoute: typeof LayoutRouteRoute
+    }
+    '/_layout/(patients)/patient/consultations': {
+      id: '/_layout/(patients)/patient/consultations'
+      path: '/patient/consultations'
+      fullPath: '/patient/consultations'
+      preLoaderRoute: typeof LayoutpatientsPatientConsultationsRouteImport
+      parentRoute: typeof LayoutRouteRoute
+    }
+    '/_layout/(patients)/patient/appointments': {
+      id: '/_layout/(patients)/patient/appointments'
+      path: '/patient/appointments'
+      fullPath: '/patient/appointments'
+      preLoaderRoute: typeof LayoutpatientsPatientAppointmentsRouteImport
+      parentRoute: typeof LayoutRouteRoute
+    }
+    '/_layout/(doctors)/doctor/settings': {
+      id: '/_layout/(doctors)/doctor/settings'
+      path: '/doctor/settings'
+      fullPath: '/doctor/settings'
+      preLoaderRoute: typeof LayoutdoctorsDoctorSettingsRouteImport
+      parentRoute: typeof LayoutRouteRoute
+    }
+    '/_layout/(doctors)/doctor/prescriptions': {
+      id: '/_layout/(doctors)/doctor/prescriptions'
+      path: '/doctor/prescriptions'
+      fullPath: '/doctor/prescriptions'
+      preLoaderRoute: typeof LayoutdoctorsDoctorPrescriptionsRouteImport
+      parentRoute: typeof LayoutRouteRoute
+    }
+    '/_layout/(doctors)/doctor/patients': {
+      id: '/_layout/(doctors)/doctor/patients'
+      path: '/doctor/patients'
+      fullPath: '/doctor/patients'
+      preLoaderRoute: typeof LayoutdoctorsDoctorPatientsRouteImport
+      parentRoute: typeof LayoutRouteRoute
+    }
+    '/_layout/(doctors)/doctor/dashboard': {
+      id: '/_layout/(doctors)/doctor/dashboard'
+      path: '/doctor/dashboard'
+      fullPath: '/doctor/dashboard'
+      preLoaderRoute: typeof LayoutdoctorsDoctorDashboardRouteImport
+      parentRoute: typeof LayoutRouteRoute
+    }
+    '/_layout/(doctors)/doctor/consultations': {
+      id: '/_layout/(doctors)/doctor/consultations'
+      path: '/doctor/consultations'
+      fullPath: '/doctor/consultations'
+      preLoaderRoute: typeof LayoutdoctorsDoctorConsultationsRouteImport
+      parentRoute: typeof LayoutRouteRoute
+    }
+    '/_layout/(doctors)/doctor/appointments': {
+      id: '/_layout/(doctors)/doctor/appointments'
+      path: '/doctor/appointments'
+      fullPath: '/doctor/appointments'
+      preLoaderRoute: typeof LayoutdoctorsDoctorAppointmentsRouteImport
+      parentRoute: typeof LayoutRouteRoute
     }
     '/_layout/(admin)/admin/users': {
       id: '/_layout/(admin)/admin/users'
@@ -364,6 +717,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof LayoutadminAdminAppointmentsRouteImport
       parentRoute: typeof LayoutRouteRoute
     }
+    '/(call)/call/join/$callId': {
+      id: '/(call)/call/join/$callId'
+      path: '/call/join/$callId'
+      fullPath: '/call/join/$callId'
+      preLoaderRoute: typeof callCallJoinCallIdRouteImport
+      parentRoute: typeof rootRouteImport
+    }
   }
 }
 
@@ -379,6 +739,23 @@ interface LayoutRouteRouteChildren {
   LayoutadminAdminPrescriptionsRoute: typeof LayoutadminAdminPrescriptionsRoute
   LayoutadminAdminTransactionsRoute: typeof LayoutadminAdminTransactionsRoute
   LayoutadminAdminUsersRoute: typeof LayoutadminAdminUsersRoute
+  LayoutdoctorsDoctorAppointmentsRoute: typeof LayoutdoctorsDoctorAppointmentsRoute
+  LayoutdoctorsDoctorConsultationsRoute: typeof LayoutdoctorsDoctorConsultationsRoute
+  LayoutdoctorsDoctorDashboardRoute: typeof LayoutdoctorsDoctorDashboardRoute
+  LayoutdoctorsDoctorPatientsRoute: typeof LayoutdoctorsDoctorPatientsRoute
+  LayoutdoctorsDoctorPrescriptionsRoute: typeof LayoutdoctorsDoctorPrescriptionsRoute
+  LayoutdoctorsDoctorSettingsRoute: typeof LayoutdoctorsDoctorSettingsRoute
+  LayoutpatientsPatientAppointmentsRoute: typeof LayoutpatientsPatientAppointmentsRoute
+  LayoutpatientsPatientConsultationsRoute: typeof LayoutpatientsPatientConsultationsRoute
+  LayoutpatientsPatientDashboardRoute: typeof LayoutpatientsPatientDashboardRoute
+  LayoutpatientsPatientPrescriptionsRoute: typeof LayoutpatientsPatientPrescriptionsRoute
+  LayoutpatientsPatientSettingsRoute: typeof LayoutpatientsPatientSettingsRoute
+  LayoutpharmacistPharmacistDashboardRoute: typeof LayoutpharmacistPharmacistDashboardRoute
+  LayoutpharmacistPharmacistInventoryRoute: typeof LayoutpharmacistPharmacistInventoryRoute
+  LayoutpharmacistPharmacistMedicineRoute: typeof LayoutpharmacistPharmacistMedicineRoute
+  LayoutpharmacistPharmacistOrdersRoute: typeof LayoutpharmacistPharmacistOrdersRoute
+  LayoutpharmacistPharmacistPrescriptionsRoute: typeof LayoutpharmacistPharmacistPrescriptionsRoute
+  LayoutpharmacistPharmacistSettingsRoute: typeof LayoutpharmacistPharmacistSettingsRoute
 }
 
 const LayoutRouteRouteChildren: LayoutRouteRouteChildren = {
@@ -393,6 +770,31 @@ const LayoutRouteRouteChildren: LayoutRouteRouteChildren = {
   LayoutadminAdminPrescriptionsRoute: LayoutadminAdminPrescriptionsRoute,
   LayoutadminAdminTransactionsRoute: LayoutadminAdminTransactionsRoute,
   LayoutadminAdminUsersRoute: LayoutadminAdminUsersRoute,
+  LayoutdoctorsDoctorAppointmentsRoute: LayoutdoctorsDoctorAppointmentsRoute,
+  LayoutdoctorsDoctorConsultationsRoute: LayoutdoctorsDoctorConsultationsRoute,
+  LayoutdoctorsDoctorDashboardRoute: LayoutdoctorsDoctorDashboardRoute,
+  LayoutdoctorsDoctorPatientsRoute: LayoutdoctorsDoctorPatientsRoute,
+  LayoutdoctorsDoctorPrescriptionsRoute: LayoutdoctorsDoctorPrescriptionsRoute,
+  LayoutdoctorsDoctorSettingsRoute: LayoutdoctorsDoctorSettingsRoute,
+  LayoutpatientsPatientAppointmentsRoute:
+    LayoutpatientsPatientAppointmentsRoute,
+  LayoutpatientsPatientConsultationsRoute:
+    LayoutpatientsPatientConsultationsRoute,
+  LayoutpatientsPatientDashboardRoute: LayoutpatientsPatientDashboardRoute,
+  LayoutpatientsPatientPrescriptionsRoute:
+    LayoutpatientsPatientPrescriptionsRoute,
+  LayoutpatientsPatientSettingsRoute: LayoutpatientsPatientSettingsRoute,
+  LayoutpharmacistPharmacistDashboardRoute:
+    LayoutpharmacistPharmacistDashboardRoute,
+  LayoutpharmacistPharmacistInventoryRoute:
+    LayoutpharmacistPharmacistInventoryRoute,
+  LayoutpharmacistPharmacistMedicineRoute:
+    LayoutpharmacistPharmacistMedicineRoute,
+  LayoutpharmacistPharmacistOrdersRoute: LayoutpharmacistPharmacistOrdersRoute,
+  LayoutpharmacistPharmacistPrescriptionsRoute:
+    LayoutpharmacistPharmacistPrescriptionsRoute,
+  LayoutpharmacistPharmacistSettingsRoute:
+    LayoutpharmacistPharmacistSettingsRoute,
 }
 
 const LayoutRouteRouteWithChildren = LayoutRouteRoute._addFileChildren(
@@ -406,6 +808,7 @@ const rootRouteChildren: RootRouteChildren = {
   AuthForgetPasswordRoute: AuthForgetPasswordRoute,
   AuthSigninRoute: AuthSigninRoute,
   AuthSignupRoute: AuthSignupRoute,
+  callCallJoinCallIdRoute: callCallJoinCallIdRoute,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)

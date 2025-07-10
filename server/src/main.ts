@@ -6,7 +6,8 @@ import { ConfigService } from '@nestjs/config';
 import { HttpAdapterHost, NestFactory } from '@nestjs/core';
 import helmet from 'helmet';
 import * as basicAuth from 'express-basic-auth';
-import { ResponseFormatInterceptor } from './response-filter.interceptor';
+import { TimeoutInterceptor } from './timeout-intercepter';
+// import { ResponseFormatInterceptor } from './response-filter.interceptor';
 
 async function bootstrap() {
   const app = await NestFactory.create(AppModule);
@@ -24,16 +25,17 @@ async function bootstrap() {
 
   app.useGlobalPipes(
     new ValidationPipe({
-      whitelist: true,
-      forbidNonWhitelisted: true,
-      transform: true,
+      // whitelist: true,
+      // forbidNonWhitelisted: true,
+      // transform: true,
     }),
   );
 
   const { httpAdapter } = app.get(HttpAdapterHost);
 
   app.useGlobalFilters(new AllExceptionsFilter(httpAdapter));
-  app.useGlobalInterceptors(new ResponseFormatInterceptor());
+  // app.useGlobalInterceptors(new ResponseFormatInterceptor());
+  app.useGlobalInterceptors(new TimeoutInterceptor(300000));
 
   // Swagger configuration
   const config = new DocumentBuilder()

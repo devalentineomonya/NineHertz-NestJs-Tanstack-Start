@@ -1,8 +1,15 @@
-import { Entity, PrimaryGeneratedColumn, Column, ManyToOne } from 'typeorm';
+import {
+  Entity,
+  PrimaryGeneratedColumn,
+  Column,
+  ManyToOne,
+  Index,
+} from 'typeorm';
 import { Patient } from 'src/patient/entities/patient.entity';
 import { Doctor } from 'src/doctor/entities/doctor.entity';
 import { Pharmacy } from 'src/pharmacy/entity/pharmacy.entity';
 @Entity()
+@Index(['issueDate', 'expiryDate', 'isFulfilled'])
 export class Prescription {
   @PrimaryGeneratedColumn('uuid')
   id: string;

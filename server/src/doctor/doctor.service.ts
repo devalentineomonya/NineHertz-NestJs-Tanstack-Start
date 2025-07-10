@@ -7,16 +7,30 @@ import { UpdateDoctorDto } from './dto/update-doctor.dto';
 import { DoctorResponseDto } from './dto/doctor-response.dto';
 import { PaginationDto } from 'src/shared/dto/pagination.dto';
 import { DoctorFilterDto } from './dto/doctor-filter.dto';
+import { User } from 'src/user/entities/user.entity';
 @Injectable()
 export class DoctorService {
   constructor(
     @InjectRepository(Doctor)
     private doctorRepository: Repository<Doctor>,
+    @InjectRepository(User)
+    private userRepository: Repository<User>,
   ) {}
 
   async create(createDoctorDto: CreateDoctorDto): Promise<DoctorResponseDto> {
+    const { userId, ...rest } = createDoctorDto;
+    const user = await this.userRepository.findOne({ where: { id: userId } });
+    if (!user) {
+      throw new NotFoundException(`User with ID ${userId} not found`);
+    }
+    if (user.role !== 'doctor') {
+      throw new NotFoundException(
+        `User with id ${userId} doesn't have the required role`,
+      );
+    }
     const doctor = this.doctorRepository.create({
-      ...createDoctorDto,
+      ...rest,
+      user,
     });
 
     const savedDoctor = await this.doctorRepository.save(doctor);
@@ -32,7 +46,7 @@ export class DoctorService {
     const query = this.doctorRepository
       .createQueryBuilder('doctor')
       .leftJoinAndSelect('doctor.user', 'user')
-      .leftJoinAndSelect('doctor.institution', 'institution')
+      .leftJoinAndSelect('doctor.appointments', 'appointments')
       .take(limit)
       .skip(skip);
 
@@ -88,7 +102,7 @@ export class DoctorService {
   ): Promise<DoctorResponseDto> {
     const doctor = await this.doctorRepository.findOne({
       where: { id },
-      relations: ['institution', 'user'],
+      relations: ['user'],
     });
 
     if (!doctor) {

@@ -39,7 +39,7 @@ export class ConsultationService {
 
     const doctor = await this.doctorRepository.findOne({
       where: { id: doctorId },
-      relations: ['user', 'institution'],
+      relations: ['user'],
     });
     if (!doctor) {
       throw new NotFoundException(`Doctor with ID ${doctorId} not found`);
@@ -48,11 +48,16 @@ export class ConsultationService {
     // Create video session if not provided
     let videoSessionId = consultationData.videoSessionId;
     if (!videoSessionId) {
+      await Promise.all([
+        this.streamService.upsertUser(patient),
+        this.streamService.upsertUser(doctor),
+      ]);
       const session = await this.streamService.createVideoSession({
         patientId,
         doctorId,
         scheduledTime: consultationData.startTime,
       });
+      console.log(session);
       videoSessionId = session.id;
     }
 
@@ -111,13 +116,7 @@ export class ConsultationService {
     const [consultations, total] =
       await this.consultationRepository.findAndCount({
         where,
-        relations: [
-          'patient',
-          'doctor',
-          'doctor.user',
-          'patient.user',
-          'doctor.institution',
-        ],
+        relations: ['patient', 'doctor', 'doctor.user', 'patient.user'],
         take: limit,
         skip,
         order: { startTime: 'ASC' },
@@ -136,13 +135,7 @@ export class ConsultationService {
   async findOne(id: string): Promise<ConsultationResponseDto> {
     const consultation = await this.consultationRepository.findOne({
       where: { id },
-      relations: [
-        'patient',
-        'doctor',
-        'doctor.user',
-        'patient.user',
-        'doctor.institution',
-      ],
+      relations: ['patient', 'doctor', 'doctor.user', 'patient.user'],
     });
 
     if (!consultation) {
@@ -299,6 +292,7 @@ export class ConsultationService {
       videoSessionId: consultation.videoSessionId,
       duration: consultation.duration,
       notes: consultation.notes,
+      status: consultation.status,
       patient: {
         id: consultation.patient.id,
         fullName: consultation.patient.fullName,

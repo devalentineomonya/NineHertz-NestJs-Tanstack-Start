@@ -1,11 +1,11 @@
 import { ApiProperty } from '@nestjs/swagger';
 import {
-  IsNotEmpty,
-  IsUUID,
   IsDateString,
-  IsOptional,
+  IsNotEmpty,
   IsNumber,
+  IsOptional,
   IsString,
+  IsUUID,
 } from 'class-validator';
 
 export class CreateConsultationDto {

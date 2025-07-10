@@ -8,7 +8,6 @@ import { AdminResponseDto } from './dto/admin-response.dto';
 import { AdminPaginatedDto } from './dto/admin-paginated.dto';
 import { UserService } from '../user/user.service';
 import { AdminType } from 'src/enums/admin.enum';
-import { UserRole } from 'src/user/entities/user.entity';
 import { PaginationDto } from 'src/shared/dto/pagination.dto';
 @Injectable()
 export class AdminService {
@@ -20,11 +19,17 @@ export class AdminService {
   ) {}
 
   async create(createAdminDto: CreateAdminDto): Promise<AdminResponseDto> {
-    const user = await this.userService.create({
-      email: createAdminDto.userEmail,
-      role: 'admin' as UserRole,
-    });
-
+    const user = await this.userService.findOne(createAdminDto.userUuid);
+    if (!user) {
+      throw new NotFoundException(
+        `User with uuid ${createAdminDto.userUuid} was not found`,
+      );
+    }
+    if (user.role !== 'admin') {
+      throw new NotFoundException(
+        `User with uuid ${createAdminDto.userUuid} does not have the required admin role`,
+      );
+    }
     const admin = this.adminRepository.create({
       ...createAdminDto,
       user,
@@ -43,7 +48,6 @@ export class AdminService {
 
     const query = this.adminRepository
       .createQueryBuilder('admin')
-      .leftJoinAndSelect('admin.institution', 'institution')
       .leftJoinAndSelect('admin.user', 'user')
       .take(limit)
       .skip(skip);

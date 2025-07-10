@@ -13,6 +13,7 @@ export class ResponseFormatInterceptor implements NestInterceptor {
     const httpContext = context.switchToHttp();
     const response = httpContext.getResponse<Response>();
     const statusCode = response.status;
+    console.dir(statusCode, { depth: null });
 
     return next.handle().pipe(
       map((data: unknown) => {

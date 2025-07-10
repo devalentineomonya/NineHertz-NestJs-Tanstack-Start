@@ -1,35 +1,43 @@
 import { AuthLayout } from "@/screens/auth/auth-layout";
 import { SignInForm } from "@/screens/auth/signin-form";
 import { SignUpMode } from "@/screens/auth/signup-method-picker";
+import { useSignUpStore } from "@/stores/use-signup-store";
 import { createFileRoute } from "@tanstack/react-router";
 import { AnimatePresence, motion } from "framer-motion";
-import { useState } from "react";
+import { useEffect } from "react";
 
 export const Route = createFileRoute("/auth/signin")({
   component: RouteComponent,
 });
 
 function RouteComponent() {
-  const [signUpStep, setSignUpStep] = useState<number>(1);
+  const { step, setStep, setMethod, reset } = useSignUpStore();
+
+  useEffect(() => {
+    return () => reset();
+  }, []);
+
   const handleEmailClick = () => {
-    handleNextStep();
+    setMethod("email");
+    setStep(2);
   };
 
   const handleGoogleClick = () => {
-    window.location.assign("http://localhost:3000/auth/google");
+    setMethod("google");
+    window.location.assign(`${import.meta.env.VITE_API_BASE_URL}/auth/google`);
   };
 
   const handlePreviousStep = () => {
-    setSignUpStep((prev) => prev - 1);
+    setStep(step - 1);
   };
 
-  const handleNextStep = () => {
-    setSignUpStep((prev) => prev + 1);
-  };
   return (
-    <AuthLayout title="Login to NIneHertz" description="Choose a method to login">
+    <AuthLayout
+      title="Login to NineHertz"
+      description="Choose a method to login"
+    >
       <AnimatePresence mode="wait">
-        {signUpStep === 1 && (
+        {step === 1 && (
           <motion.div
             key="step1"
             initial={{ opacity: 0 }}
@@ -47,7 +55,7 @@ function RouteComponent() {
             />
           </motion.div>
         )}
-        {signUpStep === 2 && (
+        {step === 2 && (
           <motion.div
             key="step2"
             initial={{ opacity: 0 }}

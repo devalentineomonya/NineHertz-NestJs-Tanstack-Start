@@ -11,8 +11,8 @@ export class Admin {
 
   @Column({
     type: 'enum',
-    enum: ['super', 'institution', 'support'],
-    default: 'institution',
+    enum: ['super', 'support'],
+    default: 'support',
   })
   adminType: string;
 
@@ -29,7 +29,7 @@ export class Admin {
   @OneToOne(() => User, (user) => user.adminProfile)
   user: User;
 
-  @Column('simple-json')
+  @Column('jsonb')
   availability: {
     days: string[];
     hours: string[];

@@ -12,6 +12,7 @@ import { User } from 'src/user/entities/user.entity';
 import { TypeOrmModule } from '@nestjs/typeorm';
 import { Admin } from 'src/admin/entities/admin.entity';
 import { UserService } from 'src/user/user.service';
+import { MailService } from 'src/shared/mail/mail.service';
 
 @Module({
   imports: [
@@ -30,6 +31,7 @@ import { UserService } from 'src/user/user.service';
     PermissionHelper,
     ContactHelper,
     UserService,
+    MailService,
   ],
 })
 export class AuthModule {}

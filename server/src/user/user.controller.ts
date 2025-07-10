@@ -6,6 +6,7 @@ import {
   Patch,
   Param,
   Delete,
+  Query,
 } from '@nestjs/common';
 import {
   ApiTags,
@@ -21,6 +22,7 @@ import { UserService } from './user.service';
 import { CreateUserDto } from './dto/create-user.dto';
 import { UpdateUserDto } from './dto/update-user.dto';
 import { UserResponseDto } from './dto/user-response.dto';
+import { FindUsersFilterDto } from './dto/find-users-filter.dto';
 
 @ApiTags('Users')
 @Controller('user')
@@ -45,8 +47,8 @@ export class UserController {
     description: 'List of users retrieved successfully',
     type: [UserResponseDto],
   })
-  findAll() {
-    return this.userService.findAll();
+  findAll(@Query() filters: FindUsersFilterDto) {
+    return this.userService.findAll(filters);
   }
 
   @Get(':id')

@@ -11,7 +11,13 @@ import {
   UnauthorizedException,
 } from '@nestjs/common';
 import { AuthService } from './auth.service';
-import { ApiTags, ApiOperation, ApiResponse, ApiBody } from '@nestjs/swagger';
+import {
+  ApiTags,
+  ApiOperation,
+  ApiResponse,
+  ApiBody,
+  ApiProperty,
+} from '@nestjs/swagger';
 import { PermissionHelper } from 'src/shared/helpers/permission.helper';
 import { AuthGuard } from '@nestjs/passport';
 import { Request, Response } from 'express';
@@ -22,10 +28,10 @@ import { SignUpDto } from './dto/signup.dto';
 import { RefreshTokenDto } from './dto/refresh-token.dto';
 import { ResetPasswordInitiateDto } from './dto/reset-password.dto';
 import { ResetPasswordConfirmDto } from './dto/reset-password-confirm.dto';
-// import { UpdatePasswordDto } from './dto/update-password.dto';
+import { UpdatePasswordDto } from './dto/update-password.dto';
 import { UpdateEmailDto } from './dto/update-email.dto';
-import { CreateUserDto } from 'src/user/dto/create-user.dto';
 import { Profile } from 'passport-google-oauth20';
+import { VerifyEmailDto } from './dto/verify-email.dto';
 
 @ApiTags('Auth')
 @Controller('auth')
@@ -46,7 +52,7 @@ export class AuthController {
     description: 'Email already exists',
   })
   @ApiBody({ type: SignUpDto })
-  async signUp(@Body() signUpDto: CreateUserDto) {
+  async signUp(@Body() signUpDto: SignUpDto) {
     return this.authService.signUp(signUpDto);
   }
 
@@ -91,6 +97,31 @@ export class AuthController {
     return this.authService.refreshToken(refreshTokenDto.refreshToken);
   }
 
+  @Post('verify-tokens')
+  @HttpCode(HttpStatus.OK)
+  @ApiOperation({ summary: 'Verify access and refresh tokens' })
+  @ApiResponse({
+    status: HttpStatus.OK,
+    description: 'Tokens are valid',
+  })
+  @ApiResponse({
+    status: HttpStatus.UNAUTHORIZED,
+    description: 'Invalid tokens',
+  })
+  async verifyTokens(
+    @Body() tokens: { accessToken: string; refreshToken: string },
+  ) {
+    const isValid = await this.authService.verifyTokens(
+      tokens.accessToken,
+      tokens.refreshToken,
+    );
+    console.log(isValid);
+    if (!isValid) {
+      throw new UnauthorizedException('Invalid tokens');
+    }
+    return { success: true, message: 'Tokens are valid', userId: isValid };
+  }
+
   @Post('password/forgot')
   @HttpCode(HttpStatus.ACCEPTED)
   @ApiOperation({ summary: 'Initiate password reset' })
@@ -124,26 +155,26 @@ export class AuthController {
     return { message: 'Password has been successfully reset' };
   }
 
-  // @Post('password/update')
-  // @UseGuards(AuthGuard('jwt-access-token'))
-  // @HttpCode(HttpStatus.OK)
-  // @ApiOperation({ summary: 'Update password (authenticated users)' })
-  // @ApiResponse({
-  //   status: HttpStatus.OK,
-  //   description: 'Password updated successfully',
-  // })
-  // @ApiResponse({
-  //   status: HttpStatus.UNAUTHORIZED,
-  //   description: 'Invalid credentials',
-  // })
-  // @ApiBody({ type: UpdatePasswordDto })
-  // async updatePassword(
-  //   @GetUser() user: JWTPayload,
-  //   @Body() dto: UpdatePasswordDto,
-  // ) {
-  //   await this.authService.updatePassword(user.sub, dto.newPassword);
-  //   return { message: 'Password updated successfully' };
-  // }
+  @Post('password/update')
+  @UseGuards(AuthGuard('jwt-access-token'))
+  @HttpCode(HttpStatus.OK)
+  @ApiOperation({ summary: 'Update password (authenticated users)' })
+  @ApiResponse({
+    status: HttpStatus.OK,
+    description: 'Password updated successfully',
+  })
+  @ApiResponse({
+    status: HttpStatus.UNAUTHORIZED,
+    description: 'Invalid credentials',
+  })
+  @ApiBody({ type: UpdatePasswordDto })
+  async updatePassword(
+    @GetUser() user: JWTPayload,
+    @Body() dto: UpdatePasswordDto,
+  ) {
+    await this.authService.updatePassword(user.sub, dto.newPassword);
+    return { message: 'Password updated successfully' };
+  }
 
   @Post('email/update')
   @UseGuards(AuthGuard('jwt-access-token'))
@@ -163,6 +194,51 @@ export class AuthController {
       newEmail: dto.newEmail,
     });
     return { message: 'Email updated successfully' };
+  }
+  @Post('email/verify')
+  @HttpCode(HttpStatus.OK)
+  @ApiOperation({ summary: 'Verify email address' })
+  @ApiResponse({
+    status: HttpStatus.OK,
+    description: 'Email verified successfully',
+  })
+  @ApiResponse({
+    status: HttpStatus.BAD_REQUEST,
+    description: 'Invalid verification token',
+  })
+  @ApiProperty({
+    description: 'The email address to be verified.',
+    example: 'user@example.com',
+  })
+  @ApiProperty({
+    description:
+      'The one-time password (OTP) sent to the email for verification.',
+    example: '123456',
+  })
+  @ApiBody({ type: VerifyEmailDto })
+  async verifyEmail(@Body() verifyEmailDto: { email: string; otp: string }) {
+    return this.authService.verifyEmail(verifyEmailDto);
+  }
+
+  @Post('email/verify/initiate')
+  @HttpCode(HttpStatus.OK)
+  @ApiOperation({ summary: 'Initiate email verification' })
+  @ApiResponse({
+    status: HttpStatus.OK,
+    description: 'Verification email sent successfully',
+  })
+  @ApiResponse({
+    status: HttpStatus.BAD_REQUEST,
+    description: 'Invalid email address',
+  })
+  @ApiBody({
+    schema: {
+      type: 'object',
+      properties: { email: { type: 'string', format: 'email' } },
+    },
+  })
+  async initiateEmailVerification(@Body('email') email: string) {
+    return this.authService.initiateEmailVerification(email);
   }
 
   @Get('google')

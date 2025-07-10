@@ -1,6 +1,8 @@
 import { DataTable } from "@/components/data-table/data-table";
 import { DataTableColumnHeader } from "@/components/data-table/data-table-column-header";
+import { DataTableSkeleton } from "@/components/data-table/data-table-skeleton";
 import { DataTableToolbar } from "@/components/data-table/data-table-toolbar";
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -12,174 +14,23 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import { useDataTable } from "@/hooks/use-data-table";
+import { useGetConsultation } from "@/services/consultations/use-get-consultation";
+import { useAddConsultationStore } from "@/stores/use-add-consultation-store";
 
 import type { ColumnDef } from "@tanstack/react-table";
+import { format } from "date-fns";
 import {
   Activity,
   Calendar,
   Clock,
   MoreHorizontal,
+  PlusSquare,
   Stethoscope,
   User,
   Video,
 } from "lucide-react";
 import { parseAsArrayOf, parseAsString, useQueryState } from "nuqs";
 import * as React from "react";
-
-interface Consultation {
-  id: string;
-  startTime: Date;
-  endTime: Date | null;
-  duration: number | null;
-  videoSessionId: string | null;
-  notes: string | null;
-  recordingUrl: string | null;
-  aiAnalysis: Record<string, any> | null;
-  patient: {
-    id: string;
-    fullName: string;
-  };
-  doctor: {
-    id: string;
-    fullName: string;
-    specialty: string;
-  };
-  createdAt: Date;
-  updatedAt: Date;
-  // Derived fields
-  status: "completed" | "in-progress" | "scheduled" | "ended";
-  durationText: string;
-}
-
-const data: Consultation[] = [
-  {
-    id: "1",
-    startTime: new Date(2024, 5, 15, 10, 30),
-    endTime: new Date(2024, 5, 15, 11, 15),
-    duration: 45,
-    videoSessionId: "vid_12345",
-    notes: "Patient reported improved symptoms. Prescribed medication refill.",
-    recordingUrl: "https://example.com/recordings/1",
-    aiAnalysis: {
-      sentiment: "positive",
-      keyTopics: ["medication refill", "symptom improvement"],
-    },
-    patient: {
-      id: "p1",
-      fullName: "John Doe",
-    },
-    doctor: {
-      id: "d1",
-      fullName: "Dr. Sarah Johnson",
-      specialty: "Cardiology",
-    },
-    createdAt: new Date(2024, 5, 10),
-    updatedAt: new Date(2024, 5, 15, 11, 30),
-    status: "completed",
-    durationText: "45 min",
-  },
-  {
-    id: "2",
-    startTime: new Date(2024, 5, 16, 14, 0),
-    endTime: null,
-    duration: null,
-    videoSessionId: "vid_67890",
-    notes: null,
-    recordingUrl: null,
-    aiAnalysis: null,
-    patient: {
-      id: "p2",
-      fullName: "Jane Smith",
-    },
-    doctor: {
-      id: "d2",
-      fullName: "Dr. Michael Chen",
-      specialty: "Neurology",
-    },
-    createdAt: new Date(2024, 5, 12),
-    updatedAt: new Date(2024, 5, 12),
-    status: "scheduled",
-    durationText: "Scheduled",
-  },
-  {
-    id: "3",
-    startTime: new Date(2024, 5, 17, 11, 15),
-    endTime: null,
-    duration: 20,
-    videoSessionId: "vid_54321",
-    notes: "Ongoing consultation for chronic condition management",
-    recordingUrl: "https://example.com/recordings/3",
-    aiAnalysis: {
-      sentiment: "neutral",
-      keyTopics: ["chronic condition", "management plan"],
-    },
-    patient: {
-      id: "p3",
-      fullName: "Robert Johnson",
-    },
-    doctor: {
-      id: "d3",
-      fullName: "Dr. Emily Rodriguez",
-      specialty: "Pediatrics",
-    },
-    createdAt: new Date(2024, 5, 15),
-    updatedAt: new Date(2024, 5, 17, 11, 35),
-    status: "in-progress",
-    durationText: "20 min (ongoing)",
-  },
-  {
-    id: "4",
-    startTime: new Date(2024, 5, 14, 9, 0),
-    endTime: new Date(2024, 5, 14, 9, 40),
-    duration: 40,
-    videoSessionId: "vid_98765",
-    notes: "Initial consultation. Ordered lab tests.",
-    recordingUrl: "https://example.com/recordings/4",
-    aiAnalysis: {
-      sentiment: "neutral",
-      keyTopics: ["lab tests", "initial assessment"],
-    },
-    patient: {
-      id: "p4",
-      fullName: "Emily Wilson",
-    },
-    doctor: {
-      id: "d4",
-      fullName: "Dr. James Wilson",
-      specialty: "Orthopedics",
-    },
-    createdAt: new Date(2024, 5, 5),
-    updatedAt: new Date(2024, 5, 14, 10, 0),
-    status: "completed",
-    durationText: "40 min",
-  },
-  {
-    id: "5",
-    startTime: new Date(2024, 5, 18, 13, 45),
-    endTime: new Date(2024, 5, 18, 14, 30),
-    duration: 45,
-    videoSessionId: null,
-    notes: "Follow-up for skin condition. Prescribed topical treatment.",
-    recordingUrl: null,
-    aiAnalysis: {
-      sentiment: "positive",
-      keyTopics: ["skin condition", "topical treatment"],
-    },
-    patient: {
-      id: "p5",
-      fullName: "Michael Brown",
-    },
-    doctor: {
-      id: "d5",
-      fullName: "Dr. Priya Sharma",
-      specialty: "Dermatology",
-    },
-    createdAt: new Date(2024, 5, 10),
-    updatedAt: new Date(2024, 5, 18, 14, 45),
-    status: "completed",
-    durationText: "45 min",
-  },
-];
 
 const statusVariants = {
   scheduled: "secondary",
@@ -189,6 +40,8 @@ const statusVariants = {
 };
 
 export function AdminConsultations() {
+  const { data, isLoading } = useGetConsultation();
+  const { onOpen } = useAddConsultationStore();
   const [patientName] = useQueryState(
     "patientName",
     parseAsString.withDefault("")
@@ -207,7 +60,7 @@ export function AdminConsultations() {
   );
 
   const filteredData = React.useMemo(() => {
-    return data.filter((consultation) => {
+    return data?.data?.filter((consultation) => {
       const matchesPatient =
         patientName === "" ||
         consultation.patient.fullName
@@ -230,7 +83,7 @@ export function AdminConsultations() {
     });
   }, [patientName, doctorName, status, dateRange]);
 
-  const columns = React.useMemo<ColumnDef<Consultation>[]>(
+  const columns = React.useMemo<ColumnDef<ConsultationResponseDto>[]>(
     () => [
       {
         id: "select",
@@ -269,14 +122,13 @@ export function AdminConsultations() {
             <div className="flex flex-col">
               <div className="flex items-center gap-2">
                 <Calendar className="size-4 text-gray-500" />
-                <span className="font-medium">{date.toLocaleDateString()}</span>
+                <span className="font-medium">
+                  {format(new Date(date), "MMMM d, yyyy")}
+                </span>
               </div>
               <div className="flex items-center gap-2 text-sm text-gray-500">
                 <Clock className="size-4 text-gray-500" />
-                {date.toLocaleTimeString([], {
-                  hour: "2-digit",
-                  minute: "2-digit",
-                })}
+                {format(new Date(date), "hh:mm a")}
               </div>
             </div>
           );
@@ -296,7 +148,21 @@ export function AdminConsultations() {
         ),
         cell: ({ row }) => (
           <div className="flex items-center gap-3">
-            <div className="bg-gray-200 border-2 border-dashed rounded-xl w-8 h-8" />
+            <Avatar className="w-10 h-10 rounded-md overflow-hidden">
+              <AvatarImage
+                src={`https://avatar.vercel.sh/${encodeURIComponent(row.original.patient.fullName)}`}
+                alt={row.original.patient.fullName}
+              />
+              <AvatarFallback>
+                {row.original.patient.fullName
+                  .split(" ")
+                  .map((n) => n[0])
+                  .join("")
+                  .slice(0, 2)
+                  .toUpperCase()}
+              </AvatarFallback>
+            </Avatar>
+
             <div className="font-medium">{row.original.patient.fullName}</div>
           </div>
         ),
@@ -316,7 +182,20 @@ export function AdminConsultations() {
         ),
         cell: ({ row }) => (
           <div className="flex items-center gap-3">
-            <div className="bg-gray-200 border-2 border-dashed rounded-xl w-8 h-8" />
+            <Avatar className="w-10 h-10 rounded-md overflow-hidden">
+              <AvatarImage
+                src={`https://avatar.vercel.sh/${encodeURIComponent(row.original.doctor.fullName)}`}
+                alt={row.original.doctor.fullName}
+              />
+              <AvatarFallback>
+                {row.original.doctor.fullName
+                  .split(" ")
+                  .map((n) => n[0])
+                  .join("")
+                  .slice(0, 2)
+                  .toUpperCase()}
+              </AvatarFallback>
+            </Avatar>
             <div>
               <div className="font-medium">{row.original.doctor.fullName}</div>
               <div className="text-sm text-gray-500">
@@ -342,7 +221,12 @@ export function AdminConsultations() {
         cell: ({ row }) => (
           <div className="flex items-center gap-2">
             <Clock className="size-4 text-gray-500" />
-            <span>{row.original.durationText}</span>
+            <span>
+              {format(
+                new Date(0, 0, 0, 0, row.original.duration),
+                "H 'h' mm 'm'"
+              )}
+            </span>
           </div>
         ),
       },
@@ -353,7 +237,7 @@ export function AdminConsultations() {
           <DataTableColumnHeader column={column} title="Status" />
         ),
         cell: ({ cell }) => {
-          const status = cell.getValue<Consultation["status"]>();
+          const status = cell.getValue<ConsultationResponseDto["status"]>();
           const variant = statusVariants[status] as
             | "default"
             | "secondary"
@@ -457,9 +341,9 @@ export function AdminConsultations() {
   );
 
   const { table } = useDataTable({
-    data: filteredData,
+    data: filteredData ?? [],
     columns,
-    pageCount: Math.ceil(filteredData.length / 10),
+    pageCount: Math.ceil((filteredData?.length || 10) / 10),
     initialState: {
       sorting: [{ id: "startTime", desc: true }],
       columnPinning: { right: ["actions"] },
@@ -467,8 +351,41 @@ export function AdminConsultations() {
     getRowId: (row) => row.id,
   });
 
+  if (isLoading) {
+    return (
+      <div className="space-y-4">
+        <DataTableSkeleton
+          columnCount={columns.length}
+          rowCount={10}
+          filterCount={5}
+          optionsCount={2}
+          withViewOptions={true}
+          withPagination={true}
+          cellWidths={[
+            "40px",
+            "120px",
+            "200px",
+            "180px",
+            "180px",
+            "120px",
+            "100px",
+            "140px",
+            "140px",
+            "40px",
+          ]}
+        />
+      </div>
+    );
+  }
+
   return (
     <div className="data-table-container">
+      <div className="w-fit min-w-56 mb-2">
+        <Button variant={"primary"} onClick={onOpen}>
+          <PlusSquare />
+          Add Consultation
+        </Button>
+      </div>
       <DataTable table={table}>
         <DataTableToolbar table={table} />
       </DataTable>

@@ -1,4 +1,5 @@
 import {
+  Index,
   Entity,
   PrimaryGeneratedColumn,
   Column,
@@ -13,11 +14,12 @@ import { OrderStatus } from 'src/enums/order.enum';
 import { Pharmacy } from 'src/pharmacy/entity/pharmacy.entity';
 
 @Entity()
+@Index(['status', 'paymentStatus', 'orderDate'])
 export class Order {
   @PrimaryGeneratedColumn('uuid')
   id: string;
 
-  @Column({ type: 'timestamp', default: () => 'CURRENT_TIMESTAMP' })
+  @Column({ type: 'timestamptz', default: () => 'CURRENT_TIMESTAMP' })
   orderDate: Date;
 
   @Column({

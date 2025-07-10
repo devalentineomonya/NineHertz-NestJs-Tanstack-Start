@@ -5,11 +5,13 @@ import {
   CreateDateColumn,
   UpdateDateColumn,
   OneToMany,
+  Index,
 } from 'typeorm';
 import { InventoryItem } from '../../inventory-item/entities/inventory-item.entity';
 import { OrderItem } from '../../order/entities/order-item.entity';
 
 @Entity()
+@Index(['name', 'genericName'])
 export class Medicine {
   @PrimaryGeneratedColumn('uuid')
   id: string;
@@ -23,7 +25,7 @@ export class Medicine {
   @Column()
   description: string;
 
-  @Column({ type: 'decimal', precision: 10, scale: 2 })
+  @Column({ type: 'decimal', precision: 8, scale: 2 })
   price: number;
 
   @Column()

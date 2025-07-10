@@ -38,19 +38,19 @@ export class CreateAdminDto {
 
   @ApiProperty({
     enum: AdminType,
-    example: AdminType.INSTITUTION_ADMIN,
+    example: AdminType.SUPPORT_ADMIN,
     description: 'Type of admin role',
   })
   @IsEnum(AdminType)
   adminType: AdminType;
 
   @ApiProperty({
-    example: 'user@example.com',
-    description: 'Email for user account creation',
+    example: '550e8400-e29b-41d4-a716-446655440000',
+    description: 'UUID of the user account',
   })
   @IsString()
   @IsNotEmpty()
-  userEmail: string;
+  userUuid: string;
 
   @ApiProperty({
     example: 'Cardiology',

@@ -1,5 +1,6 @@
 import { ApiProperty } from '@nestjs/swagger';
-import { IsNotEmpty, IsUUID, IsDateString } from 'class-validator';
+import { IsNotEmpty, IsUUID, IsDateString, IsEnum } from 'class-validator';
+import { AppointmentType } from '../entities/appointment.entity';
 
 export class CreateAppointmentDto {
   @ApiProperty({
@@ -33,4 +34,13 @@ export class CreateAppointmentDto {
   @IsUUID()
   @IsNotEmpty()
   doctorId: string;
+
+  @ApiProperty({
+    example: 'virtual',
+    description: 'Type of the appointment',
+    enum: [AppointmentType],
+  })
+  @IsEnum(AppointmentType)
+  @IsNotEmpty()
+  type: AppointmentType;
 }

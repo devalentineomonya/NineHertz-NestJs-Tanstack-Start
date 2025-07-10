@@ -20,7 +20,7 @@ export const baseStyles = {
   expiryText: 'font-size:14px;color:#9ca3af;margin:5px 0 5px 0;',
   actionButton:
     'background-color:#00d4ff;color:#ffffff;padding:14px 32px;border-radius:8px;text-decoration:none;font-size:16px;font-weight:600;display:inline-block;margin:5px 0 5px 0;width:100%;max-width:100%;box-sizing:border-box;',
-  divider: 'border-top:1px solid #e5e7eb;margin:320px 0;',
+  divider: 'border-top:1px solid #e5e7eb;margin:20px 0;',
   securityWarning:
     'font-size:14px;color:#6b7280;margin:0 0 8px 0;line-height:1.5;text-align:left;',
   supportLink: 'color:#00d4ff;text-decoration:underline;',
@@ -83,20 +83,18 @@ export function baseEmailTemplate({
   `;
 }
 
-export interface MFAEmailProps {
+export interface otpEmailProps {
   otpCode: string;
   expiryMinutes?: number;
-  verificationUrl?: string;
   supportEmail?: string;
   companyName?: string;
 }
-export function MFAEmail({
+export function otpEmail({
   otpCode,
   expiryMinutes = 30,
-  verificationUrl = '#',
   supportEmail = 'support@example.com',
-  companyName = 'CRM Nexus',
-}: MFAEmailProps) {
+  companyName = 'NineHertz Medic',
+}: otpEmailProps) {
   const minutesText = expiryMinutes === 1 ? 'minute' : 'minutes';
   const otpDigits = otpCode
     .split('')
@@ -116,10 +114,6 @@ export function MFAEmail({
     <p style="${baseStyles.expiryText}">
       The OTP will expire in ${expiryMinutes} ${minutesText}.
     </p>
-
-    <a href="${verificationUrl}" style="${baseStyles.actionButton};">
-      Verify with One Tap
-    </a>
 
     <hr style="${baseStyles.divider}" />
 

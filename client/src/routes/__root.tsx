@@ -6,11 +6,12 @@ import { NotFound } from "@/components/common/not-found";
 import { DefaultCatchBoundary } from "@/components/common/try-catch-boundary";
 import appCss from "../styles/index.css?url";
 import { seo } from "@/utils/seo";
-import Navbar from "@/components/shared/naavbar/navbar";
+import Navbar from "@/components/shared/navbar/navbar";
 import FooterSection from "@/components/shared/footer/footer";
 import { NuqsAdapter } from "nuqs/adapters/react";
-
 import { Toaster } from "@/components/ui/sonner";
+
+import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 
 export const Route = createRootRoute({
   head: () => ({
@@ -32,24 +33,28 @@ export const Route = createRootRoute({
   errorComponent: DefaultCatchBoundary,
   notFoundComponent: () => <NotFound />,
   shellComponent: RootDocument,
+
 });
 
 function RootDocument({ children }: { children: React.ReactNode }) {
+  const queryClient = new QueryClient();
   return (
     <html className="scroll-smooth scroll-">
       <head>
         <HeadContent />
       </head>
       <body>
-        <NuqsAdapter>
-          <Navbar />
-          {children}
-          <FooterSection />
-          <TanStackRouterDevtools position="bottom-right" />
+        <QueryClientProvider client={queryClient}>
+          <NuqsAdapter>
+            <Navbar />
+            {children}
+            <FooterSection />
+            <TanStackRouterDevtools position="bottom-right" />
 
-          <Toaster richColors position="top-center" />
-          <Scripts />
-        </NuqsAdapter>
+            <Toaster richColors position="top-center" />
+            <Scripts />
+          </NuqsAdapter>
+        </QueryClientProvider>
       </body>
     </html>
   );

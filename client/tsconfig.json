@@ -1,5 +1,10 @@
 {
-  "include": ["**/*.ts", "**/*.tsx"],
+  "include": [
+    "**/*.ts",
+    "**/*.tsx",
+    "src/services/patients/use-get-patients.ts",
+    "src/screens/call/call-layout/speaker-one-on-one.tsx"
+  ],
   "compilerOptions": {
     "strict": true,
     "esModuleInterop": true,

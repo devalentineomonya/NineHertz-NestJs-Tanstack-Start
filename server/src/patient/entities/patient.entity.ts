@@ -5,6 +5,7 @@ import {
   OneToOne,
   OneToMany,
   JoinColumn,
+  Index,
 } from 'typeorm';
 import { User } from '../../user/entities/user.entity';
 import { Appointment } from '../../appointment/entities/appointment.entity';
@@ -29,18 +30,25 @@ export class Patient {
   @Column({ type: 'jsonb', nullable: true })
   medicalHistory: Record<string, any>;
 
-  @OneToOne(() => User, (user) => user.patientProfile, { onDelete: 'CASCADE' })
+  @Index()
+  @Column({ type: 'enum', enum: ['active', 'inactive'], default: 'active' })
+  status: 'active' | 'inactive';
+
+  @OneToOne(() => User, (user) => user.patientProfile, {
+    onDelete: 'CASCADE',
+  })
   @JoinColumn()
   user: User;
-  @OneToMany(() => Appointment, (appointment) => appointment.patient)
+
+  @OneToMany(() => Appointment, (appointment) => appointment.patient, {})
   appointments: Appointment[];
 
-  @OneToMany(() => Consultation, (consultation) => consultation.patient)
+  @OneToMany(() => Consultation, (consultation) => consultation.patient, {})
   consultations: Consultation[];
 
-  @OneToMany(() => Prescription, (prescription) => prescription.patient)
+  @OneToMany(() => Prescription, (prescription) => prescription.patient, {})
   prescriptions: Prescription[];
 
-  @OneToMany(() => Order, (order) => order.patient)
+  @OneToMany(() => Order, (order) => order.patient, {})
   orders: Order[];
 }
