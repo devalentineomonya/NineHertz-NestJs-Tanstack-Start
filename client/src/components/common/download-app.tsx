@@ -1,59 +1,49 @@
 import { useEffect, useState } from "react";
 
-interface BeforeInstallPromptEvent extends Event {
-  readonly platforms: string[];
-  readonly userChoice: Promise<{ outcome: "accepted" | "dismissed"; platform: string }>;
-  prompt(): void;
-}
-
 export const InstallPWAButton = () => {
-  const [deferredPrompt, setDeferredPrompt] =
-    useState<BeforeInstallPromptEvent | null>(null);
+  const [deferredPrompt, setDeferredPrompt] = useState<any>(null);
   const [canInstall, setCanInstall] = useState(false);
-  const [isInstalled, setIsInstalled] = useState(false);
-
 
   useEffect(() => {
-    if (window.matchMedia("(display-mode: standalone)").matches) {
-      setIsInstalled(true);
-    }
-    window.addEventListener("appinstalled", () => {
-      setIsInstalled(true);
-    });
-
-    const handler = (e: BeforeInstallPromptEvent) => {
+    const handleInstallPrompt = (e: Event) => {
       e.preventDefault();
       setDeferredPrompt(e);
       setCanInstall(true);
     };
 
-    window.addEventListener("beforeinstallprompt", handler as EventListener);
+    // Check if already installed
+    const isInstalled =
+      window.matchMedia("(display-mode: standalone)").matches ||
+      (navigator as any).standalone;
+
+    if (!isInstalled) {
+      window.addEventListener("beforeinstallprompt", handleInstallPrompt);
+    }
 
     return () => {
-      window.removeEventListener("beforeinstallprompt", handler  as EventListener);
+      window.removeEventListener("beforeinstallprompt", handleInstallPrompt);
     };
   }, []);
 
-  const handleInstallClick = async () => {
+  const handleInstall = async () => {
     if (!deferredPrompt) return;
-    deferredPrompt.prompt();
 
+    deferredPrompt.prompt();
     const { outcome } = await deferredPrompt.userChoice;
+
     if (outcome === "accepted") {
-      console.log("User accepted the install prompt");
-    } else {
-      console.log("User dismissed the install prompt");
+      console.log("PWA installed");
     }
 
     setDeferredPrompt(null);
     setCanInstall(false);
   };
 
-  if (!canInstall || isInstalled) return null;
+  if (!canInstall) return null;
 
   return (
     <button
-      onClick={handleInstallClick}
+      onClick={handleInstall}
       className="px-4 py-2 rounded bg-green-500 text-white hover:bg-green-600 transition fixed right-4 top-1/2 transform -translate-y-1/2"
     >
       Download App

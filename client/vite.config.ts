@@ -17,6 +17,11 @@ export default defineConfig({
     tailwindcss(),
     VitePWA({
       registerType: "autoUpdate",
+      injectManifest: {
+        globPatterns: ["**/*.{js,css,html,png,jpg}"],
+        globDirectory: "dist",
+      },
+      injectRegister: "auto",
       manifest: {
         name: "NineHertz Admin Dashboard",
         short_name: "NineAdmin",
@@ -64,7 +69,11 @@ export default defineConfig({
             urlPattern: ({ request }) => request.destination === "document",
             handler: "NetworkFirst",
             options: {
-              cacheName: "auth-pages",
+              cacheName: "page-cache",
+              expiration: {
+                maxEntries: 20,
+                maxAgeSeconds: 24 * 60 * 60,
+              },
             },
           },
         ],

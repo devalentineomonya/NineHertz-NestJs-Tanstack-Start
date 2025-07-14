@@ -38,6 +38,12 @@ export const Route = createRootRoute({
   shellComponent: RootDocument,
 });
 
+if ('serviceWorker' in navigator) {
+  navigator.serviceWorker.register('/sw.js', { scope: '/' })
+    .then(reg => console.log('SW registered: ', reg))
+    .catch(err => console.log('SW registration failed: ', err));
+}
+
 function RootDocument({ children }: { children: React.ReactNode }) {
   const queryClient = new QueryClient();
   return (
