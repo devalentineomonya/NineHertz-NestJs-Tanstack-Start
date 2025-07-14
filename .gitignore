@@ -15,7 +15,7 @@ pnpm-lock.yaml
 lerna-debug.log*
 /.pnp
 .pnp.js
-./count_sloc.sh
+count_sloc.sh
 # --- Client Directory ---
 client/.tanstack/
 client/dist/
