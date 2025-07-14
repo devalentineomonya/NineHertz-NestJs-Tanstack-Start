@@ -1,5 +1,6 @@
 import { Pharmacy } from 'src/pharmacy/entity/pharmacy.entity';
 import { User } from 'src/user/entities/user.entity';
+import { CreateDateColumn, UpdateDateColumn } from 'typeorm';
 import {
   Column,
   Entity,
@@ -8,7 +9,6 @@ import {
   OneToOne,
   PrimaryGeneratedColumn,
 } from 'typeorm';
-
 @Entity()
 export class Pharmacist {
   @PrimaryGeneratedColumn('uuid')
@@ -26,4 +26,17 @@ export class Pharmacist {
 
   @ManyToOne(() => Pharmacy, (pharmacy) => pharmacy.pharmacists)
   pharmacy: Pharmacy;
+
+  @CreateDateColumn()
+  createdAt: Date;
+
+  @UpdateDateColumn()
+  updatedAt: Date;
+
+  @Column({
+    type: 'enum',
+    enum: ['active', 'inactive'],
+    default: 'active',
+  })
+  status: 'active' | 'inactive';
 }

@@ -1,5 +1,5 @@
 @import url("https://fonts.googleapis.com/css2?family=Rubik:ital,wght@0,300..900;1,300..900&display=swap");
-@import "tailwindcss";
+@import "tailwindcss" source("../");
 @import "tw-animate-css";
 @plugin "tailwind-scrollbar-hide";
 
@@ -139,7 +139,15 @@
   body {
     @apply bg-background text-foreground;
   }
-  [data-vaul-drawer][data-vaul-drawer-direction=right]::after {
-    @apply hidden
+  [data-vaul-drawer][data-vaul-drawer-direction="right"]::after {
+    @apply hidden;
+  }
+  .str-video__call__loading-screen {
+    @apply flex justify-center items-center w-full h-full;
+  }
+
+  .str-video__loading-indicator__icon.spinner {
+    @apply h-24 w-24 text-green-600 border-green-600;
+    mask-size: 4rem;
   }
 }

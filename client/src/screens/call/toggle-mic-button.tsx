@@ -1,4 +1,4 @@
-import { forwardRef } from 'react';
+import { forwardRef } from "react";
 
 import {
   DeviceSelectorAudioInput,
@@ -8,7 +8,7 @@ import {
   ToggleMenuButtonProps,
   useCallStateHooks,
   useI18n,
-} from '@stream-io/video-react-sdk';
+} from "@stream-io/video-react-sdk";
 
 const ToggleMenuButton = forwardRef<HTMLButtonElement, ToggleMenuButtonProps>(
   function ToggleMenuButton(props, ref) {
@@ -25,12 +25,12 @@ const ToggleMenuButton = forwardRef<HTMLButtonElement, ToggleMenuButtonProps>(
         <Icon className="rd__button__icon" icon="mic" />
         <p className="rd__lobby__mic-button__device">
           {microphones?.find((mic) => mic.deviceId === selectedMic)?.label ||
-            t('Default')}
+            t("Default")}
         </p>
-        <Icon icon={props.menuShown ? 'chevron-down' : 'chevron-up'} />
+        <Icon icon={props.menuShown ? "chevron-down" : "chevron-up"} />
       </button>
     );
-  },
+  }
 );
 
 export const ToggleMicButton = () => {

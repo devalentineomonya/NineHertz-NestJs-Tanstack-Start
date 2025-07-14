@@ -111,11 +111,11 @@ export class AdminService {
       adminType: admin.adminType as AdminType,
 
       user: {
-        id: admin.user.id,
-        email: admin.user.email,
-        role: admin.user.role,
-        isEmailVerified: admin.user.isEmailVerified,
-        createdAt: admin.user.createdAt,
+        id: admin.user?.id,
+        email: admin.user?.email,
+        role: admin.user?.role,
+        isEmailVerified: admin.user?.isEmailVerified,
+        createdAt: admin.user?.createdAt,
       },
       createdAt: admin.createdAt,
       updatedAt: admin.updatedAt,

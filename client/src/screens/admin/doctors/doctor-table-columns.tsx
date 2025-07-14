@@ -16,6 +16,10 @@ import {
 import { DataTableColumnHeader } from "@/components/data-table/data-table-column-header";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
+import { useDoctorAvailabilityStore } from "@/stores/use-doctor-availability-store";
+import { useUpdateDoctorAvailabilityStore } from "@/stores/use-update-doctor-availability-store";
+import { useUpdateDoctorStore } from "@/stores/use-update-doctor-store";
+import { useDeleteDoctorStore } from "@/stores/use-delete-doctor-store";
 
 export const doctorColumns: ColumnDef<DoctorResponseDto>[] = [
   {
@@ -106,7 +110,9 @@ export const doctorColumns: ColumnDef<DoctorResponseDto>[] = [
             <Clock className="size-4 text-gray-500" />
             <span className="font-medium">{days.join(", ")}</span>
           </div>
-          <div className="text-sm text-gray-500">{hours.join(" & ")}</div>
+          <div className="text-sm text-gray-500 truncate max-w-96">
+            {hours.join(" & ")}
+          </div>
         </div>
       );
     },
@@ -126,7 +132,7 @@ export const doctorColumns: ColumnDef<DoctorResponseDto>[] = [
       icon: Clock,
     },
     enableColumnFilter: true,
-    filterFn: (row, columnId, filterValues: string[]) => {
+    filterFn: (row, _, filterValues: string[]) => {
       if (filterValues.length === 0) return true;
       const availabilityDays = row.original.availability.days;
       return filterValues.some((day) => availabilityDays.includes(day));
@@ -192,7 +198,14 @@ export const doctorColumns: ColumnDef<DoctorResponseDto>[] = [
   },
   {
     id: "actions",
-    cell: function Cell() {
+    cell: function Cell({ row }) {
+      const { openDrawer: openDoctorAvailabilityDrawer } =
+        useDoctorAvailabilityStore();
+      const { onOpen: openUpdateDoctorAvailability } =
+        useUpdateDoctorAvailabilityStore();
+      const { onOpen: onUpdateDoctorProfile } = useUpdateDoctorStore();
+      const { openModal: onDeleteModalOpen } = useDeleteDoctorStore();
+      const doctorId = row.original.id;
       return (
         <DropdownMenu>
           <DropdownMenuTrigger asChild>
@@ -202,10 +215,25 @@ export const doctorColumns: ColumnDef<DoctorResponseDto>[] = [
             </Button>
           </DropdownMenuTrigger>
           <DropdownMenuContent align="end">
-            <DropdownMenuItem>View Schedule</DropdownMenuItem>
-            <DropdownMenuItem>Edit Profile</DropdownMenuItem>
-            <DropdownMenuItem>Update Availability</DropdownMenuItem>
-            <DropdownMenuItem variant="destructive">
+            <DropdownMenuItem
+              onClick={() => openDoctorAvailabilityDrawer(doctorId)}
+            >
+              View Schedule
+            </DropdownMenuItem>
+            <DropdownMenuItem
+              onClick={() => onUpdateDoctorProfile(row.original)}
+            >
+              Edit Profile
+            </DropdownMenuItem>
+            <DropdownMenuItem
+              onClick={() => openUpdateDoctorAvailability(row.original)}
+            >
+              Update Availability
+            </DropdownMenuItem>
+            <DropdownMenuItem
+              onClick={() => onDeleteModalOpen(row.original.id)}
+              variant="destructive"
+            >
               Suspend Account
             </DropdownMenuItem>
           </DropdownMenuContent>

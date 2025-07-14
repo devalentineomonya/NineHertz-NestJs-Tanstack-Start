@@ -5,7 +5,7 @@ export const useGetPatient = (id: string) => {
   const dataService = new DataServices();
   return useQuery({
     enabled: !!id,
-    queryKey: [`patient-${id}`],
+    queryKey: [`patient`, id],
     queryFn: async () => {
       const response = await dataService.api.patients._id(id).get.call({
         params: { id },

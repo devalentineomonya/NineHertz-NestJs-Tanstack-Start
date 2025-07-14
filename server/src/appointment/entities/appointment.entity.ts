@@ -6,6 +6,7 @@ import {
   CreateDateColumn,
   UpdateDateColumn,
   Index,
+  JoinColumn,
 } from 'typeorm';
 import { Patient } from '../../patient/entities/patient.entity';
 import { Doctor } from '../../doctor/entities/doctor.entity';
@@ -26,6 +27,9 @@ export class Appointment {
   @PrimaryGeneratedColumn('uuid')
   id: string;
 
+  @Column({ type: 'int', default: 30 })
+  duration: number;
+
   @Column({
     type: 'enum',
     enum: AppointmentStatus,
@@ -43,7 +47,10 @@ export class Appointment {
   @ManyToOne(() => Patient, (patient) => patient.appointments)
   patient: Patient;
 
-  @ManyToOne(() => Doctor, (doctor) => doctor.appointments)
+  @ManyToOne(() => Doctor, (doctor) => doctor.appointments, {
+    onDelete: 'CASCADE',
+  })
+  @JoinColumn({ name: 'doctorId' })
   doctor: Doctor;
 
   @CreateDateColumn()

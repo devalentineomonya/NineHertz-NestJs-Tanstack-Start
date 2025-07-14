@@ -53,26 +53,26 @@ export class MedicineService {
       .take(limit)
       .skip(skip);
 
-    if (filters.search) {
+    if (filters?.search) {
       query.andWhere(
         `(medicine.name ILIKE :search OR medicine.genericName ILIKE :search)`,
         { search: `%${filters.search}%` },
       );
     }
 
-    if (filters.manufacturer) {
+    if (filters?.manufacturer) {
       query.andWhere('medicine.manufacturer ILIKE :manufacturer', {
         manufacturer: `%${filters.manufacturer}%`,
       });
     }
 
-    if (filters.minPrice !== undefined) {
+    if (filters?.minPrice !== undefined) {
       query.andWhere('medicine.price >= :minPrice', {
         minPrice: filters.minPrice,
       });
     }
 
-    if (filters.maxPrice !== undefined) {
+    if (filters?.maxPrice !== undefined) {
       query.andWhere('medicine.price <= :maxPrice', {
         maxPrice: filters.maxPrice,
       });

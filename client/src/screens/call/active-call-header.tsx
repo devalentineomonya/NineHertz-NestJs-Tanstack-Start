@@ -12,9 +12,9 @@ import { useEffect, useMemo, useState } from "react";
 
 import { CallHeaderTitle } from "./call-header-title";
 import { ToggleSettingsTabModal } from "./settings/settings-tab-modal";
-import { ToggleDocumentationButton } from "./toggle-documentation-button";
 
 import { LayoutSelectorProps } from "./layout-selector";
+import { Link } from "@tanstack/react-router";
 
 const LatencyIndicator = () => {
   const { useCallStatsReport } = useCallStateHooks();
@@ -22,13 +22,12 @@ const LatencyIndicator = () => {
   const latency = statsReport?.publisherStats?.averageRoundTripTimeInMs ?? 0;
 
   return (
-    <div className="rd__header__latency">
+    <div className="flex items-center justify-center [font-variant-numeric:tabular-nums] bg-gray-600 py-0.5 px-4 rounded text-xs font-semibold">
       <div
-        className={clsx("rd__header__latency-indicator", {
-          "rd__header__latency-indicator--good": latency && latency <= 100,
-          "rd__header__latency-indicator--ok":
-            latency && latency > 100 && latency < 400,
-          "rd__header__latency-indicator--bad": latency && latency > 400,
+        className={clsx("h-1.5 w-1.5 mr-1 rounded-full", {
+          "bg-green-500": latency && latency <= 100,
+          "bg-yellow-500": latency && latency > 100 && latency < 400,
+          "bg-red-500": latency && latency > 400,
         })}
       ></div>
       {latency} ms
@@ -47,7 +46,7 @@ const Elapsed = ({ startedAt }: { startedAt: string | undefined }) => {
       const elapsedSeconds = (Date.now() - startedAtDate) / 1000;
       const date = new Date(0);
       date.setSeconds(elapsedSeconds);
-      const format = date.toISOString(); // '1970-01-01T00:00:35.000Z'
+      const format = date.toISOString();
       const hours = format.substring(11, 13);
       const minutes = format.substring(14, 16);
       const seconds = format.substring(17, 19);
@@ -58,9 +57,9 @@ const Elapsed = ({ startedAt }: { startedAt: string | undefined }) => {
   }, [startedAtDate]);
 
   return (
-    <div className="rd__header__elapsed">
-      <Icon className="rd__header__elapsed-icon" icon="verified" />
-      <div className="rd__header__elapsed-time">{elapsed}</div>
+    <div className="flex items-center justify-center [font-variant-numeric:tabular-nums] bg-gray-600 py-0.5 px-4 rounded text-xs">
+      <Icon className="mr-0.5 bg-green-500 h-4" icon="verified" />
+      <div className="font-semibold">{elapsed}</div>
     </div>
   );
 };
@@ -81,19 +80,19 @@ export const ActiveCallHeader = ({
 
   const { t } = useI18n();
 
-
   return (
     <>
-      <div className="rd__call-header rd__call-header--active">
-        <div className="rd__call-header__title">
-          <CallHeaderTitle
-            title={ t("Stream Video Calling")}
-          />
+      <div className="flex items-center justify-between bg-[#101213] rounded-full p-3 z-10 mb-2">
+        <Link to="/" className="flex items-center gap-2">
+          <div className="w-10 h-10 rounded-full bg-gradient-to-br from-green-500 to-green-700 flex items-center justify-center">
+            <span className="text-white font-bold text-lg">NH</span>
+          </div>
+          <h1 className="text-xl font-bold text-green-900 max-lg:hidden">
+            NineHertz<span className="text-green-600">Medic</span>
+          </h1>
+        </Link>
 
-          <ToggleDocumentationButton />
-        </div>
-
-        <div className="rd__call-header__settings">
+        <div className="sm:hidden">
           <ToggleSettingsTabModal
             layoutProps={{
               selectedLayout: selectedLayout,
@@ -105,15 +104,17 @@ export const ActiveCallHeader = ({
           />
         </div>
 
-        <div className="rd__call-header__controls-group">
+        <div className="flex gap-2 text-white">
           <Elapsed startedAt={session?.started_at} />
-          <LatencyIndicator />
+          <div className="hidden sm:flex">
+            <LatencyIndicator />
+          </div>
         </div>
-        <div className="rd__call-header__leave">
+        <div className="sm:hidden">
           <CancelCallConfirmButton onLeave={onLeave} />
         </div>
       </div>
-      <div className="rd__call-header__notifications">
+      <div className="flex justify-center">
         {(() => {
           if (isOffline || hasFailedToRecover) {
             return (

@@ -1,13 +1,4 @@
-import type { ColumnDef } from "@tanstack/react-table";
-import {
-  Calendar,
-  CheckCircle,
-  MoreHorizontal,
-  Phone,
-  Stethoscope,
-  User,
-  XCircle,
-} from "lucide-react";
+import { DataTableColumnHeader } from "@/components/data-table/data-table-column-header";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -18,10 +9,19 @@ import {
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
-import { DataTableColumnHeader } from "@/components/data-table/data-table-column-header";
-import { useViewPatient } from "@/stores/use-view-patient-store";
-import { useEditPatient } from "@/stores/use-edit-patient";
 import { useDeletePatientStore } from "@/stores/use-delete-patient";
+import { useEditPatientStore } from "@/stores/use-edit-patient-store";
+import { useViewPatientStore } from "@/stores/use-view-patient-store";
+import type { ColumnDef } from "@tanstack/react-table";
+import {
+  Calendar,
+  CheckCircle,
+  MoreHorizontal,
+  Phone,
+  Stethoscope,
+  User,
+  XCircle,
+} from "lucide-react";
 
 const calculateAge = (dob: string | null | Date): string => {
   if (!dob) return "N/A";
@@ -192,9 +192,10 @@ export const patientColumns: ColumnDef<PatientResponseDto>[] = [
   {
     id: "actions",
     cell: function Cell({ cell }) {
-      const { onOpen: onViewPatientOpen } = useViewPatient();
-      const { onOpen: onEditPatientOpen } = useEditPatient();
+      const { onOpen: onViewPatientOpen } = useViewPatientStore();
+      const { onOpen: onEditPatientOpen } = useEditPatientStore();
       const { openModal: onDeletePatientModalOpen } = useDeletePatientStore();
+
       return (
         <DropdownMenu>
           <DropdownMenuTrigger asChild>

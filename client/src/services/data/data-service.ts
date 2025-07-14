@@ -95,11 +95,11 @@ export class DataServices {
       }),
     },
     prescriptions: {
-      post: this.createEndpoint<CreatePrescriptionDto, any>("post", "/prescriptions"),
-      get: this.createEndpoint<void, any>("get", "/prescriptions"),
+      post: this.createEndpoint<CreatePrescriptionDto, PrescriptionResponseDto>("post", "/prescriptions"),
+      get: this.createEndpoint<void, PrescriptionResponseDto[]>("get", "/prescriptions"),
       _id: (id: string) => ({
-        get: this.createEndpoint<void, any>("get", "/prescriptions/{id}", { id }),
-        patch: this.createEndpoint<UpdatePrescriptionDto, any>("patch", "/prescriptions/{id}", { id }),
+        get: this.createEndpoint<void, PrescriptionResponseDto>("get", "/prescriptions/{id}", { id }),
+        patch: this.createEndpoint<UpdatePrescriptionDto, PrescriptionResponseDto>("patch", "/prescriptions/{id}", { id }),
         delete: this.createEndpoint<void, void>("delete", "/prescriptions/{id}", { id }),
       }),
     },
@@ -185,6 +185,9 @@ export class DataServices {
           post:this.createEndpoint<VerifyEmailDto, { accessToken: string; refreshToken: string }>("post","/auth/email/verify")
         }
       },
+    },
+    "chat": {
+      post: this.createEndpoint<CreateChatDto, ChatResponseDto>("post", "/chat"),
     },
   };
 

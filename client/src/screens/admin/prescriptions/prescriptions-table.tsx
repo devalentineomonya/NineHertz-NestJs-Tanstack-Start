@@ -1,4 +1,3 @@
-
 import { DataTable } from "@/components/data-table/data-table";
 import { DataTableColumnHeader } from "@/components/data-table/data-table-column-header";
 import { DataTableToolbar } from "@/components/data-table/data-table-toolbar";
@@ -13,8 +12,11 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import { useDataTable } from "@/hooks/use-data-table";
+import { useGetPrescription } from "@/services/prescriptions/use-get-prescription";
+import { useAddPrescriptionStore } from "@/stores/use-add-prescription-store";
 
 import type { Column, ColumnDef } from "@tanstack/react-table";
+import { differenceInDays, format, formatDistanceStrict } from "date-fns";
 import {
   Pill,
   Calendar,
@@ -24,113 +26,14 @@ import {
   AlertCircle,
   MoreHorizontal,
   ClipboardList,
+  PlusSquare,
 } from "lucide-react";
 import { parseAsArrayOf, parseAsString, useQueryState } from "nuqs";
 import * as React from "react";
 
-interface Prescription {
-  id: string;
-  medicationDetails: string;
-  issueDate: Date;
-  expiryDate: Date;
-  isFulfilled: boolean;
-  patient: {
-    id: string;
-    fullName: string;
-  };
-  prescribedBy: {
-    id: string;
-    fullName: string;
-    specialty: string;
-  };
-}
-
-const data: Prescription[] = [
-  {
-    id: "rx-1",
-    medicationDetails:
-      "Amoxicillin 500mg - 1 tablet three times daily for 7 days",
-    issueDate: new Date(2024, 5, 10),
-    expiryDate: new Date(2024, 8, 10),
-    isFulfilled: true,
-    patient: {
-      id: "p1",
-      fullName: "John Doe",
-    },
-    prescribedBy: {
-      id: "d1",
-      fullName: "Dr. Sarah Johnson",
-      specialty: "Cardiology",
-    },
-  },
-  {
-    id: "rx-2",
-    medicationDetails: "Lisinopril 10mg - 1 tablet daily",
-    issueDate: new Date(2024, 5, 15),
-    expiryDate: new Date(2024, 11, 15),
-    isFulfilled: false,
-    patient: {
-      id: "p2",
-      fullName: "Jane Smith",
-    },
-    prescribedBy: {
-      id: "d2",
-      fullName: "Dr. Michael Chen",
-      specialty: "Neurology",
-    },
-  },
-  {
-    id: "rx-3",
-    medicationDetails: "Metformin 850mg - 1 tablet twice daily with meals",
-    issueDate: new Date(2024, 4, 20),
-    expiryDate: new Date(2024, 7, 20),
-    isFulfilled: true,
-    patient: {
-      id: "p3",
-      fullName: "Robert Johnson",
-    },
-    prescribedBy: {
-      id: "d3",
-      fullName: "Dr. Emily Rodriguez",
-      specialty: "Pediatrics",
-    },
-  },
-  {
-    id: "rx-4",
-    medicationDetails: "Atorvastatin 20mg - 1 tablet at bedtime",
-    issueDate: new Date(2024, 5, 5),
-    expiryDate: new Date(2024, 8, 5),
-    isFulfilled: false,
-    patient: {
-      id: "p4",
-      fullName: "Emily Wilson",
-    },
-    prescribedBy: {
-      id: "d4",
-      fullName: "Dr. James Wilson",
-      specialty: "Orthopedics",
-    },
-  },
-  {
-    id: "rx-5",
-    medicationDetails:
-      "Albuterol Inhaler - 2 puffs every 4 hours as needed for wheezing",
-    issueDate: new Date(2024, 4, 30),
-    expiryDate: new Date(2024, 7, 30),
-    isFulfilled: true,
-    patient: {
-      id: "p5",
-      fullName: "Michael Brown",
-    },
-    prescribedBy: {
-      id: "d5",
-      fullName: "Dr. Priya Sharma",
-      specialty: "Dermatology",
-    },
-  },
-];
-
 export function AdminPrescriptions() {
+  const { onOpen } = useAddPrescriptionStore();
+  const { data, isLoading } = useGetPrescription();
   const [patientName] = useQueryState(
     "patientName",
     parseAsString.withDefault("")
@@ -153,7 +56,7 @@ export function AdminPrescriptions() {
   );
 
   const filteredData = React.useMemo(() => {
-    return data.filter((prescription) => {
+    return data?.filter((prescription) => {
       const matchesPatient =
         patientName === "" ||
         prescription.patient.fullName
@@ -185,7 +88,7 @@ export function AdminPrescriptions() {
     });
   }, [patientName, doctorName, status, issueDateRange, expiryDateRange]);
 
-  const columns = React.useMemo<ColumnDef<Prescription>[]>(
+  const columns = React.useMemo<ColumnDef<PrescriptionResponseDto>[]>(
     () => [
       {
         id: "select",
@@ -290,18 +193,22 @@ export function AdminPrescriptions() {
         cell: ({ row }) => {
           const { issueDate, expiryDate } = row.original;
           const today = new Date();
-          const isExpired = expiryDate < today;
+          const isExpired =
+            Math.max(
+              0,
+              differenceInDays(today, new Date(Date.parse(expiryDate)))
+            ) === 0;
 
           return (
             <div className="flex flex-col gap-1">
               <div className="flex items-center gap-2">
                 <Calendar className="size-4 text-gray-500" />
                 <span className="font-medium">
-                  {issueDate.toLocaleDateString()}
+                  {format(issueDate, "do MMM yyyy")}
                 </span>
                 <span className="text-gray-400">to</span>
                 <span className={isExpired ? "text-red-500 font-medium" : ""}>
-                  {expiryDate.toLocaleDateString()}
+                  {format(issueDate, "do MMM yyyy")}
                 </span>
                 {isExpired && (
                   <Badge variant="destructive" className="text-xs">
@@ -310,9 +217,9 @@ export function AdminPrescriptions() {
                 )}
               </div>
               <div className="text-sm text-gray-500">
-                {Math.ceil(
-                  (expiryDate.getTime() - today.getTime()) /
-                    (1000 * 60 * 60 * 24)
+                {Math.max(
+                  0,
+                  differenceInDays(today, new Date(Date.parse(expiryDate)))
                 )}{" "}
                 days remaining
               </div>
@@ -393,9 +300,9 @@ export function AdminPrescriptions() {
   );
 
   const { table } = useDataTable({
-    data: filteredData,
+    data: filteredData ?? [],
     columns,
-    pageCount: Math.ceil(filteredData.length / 10),
+    pageCount: Math.ceil((filteredData?.length || 10) / 10),
     initialState: {
       sorting: [{ id: "issueDate", desc: true }],
       columnPinning: { right: ["actions"] },
@@ -405,11 +312,14 @@ export function AdminPrescriptions() {
 
   return (
     <div className="data-table-container">
+      <div className="w-fit min-w-56 mb-2">
+        <Button variant={"primary"} onClick={onOpen}>
+          <PlusSquare />
+          Add Prescription
+        </Button>
+      </div>
       <DataTable table={table}>
-        <DataTableToolbar
-          table={table}
-          filters={["patient", "doctor", "medication", "status"]}
-        />
+        <DataTableToolbar table={table} />
       </DataTable>
     </div>
   );

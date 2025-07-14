@@ -9,6 +9,7 @@ import { parseAsArrayOf, parseAsString, useQueryState } from "nuqs";
 import * as React from "react";
 import { doctorColumns } from "./doctor-table-columns";
 import { DataTableSkeleton } from "@/components/data-table/data-table-skeleton";
+import { DeleteDoctorConfirmModal } from "./delete-doctor-confimation-modal";
 
 export function AdminDoctors() {
   const { onOpen } = useAddDoctorStore();
@@ -86,6 +87,7 @@ export function AdminDoctors() {
       <DataTable table={table}>
         <DataTableToolbar table={table} />
       </DataTable>
+      <DeleteDoctorConfirmModal />
     </div>
   );
 }

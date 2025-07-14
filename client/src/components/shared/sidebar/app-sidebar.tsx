@@ -61,7 +61,7 @@ const ALL_NAV_ITEMS = [
 
   {
     title: "Pharmacy",
-    url: "Pharmacy",
+    url: "pharmacy",
     icon: Hospital,
     roles: ["admin", "pharmacist"],
   },
@@ -69,7 +69,7 @@ const ALL_NAV_ITEMS = [
     title: "Medicines",
     url: "medicine",
     icon: Pill,
-    roles: ["admin", "pharmacist"],
+    roles: ["admin", "pharmacist", 'patient'],
   },
   {
     title: "Inventory",
@@ -81,7 +81,7 @@ const ALL_NAV_ITEMS = [
     title: "Orders",
     url: "orders",
     icon: ShoppingCart,
-    roles: ["admin", "pharmacist"],
+    roles: ["admin", "pharmacist",'patient'],
   },
   { title: "Admin", url: "admins", icon: Users, roles: ["admin"] },
   { title: "Users", url: "users", icon: Users, roles: ["admin"] },

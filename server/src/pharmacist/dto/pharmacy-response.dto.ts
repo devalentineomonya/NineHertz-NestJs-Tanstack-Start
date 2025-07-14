@@ -1,4 +1,6 @@
 import { ApiProperty } from '@nestjs/swagger';
+import { PharmacyResponseDto } from 'src/pharmacy/dto/pharmacy-response.dto';
+import { UserResponseDto } from 'src/user/dto/user-response.dto';
 
 export class PharmacistResponseDto {
   @ApiProperty({
@@ -22,16 +24,34 @@ export class PharmacistResponseDto {
   @ApiProperty({
     description:
       'Unique identifier of the user associated with the pharmacist.',
-    example: '456e7890-e12b-34d5-c678-901234567890',
+    example: UserResponseDto,
   })
-  userId: string;
+  user: UserResponseDto | null;
 
   @ApiProperty({
     description:
       'Unique identifier of the pharmacy associated with the pharmacist.',
-    example: '789e0123-f45b-67d8-e901-234567890123',
+    example: PharmacistResponseDto,
   })
-  pharmacyId: string;
+  pharmacy: PharmacyResponseDto | null;
+
+  @ApiProperty({
+    description: 'Timestamp when the pharmacist record was created.',
+    example: '2023-01-01T00:00:00.000Z',
+  })
+  createdAt: Date;
+
+  @ApiProperty({
+    description: 'Timestamp when the pharmacist record was last updated.',
+    example: '2023-01-02T00:00:00.000Z',
+  })
+  updatedAt: Date;
+
+  @ApiProperty({
+    description: 'Current status of the pharmacist.',
+    example: 'active',
+  })
+  status: string;
 
   constructor(partial: Partial<PharmacistResponseDto>) {
     Object.assign(this, partial);

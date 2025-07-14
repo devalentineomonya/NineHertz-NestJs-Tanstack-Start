@@ -30,9 +30,9 @@ export const CallHeaderTitle = ({ title }: CallTitleProps) => {
   if (!activeCall) return null;
 
   return (
-    <div className="rd__call-header__title-group">
+    <div className="flex items-center gap-x-2 sticky top-0">
       <HomeButton />
-      <h4 className="rd__call-header-title">{title || standInTitle}</h4>
+      <h4 className="text-white text-lg">{title || standInTitle}</h4>
     </div>
   );
 };

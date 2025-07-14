@@ -7,7 +7,6 @@ import {
   ValidateNested,
   IsEnum,
   IsOptional,
-  IsDecimal,
 } from 'class-validator';
 import { OrderStatus } from 'src/enums/order.enum';
 
@@ -32,7 +31,8 @@ class CreateOrderItemDto {
     example: 15.99,
     description: 'Price per unit at the time of order',
   })
-  @IsDecimal()
+  @IsNumber()
+  @Min(0.01)
   pricePerUnit: number;
 }
 
@@ -74,6 +74,7 @@ export class CreateOrderDto {
     example: 31.98,
     description: 'Total amount of the order',
   })
-  @IsDecimal()
+  @IsNumber()
+  @Min(0.01)
   totalAmount: number;
 }

@@ -1,4 +1,4 @@
-import { forwardRef } from 'react';
+import { forwardRef } from "react";
 
 import {
   CallPreview,
@@ -9,7 +9,7 @@ import {
   ToggleMenuButtonProps,
   useCallStateHooks,
   useI18n,
-} from '@stream-io/video-react-sdk';
+} from "@stream-io/video-react-sdk";
 
 export type Props = {
   onJoin: () => void;
@@ -29,11 +29,11 @@ const ParticipantsPreview = ({ onJoin }: Props) => {
     <div className="rd__participants-preview">
       <h2 className="rd__participants-preview__heading">Ready to join?</h2>
 
-      {thumbnail && <CallPreview style={{ width: '100%', height: '150px' }} />}
+      {thumbnail && <CallPreview style={{ width: "100%", height: "150px" }} />}
 
       <p className="rd__participants-preview__description">
         {`${first.user.name} and ${session.participants.length - 1} other${
-          session.participants.length - 1 > 1 ? 's' : ''
+          session.participants.length - 1 > 1 ? "s" : ""
         } are in this call.`}
       </p>
 
@@ -43,7 +43,7 @@ const ParticipantsPreview = ({ onJoin }: Props) => {
         onClick={onJoin}
       >
         <Icon className="rd__button__icon" icon="login" />
-        {t('Join the others')}
+        {t("Join the others")}
       </button>
     </div>
   );
@@ -68,7 +68,7 @@ const ToggleMenuButton = forwardRef<HTMLDivElement, ToggleMenuButtonProps>(
         )}
       </CompositeButton>
     );
-  },
+  }
 );
 
 export const ToggleParticipantsPreviewButton = ({ onJoin }: Props) => {

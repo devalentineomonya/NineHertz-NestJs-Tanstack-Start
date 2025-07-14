@@ -2,9 +2,8 @@
 
 import { DataTable } from "@/components/data-table/data-table";
 import { DataTableColumnHeader } from "@/components/data-table/data-table-column-header";
+import { DataTableSkeleton } from "@/components/data-table/data-table-skeleton";
 import { DataTableToolbar } from "@/components/data-table/data-table-toolbar";
-
-import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Checkbox } from "@/components/ui/checkbox";
 import {
@@ -13,169 +12,28 @@ import {
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
-import { Input } from "@/components/ui/input";
 import { useDataTable } from "@/hooks/use-data-table";
+import { useGetMedicine } from "@/services/medicines/use-get-medicine";
+import { useAddMedicineStore } from "@/stores/use-add-medicine-store";
 
-import type { Column, ColumnDef } from "@tanstack/react-table";
+import type { ColumnDef } from "@tanstack/react-table";
 import {
   Pill,
-  FlaskConical,
+  ClipboardList,
   Factory,
   Barcode,
-  Calendar,
   MoreHorizontal,
-  Package,
-  DollarSign,
-  ClipboardList,
+  Edit,
+  Trash2,
+  PlusSquare,
 } from "lucide-react";
-import { parseAsArrayOf, parseAsString, useQueryState } from "nuqs";
 import * as React from "react";
 
-interface Medicine {
-  id: string;
-  name: string;
-  genericName: string;
-  description: string;
-  price: number;
-  manufacturer: string;
-  barcode: string;
-  createdAt: Date;
-  updatedAt: Date;
-}
-
-const data: Medicine[] = [
-  {
-    id: "med-1",
-    name: "Amoxicillin",
-    genericName: "Amoxicillin Trihydrate",
-    description: "Antibiotic for bacterial infections",
-    price: 15.99,
-    manufacturer: "PharmaCorp",
-    barcode: "123456789012",
-    createdAt: new Date(2023, 1, 15),
-    updatedAt: new Date(2024, 2, 10),
-  },
-  {
-    id: "med-2",
-    name: "Lipitor",
-    genericName: "Atorvastatin Calcium",
-    description: "Cholesterol-lowering medication",
-    price: 42.5,
-    manufacturer: "MediHealth",
-    barcode: "234567890123",
-    createdAt: new Date(2022, 8, 20),
-    updatedAt: new Date(2024, 1, 15),
-  },
-  {
-    id: "med-3",
-    name: "Ventolin",
-    genericName: "Albuterol Sulfate",
-    description: "Bronchodilator for asthma",
-    price: 28.75,
-    manufacturer: "Respira Labs",
-    barcode: "345678901234",
-    createdAt: new Date(2023, 5, 10),
-    updatedAt: new Date(2024, 3, 5),
-  },
-  {
-    id: "med-4",
-    name: "Metformin",
-    genericName: "Metformin Hydrochloride",
-    description: "Oral diabetes medicine",
-    price: 12.25,
-    manufacturer: "DiabetoPharm",
-    barcode: "456789012345",
-    createdAt: new Date(2022, 11, 5),
-    updatedAt: new Date(2023, 10, 22),
-  },
-  {
-    id: "med-5",
-    name: "Synthroid",
-    genericName: "Levothyroxine Sodium",
-    description: "Thyroid hormone replacement",
-    price: 24.99,
-    manufacturer: "Hormone Solutions",
-    barcode: "567890123456",
-    createdAt: new Date(2023, 3, 18),
-    updatedAt: new Date(2024, 0, 30),
-  },
-  {
-    id: "med-6",
-    name: "Advil",
-    genericName: "Ibuprofen",
-    description: "NSAID for pain and fever",
-    price: 8.99,
-    manufacturer: "PainFree Inc.",
-    barcode: "678901234567",
-    createdAt: new Date(2021, 9, 12),
-    updatedAt: new Date(2023, 6, 18),
-  },
-  {
-    id: "med-7",
-    name: "Zoloft",
-    genericName: "Sertraline Hydrochloride",
-    description: "Antidepressant SSRI",
-    price: 35.2,
-    manufacturer: "NeuroPharma",
-    barcode: "789012345678",
-    createdAt: new Date(2023, 2, 8),
-    updatedAt: new Date(2024, 4, 15),
-  },
-];
-
 export function AdminMedicines() {
-  const [name] = useQueryState("name", parseAsString.withDefault(""));
-  const [genericName] = useQueryState(
-    "genericName",
-    parseAsString.withDefault("")
-  );
-  const [manufacturer] = useQueryState(
-    "manufacturer",
-    parseAsString.withDefault("")
-  );
-  const [barcode] = useQueryState("barcode", parseAsString.withDefault(""));
-  const [priceRange] = useQueryState(
-    "priceRange",
-    parseAsArrayOf(parseAsString).withDefault([])
-  );
-  const [dateRange] = useQueryState(
-    "dateRange",
-    parseAsArrayOf(parseAsString).withDefault([])
-  );
+  const { onOpen } = useAddMedicineStore();
+  const { data, isLoading } = useGetMedicine();
 
-  const filteredData = React.useMemo(() => {
-    return data.filter((medicine) => {
-      const matchesName =
-        name === "" || medicine.name.toLowerCase().includes(name.toLowerCase());
-      const matchesGenericName =
-        genericName === "" ||
-        medicine.genericName.toLowerCase().includes(genericName.toLowerCase());
-      const matchesManufacturer =
-        manufacturer === "" ||
-        medicine.manufacturer.toLowerCase().includes(manufacturer.toLowerCase());
-      const matchesBarcode =
-        barcode === "" || medicine.barcode.includes(barcode);
-
-      // Price range filtering
-      const minPrice = priceRange[0] ? parseFloat(priceRange[0]) : 0;
-      const maxPrice = priceRange[1] ? parseFloat(priceRange[1]) : Infinity;
-      const matchesPriceRange = medicine.price >= minPrice && medicine.price <= maxPrice;
-
-      // Date filtering (simplified)
-      const matchesDateRange = dateRange.length === 0 || true;
-
-      return (
-        matchesName &&
-        matchesGenericName &&
-        matchesManufacturer &&
-        matchesBarcode &&
-        matchesPriceRange &&
-        matchesDateRange
-      );
-    });
-  }, [name, genericName, manufacturer, barcode, priceRange, dateRange]);
-
-  const columns = React.useMemo<ColumnDef<Medicine>[]>(
+  const columns = React.useMemo<ColumnDef<MedicineResponseDto>[]>(
     () => [
       {
         id: "select",
@@ -203,29 +61,61 @@ export function AdminMedicines() {
         enableHiding: false,
       },
       {
-        id: "name",
-        accessorKey: "name",
+        id: "medicine",
+        accessorKey: "id",
         header: ({ column }) => (
           <DataTableColumnHeader column={column} title="Medicine" />
         ),
-        cell: ({ cell, row }) => (
+        cell: ({ row }) => (
           <div className="flex items-center gap-3">
-            <div className="bg-blue-100 p-2 rounded-full">
-              <Pill className="size-5 text-blue-600" />
-            </div>
+            <Pill className="size-5 text-blue-500" />
             <div>
-              <div className="font-medium">{cell.getValue<string>()}</div>
+              <div className="font-medium">
+                MED-{row.original.id.substring(0, 8)}
+              </div>
               <div className="text-sm text-gray-500">
-                {row.original.genericName}
+                {new Date(row.original.createdAt).toLocaleDateString()}
               </div>
             </div>
           </div>
         ),
         meta: {
-          label: "Name",
+          label: "Medicine",
           placeholder: "Search medicines...",
           variant: "text",
-          icon: FlaskConical,
+          icon: Pill,
+        },
+        enableColumnFilter: true,
+      },
+      {
+        id: "name",
+        accessorKey: "name",
+        header: ({ column }) => (
+          <DataTableColumnHeader column={column} title="Brand Name" />
+        ),
+        cell: ({ row }) => (
+          <div className="font-medium">{row.getValue("name")}</div>
+        ),
+        meta: {
+          label: "Brand Name",
+          placeholder: "Search brand names...",
+          variant: "text",
+        },
+        enableColumnFilter: true,
+      },
+      {
+        id: "genericName",
+        accessorKey: "genericName",
+        header: ({ column }) => (
+          <DataTableColumnHeader column={column} title="Generic Name" />
+        ),
+        cell: ({ row }) => (
+          <div className="text-gray-600">{row.getValue("genericName")}</div>
+        ),
+        meta: {
+          label: "Generic Name",
+          placeholder: "Search generic names...",
+          variant: "text",
         },
         enableColumnFilter: true,
       },
@@ -235,10 +125,10 @@ export function AdminMedicines() {
         header: ({ column }) => (
           <DataTableColumnHeader column={column} title="Manufacturer" />
         ),
-        cell: ({ cell }) => (
+        cell: ({ row }) => (
           <div className="flex items-center gap-2">
             <Factory className="size-4 text-gray-500" />
-            <span>{cell.getValue<string>()}</span>
+            <span>{row.getValue("manufacturer")}</span>
           </div>
         ),
         meta: {
@@ -246,26 +136,6 @@ export function AdminMedicines() {
           placeholder: "Search manufacturers...",
           variant: "text",
           icon: Factory,
-        },
-        enableColumnFilter: true,
-      },
-      {
-        id: "barcode",
-        accessorKey: "barcode",
-        header: ({ column }) => (
-          <DataTableColumnHeader column={column} title="Barcode" />
-        ),
-        cell: ({ cell }) => (
-          <div className="flex items-center gap-2">
-            <Barcode className="size-4 text-gray-500" />
-            <code className="font-mono">{cell.getValue<string>()}</code>
-          </div>
-        ),
-        meta: {
-          label: "Barcode",
-          placeholder: "Search barcodes...",
-          variant: "text",
-          icon: Barcode,
         },
         enableColumnFilter: true,
       },
@@ -278,28 +148,40 @@ export function AdminMedicines() {
         cell: ({ cell }) => {
           const price = cell.getValue<number>();
           return (
-            <div className="flex items-center gap-2 font-medium">
-              <DollarSign className="size-4 text-gray-500" />
-              {price.toFixed(2)}
+            <div className="font-medium">
+              ${price.toLocaleString(undefined, { minimumFractionDigits: 2 })}
             </div>
           );
         },
+        enableSorting: true,
+      },
+      {
+        id: "barcode",
+        accessorKey: "barcode",
+        header: ({ column }) => (
+          <DataTableColumnHeader column={column} title="Barcode" />
+        ),
+        cell: ({ row }) => (
+          <div className="flex items-center gap-2">
+            <Barcode className="size-4 text-gray-500" />
+            <span className="font-mono">{row.getValue("barcode")}</span>
+          </div>
+        ),
         meta: {
-          label: "Price",
-          variant: "range",
-          icon: DollarSign,
+          label: "Barcode",
+          placeholder: "Search barcodes...",
+          variant: "text",
+          icon: Barcode,
         },
         enableColumnFilter: true,
       },
       {
         id: "description",
         accessorKey: "description",
-        header: ({ column }) => (
-          <DataTableColumnHeader column={column} title="Description" />
-        ),
-        cell: ({ cell }) => (
-          <div className="text-sm text-gray-600 max-w-[200px] truncate">
-            {cell.getValue<string>()}
+        header: "Description",
+        cell: ({ row }) => (
+          <div className="max-w-[200px] truncate">
+            {row.getValue("description")}
           </div>
         ),
         meta: {
@@ -311,30 +193,10 @@ export function AdminMedicines() {
         enableColumnFilter: true,
       },
       {
-        id: "createdAt",
-        accessorKey: "createdAt",
-        header: ({ column }) => (
-          <DataTableColumnHeader column={column} title="Added" />
-        ),
-        cell: ({ cell }) => {
-          const date = cell.getValue<Date>();
-          return (
-            <div className="flex items-center gap-2 text-sm text-gray-500">
-              <Calendar className="size-4 text-gray-500" />
-              {date.toLocaleDateString()}
-            </div>
-          );
-        },
-        meta: {
-          label: "Created At",
-          variant: "date",
-          icon: Calendar,
-        },
-        enableColumnFilter: true,
-      },
-      {
         id: "actions",
         cell: function Cell({ row }) {
+          const medicine = row.original;
+
           return (
             <DropdownMenu>
               <DropdownMenuTrigger asChild>
@@ -344,12 +206,13 @@ export function AdminMedicines() {
                 </Button>
               </DropdownMenuTrigger>
               <DropdownMenuContent align="end">
-                <DropdownMenuItem>View Details</DropdownMenuItem>
-                <DropdownMenuItem>Edit Medicine</DropdownMenuItem>
-                <DropdownMenuItem>Manage Inventory</DropdownMenuItem>
-                <DropdownMenuItem>View Orders</DropdownMenuItem>
-                <DropdownMenuItem variant="destructive">
-                  Archive Medicine
+                <DropdownMenuItem>
+                  <Edit className="mr-2 h-4 w-4" />
+                  Edit Details
+                </DropdownMenuItem>
+                <DropdownMenuItem className="text-red-600">
+                  <Trash2 className="mr-2 h-4 w-4" />
+                  Delete Medicine
                 </DropdownMenuItem>
               </DropdownMenuContent>
             </DropdownMenu>
@@ -362,62 +225,56 @@ export function AdminMedicines() {
   );
 
   const { table } = useDataTable({
-    data: filteredData,
+    data: data?.data ?? [],
     columns,
-    pageCount: Math.ceil(filteredData.length / 10),
+    pageCount: Math.ceil((data?.total || 10) / (data?.limit || 10)),
     initialState: {
-      sorting: [{ id: "name", desc: false }],
+      pagination: {
+        pageIndex: (data?.page ?? 1) - 1,
+        pageSize: data?.limit ?? 10,
+      },
+      sorting: [{ id: "createdAt", desc: true }],
       columnPinning: { right: ["actions"] },
     },
     getRowId: (row) => row.id,
   });
 
-  // Custom toolbar with additional inputs
-  const CustomToolbar = () => (
-    <div className="flex flex-wrap items-center gap-4 py-4">
-      <div className="flex items-center gap-2">
-        <div className="relative">
-          <FlaskConical className="absolute left-3 top-1/2 -translate-y-1/2 size-4 text-gray-500" />
-          <Input
-            placeholder="Medicine name..."
-            value={name}
-            onChange={(e) => useQueryState("name").set(e.target.value)}
-            className="pl-10 w-48"
-          />
-        </div>
-
-        <div className="relative">
-          <Factory className="absolute left-3 top-1/2 -translate-y-1/2 size-4 text-gray-500" />
-          <Input
-            placeholder="Manufacturer..."
-            value={manufacturer}
-            onChange={(e) => useQueryState("manufacturer").set(e.target.value)}
-            className="pl-10 w-48"
-          />
-        </div>
-
-        <div className="relative">
-          <Barcode className="absolute left-3 top-1/2 -translate-y-1/2 size-4 text-gray-500" />
-          <Input
-            placeholder="Barcode..."
-            value={barcode}
-            onChange={(e) => useQueryState("barcode").set(e.target.value)}
-            className="pl-10 w-48"
-          />
-        </div>
+  if (isLoading) {
+    return (
+      <div className="space-y-4">
+        <DataTableSkeleton
+          columnCount={columns.length}
+          rowCount={10}
+          filterCount={5}
+          optionsCount={2}
+          withViewOptions={true}
+          withPagination={true}
+          cellWidths={[
+            "40px",
+            "120px",
+            "200px",
+            "180px",
+            "180px",
+            "120px",
+            "100px",
+            "140px",
+            "140px",
+            "40px",
+          ]}
+        />
       </div>
-
-      <DataTableToolbar
-        table={table}
-        filters={["price", "description", "createdAt"]}
-      />
-    </div>
-  );
-
+    );
+  }
   return (
     <div className="data-table-container">
+      <div className="w-fit min-w-56 mb-4">
+        <Button variant={"primary"} onClick={onOpen}>
+          <PlusSquare className="mr-2 h-5 w-5" />
+          Add Medicine
+        </Button>
+      </div>
       <DataTable table={table}>
-        <CustomToolbar />
+        <DataTableToolbar table={table} />
       </DataTable>
     </div>
   );

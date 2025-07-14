@@ -51,7 +51,7 @@ export class StreamService {
         starts_at: scheduledTime,
       },
     });
-console.log(createdCall)
+    console.log(createdCall);
     return { id: callId };
   }
   async upsertUser(user: StreamUser): Promise<void> {

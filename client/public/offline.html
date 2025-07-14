@@ -1,0 +1,390 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Offline - NineHertz Admin</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', system-ui, -apple-system, sans-serif;
+            background: linear-gradient(135deg, #f0fdf4 0%, #f8fafc 100%);
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            padding: 2rem;
+            color: #0f172a;
+            text-align: center;
+            position: relative;
+            overflow: hidden;
+        }
+
+        /* Background decorative elements */
+        .bg-element {
+            position: absolute;
+            z-index: -1;
+            opacity: 0.05;
+        }
+
+        .circle-1 {
+            width: 300px;
+            height: 300px;
+            border-radius: 50%;
+            background: linear-gradient(135deg, #22c55e 0%, #15803d 100%);
+            top: -150px;
+            left: -150px;
+        }
+
+        .circle-2 {
+            width: 200px;
+            height: 200px;
+            border-radius: 50%;
+            background: linear-gradient(135deg, #22c55e 0%, #15803d 100%);
+            bottom: -100px;
+            right: -100px;
+        }
+
+        .grid-pattern {
+            position: absolute;
+            width: 100%;
+            height: 100%;
+            background-image:
+                linear-gradient(rgba(34, 197, 94, 0.05) 1px, transparent 1px),
+                linear-gradient(90deg, rgba(34, 197, 94, 0.05) 1px, transparent 1px);
+            background-size: 30px 30px;
+            z-index: -1;
+        }
+
+        /* Header styling */
+        .header {
+            display: flex;
+            align-items: center;
+            gap: 15px;
+            margin-bottom: 40px;
+        }
+
+        .logo {
+            width: 48px;
+            height: 48px;
+            border-radius: 50%;
+            background: linear-gradient(135deg, #22c55e 0%, #15803d 100%);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            flex-shrink: 0;
+            box-shadow: 0 4px 6px rgba(5, 122, 59, 0.15);
+        }
+
+        .logo span {
+            color: white;
+            font-weight: 800;
+            font-size: 20px;
+        }
+
+        .brand-name {
+            font-size: 28px;
+            font-weight: 700;
+            color: #0f172a;
+        }
+
+        .brand-name span {
+            color: #15803d;
+            font-weight: 800;
+        }
+
+        /* Main content */
+        .content {
+            max-width: 600px;
+            padding: 40px;
+            background: rgba(255, 255, 255, 0.92);
+            border-radius: 20px;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.08);
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(241, 245, 249, 0.8);
+        }
+
+        .offline-icon {
+            font-size: 80px;
+            margin-bottom: 25px;
+            color: #dc2626;
+            position: relative;
+            display: inline-block;
+        }
+
+        .offline-icon::after {
+            content: '';
+            position: absolute;
+            width: 120px;
+            height: 120px;
+            border-radius: 50%;
+            background: rgba(220, 38, 38, 0.1);
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            z-index: -1;
+        }
+
+        h1 {
+            font-size: 36px;
+            margin-bottom: 20px;
+            color: #0f172a;
+            font-weight: 700;
+        }
+
+        p {
+            font-size: 18px;
+            line-height: 1.6;
+            color: #334155;
+            margin-bottom: 30px;
+        }
+
+        /* Status indicator */
+        .status {
+            display: inline-flex;
+            align-items: center;
+            gap: 10px;
+            background: #fee2e2;
+            color: #b91c1c;
+            padding: 10px 20px;
+            border-radius: 50px;
+            font-weight: 600;
+            margin-bottom: 30px;
+        }
+
+        .status i {
+            font-size: 18px;
+            animation: pulse 1.5s infinite;
+        }
+
+        @keyframes pulse {
+            0% { opacity: 0.5; }
+            50% { opacity: 1; }
+            100% { opacity: 0.5; }
+        }
+
+        /* Connection tips */
+        .tips {
+            background: #f1f5f9;
+            border-radius: 12px;
+            padding: 20px;
+            margin: 30px 0;
+            text-align: left;
+        }
+
+        .tips h3 {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            color: #0f172a;
+            margin-bottom: 15px;
+            font-size: 18px;
+        }
+
+        .tips ul {
+            padding-left: 25px;
+        }
+
+        .tips li {
+            margin-bottom: 10px;
+            color: #334155;
+        }
+
+        /* Action buttons */
+        .actions {
+            display: flex;
+            gap: 15px;
+            justify-content: center;
+            margin-top: 25px;
+            flex-wrap: wrap;
+        }
+
+        .btn {
+            padding: 14px 28px;
+            border-radius: 12px;
+            font-weight: 600;
+            font-size: 16px;
+            cursor: pointer;
+            display: inline-flex;
+            align-items: center;
+            gap: 10px;
+            transition: all 0.3s ease;
+            border: none;
+        }
+
+        .btn-primary {
+            background: linear-gradient(135deg, #22c55e 0%, #15803d 100%);
+            color: white;
+            box-shadow: 0 4px 15px rgba(21, 128, 61, 0.3);
+        }
+
+        .btn-primary:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 20px rgba(21, 128, 61, 0.4);
+        }
+
+        .btn-outline {
+            background: transparent;
+            border: 2px solid #cbd5e1;
+            color: #334155;
+        }
+
+        .btn-outline:hover {
+            background: #f8fafc;
+            border-color: #94a3b8;
+        }
+
+        /* Connection status animation */
+        .connection-status {
+            height: 8px;
+            width: 100%;
+            background: #e2e8f0;
+            border-radius: 4px;
+            margin-top: 40px;
+            overflow: hidden;
+            position: relative;
+        }
+
+        .status-bar {
+            position: absolute;
+            height: 100%;
+            width: 0%;
+            background: linear-gradient(90deg, #dc2626, #ef4444);
+            animation: scan 3s infinite;
+        }
+
+        @keyframes scan {
+            0% { width: 0%; left: 0; }
+            50% { width: 100%; left: 0; }
+            100% { width: 0%; left: 100%; }
+        }
+
+        /* Footer */
+        .footer {
+            margin-top: 50px;
+            color: #64748b;
+            font-size: 14px;
+        }
+
+        /* Responsive adjustments */
+        @media (max-width: 600px) {
+            .content {
+                padding: 30px 20px;
+            }
+
+            h1 {
+                font-size: 28px;
+            }
+
+            .brand-name {
+                font-size: 24px;
+            }
+
+            .btn {
+                padding: 12px 20px;
+                font-size: 15px;
+            }
+
+            .offline-icon {
+                font-size: 60px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <!-- Background elements -->
+    <div class="bg-element circle-1"></div>
+    <div class="bg-element circle-2"></div>
+    <div class="grid-pattern"></div>
+
+    <!-- Header with logo -->
+    <div class="header">
+        <div class="logo">
+            <span>NH</span>
+        </div>
+        <div class="brand-name">NineHertz<span>Medic</span></div>
+    </div>
+
+    <!-- Main content -->
+    <div class="content">
+        <div class="offline-icon">
+            <i class="fas fa-wifi-slash"></i>
+        </div>
+
+        <div class="status">
+            <i class="fas fa-circle"></i>
+            <span>No Internet Connection</span>
+        </div>
+
+        <h1>You're Offline</h1>
+        <p>We can't establish a connection to the NineHertz Admin services. Please check your internet connection and try again.</p>
+
+        <div class="tips">
+            <h3><i class="fas fa-lightbulb"></i> Troubleshooting Tips</h3>
+            <ul>
+                <li>Check your Wi-Fi or mobile data connection</li>
+                <li>Restart your router or modem</li>
+                <li>Ensure airplane mode is turned off</li>
+                <li>Verify your network settings</li>
+                <li>Try accessing other websites to confirm connectivity</li>
+            </ul>
+        </div>
+
+        <div class="actions">
+            <button class="btn btn-primary" id="retryBtn">
+                <i class="fas fa-sync-alt"></i> Retry Connection
+            </button>
+            <button class="btn btn-outline" id="supportBtn">
+                <i class="fas fa-headset"></i> Contact Support
+            </button>
+        </div>
+
+        <div class="connection-status">
+            <div class="status-bar"></div>
+        </div>
+    </div>
+
+    <div class="footer">
+        <p>© <span id="year"></span> NineHertzMedic Admin Panel. All rights reserved.</p>
+    </div>
+
+    <script>
+        document.getElementById("year").innerText = new Date().getFullYear()
+        document.getElementById('retryBtn').addEventListener('click', function() {
+            // Show loading state
+            const retryBtn = document.getElementById('retryBtn');
+            retryBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Connecting...';
+            retryBtn.disabled = true;
+
+            // Simulate connection attempt
+            setTimeout(() => {
+                if (navigator.onLine) {
+                    // If online, reload the page
+                    window.location.reload();
+                } else {
+                    // Still offline
+                    retryBtn.innerHTML = '<i class="fas fa-wifi"></i> Retry Connection';
+                    retryBtn.disabled = false;
+                    alert('Still offline. Please check your connection.');
+                }
+            }, 2000);
+        });
+
+        document.getElementById('supportBtn').addEventListener('click', function() {
+            alert('Please contact support at support@ninehertzmedic.com or call +1 (800) 123-4567');
+        });
+
+        // Listen for online status
+        window.addEventListener('online', function() {
+            window.location.reload();
+        });
+    </script>
+</body>
+</html>

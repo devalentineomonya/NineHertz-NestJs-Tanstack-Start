@@ -1,8 +1,10 @@
 import { DataServices } from "../data/data-service";
-import { useMutation } from "@tanstack/react-query";
+import { useMutation, useQueryClient } from "@tanstack/react-query";
 
 export const useAddPatientService = () => {
   const dataService = new DataServices();
+  const queryClient = useQueryClient();
+
   return useMutation({
     mutationFn: async ({
       userId,
@@ -17,6 +19,9 @@ export const useAddPatientService = () => {
           json: newPatient,
         });
       return response.data;
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["patients", "users"] });
     },
   });
 };

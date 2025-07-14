@@ -1,5 +1,5 @@
 import { Play, XIcon } from "lucide-react";
-import { AnimatePresence, motion } from "motion/react";
+import { AnimatePresence, motion } from "framer-motion";
 import { useState } from "react";
 import { Dialog, DialogContent, DialogOverlay } from "@/components/ui/dialog";
 import { cn } from "@/lib/utils";
@@ -108,29 +108,26 @@ export function HeroVideoDialog({
         {isVideoOpen && (
           <Dialog open={isVideoOpen} onOpenChange={setIsVideoOpen}>
             <DialogOverlay className="fixed inset-0 z-50 bg-green-950/50 backdrop-blur-md" />
-            <DialogContent
-              className={cn(
-                "relative mx-4 aspect-video w-full max-w-5xl rounded-2xl border-2 border-white bg-transparent p-0 shadow-lg md:mx-0",
-                selectedAnimation.animate
-              )}
-              style={{
-                transition: "transform 0.3s ease-out, opacity 0.3s ease-out",
-              }}
-            >
-              <button
-                onClick={() => setIsVideoOpen(false)}
-                className="absolute -top-16 right-0 rounded-full bg-green-900/50 p-2 text-xl text-white ring-1 backdrop-blur-md dark:bg-green-100/50 dark:text-black"
+            <DialogContent className=" mx-4 p-0 w-fit max-w-5xl aspect-video ">
+              <motion.div
+                initial={selectedAnimation.initial}
+                animate={selectedAnimation.animate}
+                exit={selectedAnimation.exit}
+                className="aspect-video size-full md:min-w-[800px] rounded-2xl border-2 border-white bg-white shadow-lg relative isolate"
+                style={{
+                  transition: "transform 0.3s ease-out, opacity 0.3s ease-out",
+                }}
               >
-                <XIcon className="size-5" />
-              </button>
-              <div className="relative isolate z-[1] size-full overflow-hidden rounded-2xl">
-                <iframe
-                  src={videoSrc}
-                  className="size-full rounded-2xl"
-                  allowFullScreen
-                  allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
-                ></iframe>
-              </div>
+
+                <div className="relative isolate z-[1] size-full overflow-hidden rounded-2xl">
+                  <iframe
+                    src={videoSrc}
+                    className="size-full rounded-2xl"
+                    allowFullScreen
+                    allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
+                  ></iframe>
+                </div>
+              </motion.div>
             </DialogContent>
           </Dialog>
         )}

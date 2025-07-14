@@ -24,8 +24,32 @@ export class PharmacistService {
       id: pharmacist.id,
       fullName: pharmacist.fullName,
       licenseNumber: pharmacist.licenseNumber,
-      userId: pharmacist.user?.id,
-      pharmacyId: pharmacist.pharmacy?.id,
+      createdAt: pharmacist.createdAt,
+      updatedAt: pharmacist.updatedAt,
+      status: pharmacist.status,
+      user: pharmacist.user
+        ? {
+            id: pharmacist.user.id,
+            email: pharmacist.user.email,
+            role: pharmacist.user.role,
+            isEmailVerified: pharmacist.user.isEmailVerified,
+            createdAt: pharmacist.user.createdAt,
+          }
+        : null,
+      pharmacy: pharmacist.pharmacy
+        ? {
+            name: pharmacist.pharmacy.name,
+            id: pharmacist.pharmacy.id,
+            address: pharmacist.pharmacy.address,
+            contactPhone: pharmacist.pharmacy.contactPhone,
+            licenseNumber: pharmacist.pharmacy.licenseNumber,
+            inventoryIds: pharmacist.pharmacy.inventory?.map((item) => item.id),
+            orderIds: pharmacist.pharmacy.orders?.map((order) => order.id),
+            pharmacistIds: pharmacist.pharmacy.pharmacists?.map(
+              (pharmacist) => pharmacist.id,
+            ),
+          }
+        : null,
     };
   }
 

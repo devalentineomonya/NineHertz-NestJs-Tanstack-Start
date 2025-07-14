@@ -20,6 +20,7 @@ import {
 import { DoctorResponseDto } from './dto/doctor-response.dto';
 import { PaginationDto } from 'src/shared/dto/pagination.dto';
 import { DoctorFilterDto } from './dto/doctor-filter.dto';
+import { DoctorAvailabilityDto } from './dto/availability-slot.dto';
 
 @ApiTags('Doctor')
 @ApiBearerAuth()
@@ -85,10 +86,13 @@ export class DoctorController {
   @ApiResponse({
     status: 200,
     description: 'Doctor availability',
-    type: Object,
+    type: DoctorAvailabilityDto,
   })
   @ApiResponse({ status: 404, description: 'Doctor not found' })
-  getAvailability(@Param('id') id: string) {
-    return this.doctorService.getAvailability(id);
+  getAvailability(
+    @Param('id') id: string,
+    // @Query('dayOfWeek') dayOfWeek?: DoctorAvailabilityQueryDto,
+  ) {
+    return this.doctorService.getDoctorAvailability(id);
   }
 }

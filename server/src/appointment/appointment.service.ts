@@ -210,11 +210,11 @@ export class AppointmentService {
         dateOfBirth: appointment.patient.dateOfBirth,
         medicalHistory: appointment.patient.medicalHistory,
         user: {
-          id: appointment.patient.user.id,
-          email: appointment.patient.user.email,
-          role: appointment.patient.user.role,
-          isEmailVerified: appointment.patient.user.isEmailVerified,
-          createdAt: appointment.patient.user.createdAt,
+          id: appointment.patient.user?.id,
+          email: appointment.patient.user?.email,
+          role: appointment.patient.user?.role,
+          isEmailVerified: appointment.patient.user?.isEmailVerified,
+          createdAt: appointment.patient.user?.createdAt,
         },
       },
       doctor: {
@@ -224,6 +224,7 @@ export class AppointmentService {
         consultationFee: appointment.doctor.consultationFee,
         licenseNumber: appointment.doctor.licenseNumber,
         availability: appointment.doctor.availability,
+        status: appointment.doctor.status,
         user: {
           id: appointment.doctor.user?.id ?? null,
           email: appointment.doctor.user?.email ?? null,

@@ -11,7 +11,7 @@ import {
   DrawerTitle,
 } from "@/components/ui/drawer";
 import { ScrollArea } from "@/components/ui/scroll-area";
-import { useViewPatient } from "@/stores/use-view-patient-store";
+import { useViewPatientStore } from "@/stores/use-view-patient-store";
 import { useViewUser } from "@/stores/use-view-user-store";
 import { format } from "date-fns";
 import {
@@ -31,7 +31,7 @@ export const ViewUserSheet = () => {
     user: selectedUser,
     id: userId,
   } = useViewUser();
-  const { onOpen: openPatientDrawer } = useViewPatient();
+  const { onOpen: openPatientDrawer } = useViewPatientStore();
 
   if (!selectedUser) return null;
 

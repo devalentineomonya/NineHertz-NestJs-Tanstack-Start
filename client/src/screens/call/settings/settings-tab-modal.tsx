@@ -25,7 +25,7 @@ import {
 
 
 import { useLanguage } from "@/hooks/use-language";
-import { LayoutSelector, LayoutSelectorProps } from "../layout-selector";
+import { LayoutSelector, LayoutSelectorProps } from "../layout-selector"
 import { CallRecordings } from "../call-recordings";
 import { IncomingVideoSettingsDropdown } from "../incoming-video-settings";
 import { DeviceSelectionSettingsDropdown } from "./device-selection";
@@ -179,7 +179,7 @@ export const SettingsTabModalMenu = (props: {
         icon="transcriptions"
         label="Transcriptions"
         inMeeting
-        
+
       >
         <TranscriptionSettings />
       </TabWrapper>

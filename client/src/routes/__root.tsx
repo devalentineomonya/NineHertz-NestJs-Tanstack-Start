@@ -1,6 +1,7 @@
 /// <reference types="vite/client" />
 import { HeadContent, Scripts, createRootRoute } from "@tanstack/react-router";
 import { TanStackRouterDevtools } from "@tanstack/react-router-devtools";
+import { ReactQueryDevtools } from "@tanstack/react-query-devtools";
 import * as React from "react";
 import { NotFound } from "@/components/common/not-found";
 import { DefaultCatchBoundary } from "@/components/common/try-catch-boundary";
@@ -10,8 +11,10 @@ import Navbar from "@/components/shared/navbar/navbar";
 import FooterSection from "@/components/shared/footer/footer";
 import { NuqsAdapter } from "nuqs/adapters/react";
 import { Toaster } from "@/components/ui/sonner";
+import "@stream-io/video-react-sdk/dist/css/styles.css";
 
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
+import { InstallPWAButton } from "@/components/common/download-app";
 
 export const Route = createRootRoute({
   head: () => ({
@@ -33,7 +36,6 @@ export const Route = createRootRoute({
   errorComponent: DefaultCatchBoundary,
   notFoundComponent: () => <NotFound />,
   shellComponent: RootDocument,
-
 });
 
 function RootDocument({ children }: { children: React.ReactNode }) {
@@ -49,8 +51,9 @@ function RootDocument({ children }: { children: React.ReactNode }) {
             <Navbar />
             {children}
             <FooterSection />
-            <TanStackRouterDevtools position="bottom-right" />
-
+            {/* <TanStackRouterDevtools position="top-right" />
+            <ReactQueryDevtools position="top" buttonPosition="top-right" /> */}
+            <InstallPWAButton />
             <Toaster richColors position="top-center" />
             <Scripts />
           </NuqsAdapter>

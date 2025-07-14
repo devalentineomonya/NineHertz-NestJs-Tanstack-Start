@@ -1,6 +1,6 @@
 import { AuthLayoutSkeleton } from "@/screens/auth/details-skeleton";
 import { DataServices } from "@/services/data/data-service";
-import { useUserSessionStore } from "@/services/users/stores/user-session-store";
+import { useUserSessionStore } from "@/stores/user-session-store";
 import {
   createFileRoute,
   redirect,

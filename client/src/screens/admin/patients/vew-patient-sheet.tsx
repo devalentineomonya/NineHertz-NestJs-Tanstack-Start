@@ -21,7 +21,8 @@ import {
 } from "@/components/ui/table";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { useGetPatient } from "@/services/patients/use-get-patient";
-import { useViewPatient } from "@/stores/use-view-patient-store";
+import { useAddAppointmentStore } from "@/stores/use-add-appointment-store";
+import { useViewPatientStore } from "@/stores/use-view-patient-store";
 import { format } from "date-fns";
 import {
   Calendar,
@@ -32,32 +33,11 @@ import {
 } from "lucide-react";
 import { useState } from "react";
 
-// Add missing type definitions
-type PatientResponseDto = {
-  id: string;
-  fullName: string;
-  phone: string;
-  dateOfBirth?: string;
-  user?: {
-    email: string;
-    isEmailVerified: boolean;
-  };
-  appointments?: any[];
-  consultations?: any[];
-  prescriptions?: any[];
-  orders?: any[];
-  medicalHistory?: {
-    conditions?: string[];
-    allergies?: string[];
-    treatments?: any[];
-  };
-};
-
 // Main component
 export const VewPatientSheet = () => {
-  const { id, onClose, isOpen } = useViewPatient();
+  const { id, onClose, isOpen } = useViewPatientStore();
   const [activeTab, setActiveTab] = useState("overview");
-
+  const { onOpen: newAppointment } = useAddAppointmentStore();
   const { data, isLoading } = useGetPatient(id || "");
   const patient = data?.data;
 
@@ -66,8 +46,10 @@ export const VewPatientSheet = () => {
       <DrawerContent className="right-2 top-2 bottom-2 fixed flex data-[vaul-drawer-direction=right]:sm:max-w-fit bg-gradient-to-b from-white to-gray-50 rounded-md">
         {/* Header */}
         <DrawerHeader>
-          <div className="flex items-center justify-between mb-4">
-            <div className="flex items-center space-x-4">
+          {/* Main Header - Responsive Layout */}
+          <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between mb-4">
+            {/* Patient Info - Column on mobile, Row on larger screens */}
+            <div className="flex flex-col xs:flex-row gap-4 items-start xs:items-center">
               {isLoading ? (
                 <Skeleton className="w-16 h-16 rounded-full" />
               ) : (
@@ -92,68 +74,83 @@ export const VewPatientSheet = () => {
                   </>
                 ) : (
                   <>
-                    <h1 className="text-3xl font-bold">{patient?.fullName}</h1>
-                    <p className="text-gray-500">Patient ID: {patient?.id}</p>
+                    <h1 className="text-2xl md:text-3xl font-bold">
+                      {patient?.fullName}
+                    </h1>
+                    <p className="text-gray-500 text-sm md:text-base">
+                      Patient ID: {patient?.id}
+                    </p>
                   </>
                 )}
               </div>
             </div>
 
-            <div className="flex flex-col sm:flex-row gap-2">
-              <Button variant={"primary"} className="w-fit">
+            {/* Button - Full width on mobile, auto on larger screens */}
+            <div className="w-full xs:w-auto">
+              <Button
+                onClick={newAppointment}
+                variant={"primary"}
+                className="w-full xs:w-fit"
+              >
                 New Appointment
               </Button>
             </div>
           </div>
 
-          {/* Tabs Navigation */}
+          {/* Tabs Navigation - Responsive Solution */}
           <Tabs value={activeTab} onValueChange={setActiveTab} className="mb-2">
-            <TabsList className="w-full">
-              <TabsTrigger value="overview">
-                <UserIcon className="mr-2 h-4 w-4" />
-                Overview
-              </TabsTrigger>
-              <TabsTrigger value="appointments">
-                <Calendar className="mr-2 h-4 w-4" />
-                Appointments
-              </TabsTrigger>
-              <TabsTrigger value="medical">
-                <HeartPulse className="mr-2 h-4 w-4" />
-                Medical History
-              </TabsTrigger>
-              <TabsTrigger value="prescriptions">
-                <ClipboardList className="mr-2 h-4 w-4" />
-                Prescriptions
-              </TabsTrigger>
-              <TabsTrigger value="orders">
-                <ShoppingCart className="mr-2 h-4 w-4" />
-                Orders
-              </TabsTrigger>
-            </TabsList>
-            {/* Tab Content */}
-            <div className="flex-1 overflow-auto">
-              <TabsContent value="overview">
-                <OverviewTab patient={patient} isLoading={isLoading} />
-              </TabsContent>
-
-              <TabsContent value="appointments">
-                <AppointmentsTab patient={patient} isLoading={isLoading} />
-              </TabsContent>
-
-              <TabsContent value="medical">
-                <MedicalHistoryTab patient={patient} isLoading={isLoading} />
-              </TabsContent>
-
-              <TabsContent value="prescriptions">
-                <PrescriptionsTab patient={patient} isLoading={isLoading} />
-              </TabsContent>
-
-              <TabsContent value="orders">
-                <OrdersTab patient={patient} isLoading={isLoading} />
-              </TabsContent>
+            {/* Visible Tabs */}
+            <div className="relative">
+              <TabsList className="w-full overflow-x-auto hide-scrollbar">
+                <TabsTrigger value="overview">
+                  <UserIcon className="hidden sm:mr-2 h-4 w-4" />
+                  <span>Overview</span>
+                </TabsTrigger>
+                <TabsTrigger value="appointments">
+                  <Calendar className="hidden sm:mr-2 h-4 w-4" />
+                  <span>Appointments</span>
+                </TabsTrigger>
+                <TabsTrigger value="medical">
+                  <HeartPulse className="hidden sm:mr-2 h-4 w-4" />
+                  <span>Medical</span>
+                </TabsTrigger>
+                <TabsTrigger value="prescriptions">
+                  <ClipboardList className="hidden sm:mr-2 h-4 w-4" />
+                  <span>Prescriptions</span>
+                </TabsTrigger>
+                <TabsTrigger value="orders">
+                  <ShoppingCart className="hidden sm:mr-2 h-4 w-4" />
+                  <span>Orders</span>
+                </TabsTrigger>
+              </TabsList>
             </div>
           </Tabs>
         </DrawerHeader>
+
+        {/* Tab Content */}
+        <div className="flex-1 overflow-auto p-6">
+          <Tabs value={activeTab}>
+            <TabsContent value="overview">
+              <OverviewTab patient={patient} isLoading={isLoading} />
+            </TabsContent>
+
+            <TabsContent value="appointments">
+              <AppointmentsTab patient={patient} isLoading={isLoading} />
+            </TabsContent>
+
+            <TabsContent value="medical">
+              <MedicalHistoryTab patient={patient} isLoading={isLoading} />
+            </TabsContent>
+
+            <TabsContent value="prescriptions">
+              <PrescriptionsTab patient={patient} isLoading={isLoading} />
+            </TabsContent>
+
+            <TabsContent value="orders">
+              <OrdersTab patient={patient} isLoading={isLoading} />
+            </TabsContent>
+          </Tabs>
+        </div>
       </DrawerContent>
     </Drawer>
   );
@@ -164,10 +161,10 @@ const OverviewTab = ({
   patient,
   isLoading,
 }: {
-  patient?: PatientResponseDto;
+  patient?: PatientResponseDto | undefined;
   isLoading: boolean;
 }) => (
-  <div className="grid grid-cols-1 lg:grid-2 gap-6">
+  <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
     {/* Personal Info Card */}
     <Card>
       <CardHeader>
@@ -211,6 +208,21 @@ const OverviewTab = ({
                   </Badge>
                 )}
               </p>
+            </div>
+
+            <div>
+              <p className="text-sm text-gray-500">Status</p>
+              <Badge
+                variant={
+                  patient?.status === "active"
+                    ? "success"
+                    : patient?.status === "inactive"
+                    ? "destructive"
+                    : "secondary"
+                }
+              >
+                {patient?.status || "N/A"}
+              </Badge>
             </div>
           </div>
         )}
@@ -285,8 +297,14 @@ const OverviewTab = ({
             </TableHeader>
             <TableBody>
               {[
-                ...(patient?.appointments || []),
-                ...(patient?.consultations || []),
+                ...(patient?.appointments?.map((a) => ({
+                  ...a,
+                  activityType: "appointment",
+                })) || []),
+                ...(patient?.consultations?.map((c) => ({
+                  ...c,
+                  activityType: "consultation",
+                })) || []),
               ]
                 .sort(
                   (a, b) =>
@@ -300,12 +318,14 @@ const OverviewTab = ({
                       {format(new Date(item.createdAt), "MMM dd, yyyy")}
                     </TableCell>
                     <TableCell>
-                      {"service" in item ? "Appointment" : "Consultation"}
+                      {item.activityType === "appointment"
+                        ? "Appointment"
+                        : "Consultation"}
                     </TableCell>
                     <TableCell>
-                      {"service" in item
-                        ? item.service.name
-                        : `Dr. ${item.doctor.fullName}`}
+                      {item.activityType === "appointment"
+                        ? `Physical: ${item.type}`
+                        : "Consultation"}
                     </TableCell>
                     <TableCell>
                       <Badge variant="secondary">{item.status}</Badge>
@@ -344,9 +364,8 @@ const AppointmentsTab = ({
           <TableHeader>
             <TableRow>
               <TableHead>Date & Time</TableHead>
-              <TableHead>Service</TableHead>
-              <TableHead>Doctor</TableHead>
-              <TableHead>Duration</TableHead>
+              <TableHead>Type</TableHead>
+              <TableHead>Created At</TableHead>
               <TableHead>Status</TableHead>
             </TableRow>
           </TableHeader>
@@ -354,11 +373,15 @@ const AppointmentsTab = ({
             {patient.appointments.map((appointment) => (
               <TableRow key={appointment.id}>
                 <TableCell>
-                  {format(new Date(appointment.date), "MMM dd, yyyy hh:mm a")}
+                  {format(
+                    new Date(appointment.datetime),
+                    "MMM dd, yyyy hh:mm a"
+                  )}
                 </TableCell>
-                <TableCell>{appointment.service.name}</TableCell>
-                <TableCell>Dr. {appointment.doctor.fullName}</TableCell>
-                <TableCell>{appointment.duration} mins</TableCell>
+                <TableCell className="capitalize">{appointment.type}</TableCell>
+                <TableCell>
+                  {format(new Date(appointment.createdAt), "MMM dd, yyyy")}
+                </TableCell>
                 <TableCell>
                   <Badge
                     variant={
@@ -520,10 +543,10 @@ const PrescriptionsTab = ({
               <div className="flex justify-between items-start">
                 <div>
                   <h4 className="font-medium">
-                    {prescription.medication.name}
+                    {prescription.medication?.name}
                   </h4>
                   <p className="text-sm text-gray-600">
-                    {prescription.medication.dosage}
+                    {prescription.medication?.dosage}
                   </p>
                 </div>
                 <Badge
@@ -545,25 +568,25 @@ const PrescriptionsTab = ({
                 <div>
                   <p className="text-gray-500">Start Date</p>
                   <p>
-                    {format(new Date(prescription.startDate), "MMM dd, yyyy")}
+                    {format(new Date(prescription.issueDate), "MMM dd, yyyy")}
                   </p>
                 </div>
                 <div>
                   <p className="text-gray-500">End Date</p>
                   <p>
-                    {format(new Date(prescription.endDate), "MMM dd, yyyy")}
+                    {format(new Date(prescription.expiryDate), "MMM dd, yyyy")}
                   </p>
                 </div>
                 <div>
                   <p className="text-gray-500">Frequency</p>
-                  <p>{prescription.frequency}</p>
+                  <p>{prescription?.frequency}</p>
                 </div>
               </div>
 
               {prescription.notes && (
                 <div className="mt-3">
                   <p className="text-gray-500">Doctor's Notes</p>
-                  <p className="text-sm">{prescription.notes}</p>
+                  <p className="text-sm">{prescription?.notes}</p>
                 </div>
               )}
             </div>

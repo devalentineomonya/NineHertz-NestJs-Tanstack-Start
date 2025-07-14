@@ -1,5 +1,6 @@
 import { AppSidebar } from "@/components/shared/sidebar/app-sidebar";
 import { SiteHeader } from "@/components/shared/sidebar/site-header";
+import ChatBot from "@/components/ui/chatbot";
 import { SidebarInset, SidebarProvider } from "@/components/ui/sidebar";
 import { SheetProvider } from "@/providers/sheet-provider";
 import { useUserSessionStore } from "@/stores/user-session-store";
@@ -46,6 +47,7 @@ function RouteComponent() {
         </main>
       </SidebarInset>
       <SheetProvider />
+      <ChatBot position="bottom-right"/>
     </SidebarProvider>
   );
 }

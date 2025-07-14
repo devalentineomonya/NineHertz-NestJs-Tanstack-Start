@@ -7,6 +7,7 @@ import { HttpAdapterHost, NestFactory } from '@nestjs/core';
 import helmet from 'helmet';
 import * as basicAuth from 'express-basic-auth';
 import { TimeoutInterceptor } from './timeout-intercepter';
+import * as compression from 'compression';
 // import { ResponseFormatInterceptor } from './response-filter.interceptor';
 
 async function bootstrap() {
@@ -14,12 +15,22 @@ async function bootstrap() {
   const configService = app.get(ConfigService);
 
   app.use(helmet());
+  app.use(
+    compression({
+      filter: (req, res) => {
+        if (req.headers['accept'] === 'text/event-stream') {
+          return false;
+        }
+        return compression.filter(req, res);
+      },
+    }),
+  );
 
   app.enableCors({
     origin: ['http://localhost:5173', 'https://react.dev.lo'],
-
-    methods: 'GET,HEAD,PUT,PATCH,POST,DELETE',
+    methods: 'GET,HEAD,PUT,PATCH,POST,DELETE,OPTIONS',
     allowedHeaders: 'Content-Type, Accept, Authorization',
+    exposedHeaders: 'Content-Type, Content-Length, Content-Encoding',
     credentials: true,
   });
 

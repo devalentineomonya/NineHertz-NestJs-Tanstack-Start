@@ -18,7 +18,7 @@ export const Stage = ({
 
   if (selectedLayout === "LegacyGrid" || selectedLayout === "LegacySpeaker") {
     return (
-      <div className="rd__stage">
+      <div className="flex-1 min-h-0 ">
         <SelectedComponent {...props} />
       </div>
     );

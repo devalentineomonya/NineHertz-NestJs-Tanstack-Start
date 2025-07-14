@@ -8,7 +8,7 @@ interface ViewPatient {
   onClose: () => void;
 }
 
-export const useViewPatient = create<ViewPatient>((set) => ({
+export const useViewPatientStore = create<ViewPatient>((set) => ({
   isOpen: false,
   id: null,
   patient: null,

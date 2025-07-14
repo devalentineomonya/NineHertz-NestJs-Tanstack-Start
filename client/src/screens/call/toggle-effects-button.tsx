@@ -11,6 +11,7 @@ import {
   import { forwardRef } from 'react';
   import { useLayoutSwitcher } from '@/hooks/use-layout-map';
   import { SettingsTabModalMenu } from './settings/settings-tab-modal';
+import { Sparkles } from 'lucide-react';
 
   const ToggleEffectsMenuButton = forwardRef<
     HTMLDivElement,
@@ -32,7 +33,7 @@ import {
           active={props.menuShown}
           variant="primary"
         >
-          <Icon icon="video-effects" />
+         <Sparkles className="size-4"/>
         </CompositeButton>
       </WithTooltip>
     );

@@ -44,13 +44,13 @@ const ListMenu = ({
 }) => {
   const { close } = useMenuContext();
   return (
-    <ul className="rd__layout-selector__list">
+    <ul className="p-4 space-y-2">
       {(Object.keys(LayoutMap) as Array<keyof typeof LayoutMap>)
         .filter((key) => !canScreenshare(key))
         .map((key) => (
-          <li key={key} className="rd__layout-selector__item">
+          <li key={key} className="text-white flex items-center">
             <button
-              className={clsx('rd__button rd__button--align-left', {
+              className={clsx('flex items-center gap-x-2', {
                 'rd__button--primary': key === selectedLayout,
               })}
               onClick={() => {

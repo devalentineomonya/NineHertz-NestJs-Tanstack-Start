@@ -68,7 +68,7 @@ export class User {
   patientProfile?: Patient;
 
   @OneToOne(() => Doctor, (doctor) => doctor.user, {
-    cascade: true,
+    onDelete: 'CASCADE',
   })
   @JoinColumn()
   doctorProfile?: Doctor;

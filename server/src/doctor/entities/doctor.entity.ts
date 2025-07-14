@@ -5,6 +5,7 @@ import {
   OneToOne,
   OneToMany,
   Index,
+  JoinColumn,
 } from 'typeorm';
 import { User } from '../../user/entities/user.entity';
 import { Appointment } from '../../appointment/entities/appointment.entity';
@@ -22,6 +23,9 @@ export class Doctor {
 
   @Column()
   specialty: string;
+
+  @Column({ default: 'Etc/GMT-3' })
+  timezone: string;
 
   @Column({ type: 'jsonb' })
   availability: { days: string[]; hours: string[] };
@@ -49,15 +53,23 @@ export class Doctor {
   })
   status: 'active' | 'inactive';
 
-  @OneToOne(() => User, (user) => user.doctorProfile)
+  @OneToOne(() => User, (user) => user.doctorProfile, { onDelete: 'CASCADE' })
+  @JoinColumn({ name: 'userId' })
   user: User;
 
-  @OneToMany(() => Appointment, (appointment) => appointment.doctor)
+  @OneToMany(() => Appointment, (appointment) => appointment.doctor, {
+    cascade: true,
+    onDelete: 'CASCADE',
+  })
   appointments: Appointment[];
 
-  @OneToMany(() => Consultation, (consultation) => consultation.doctor)
+  @OneToMany(() => Consultation, (consultation) => consultation.doctor, {
+    cascade: true,
+  })
   consultations: Consultation[];
 
-  @OneToMany(() => Prescription, (prescription) => prescription.prescribedBy)
+  @OneToMany(() => Prescription, (prescription) => prescription.prescribedBy, {
+    cascade: true,
+  })
   prescriptions: Prescription[];
 }

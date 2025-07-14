@@ -6,6 +6,7 @@ import {
   CreateDateColumn,
   UpdateDateColumn,
   Index,
+  JoinColumn,
 } from 'typeorm';
 import { Patient } from '../../patient/entities/patient.entity';
 import { Doctor } from '../../doctor/entities/doctor.entity';
@@ -46,7 +47,10 @@ export class Consultation {
   @ManyToOne(() => Patient, (patient) => patient.consultations)
   patient: Patient;
 
-  @ManyToOne(() => Doctor, (doctor) => doctor.consultations)
+  @ManyToOne(() => Doctor, (doctor) => doctor.consultations, {
+    onDelete: 'CASCADE',
+  })
+  @JoinColumn({ name: 'doctorId' })
   doctor: Doctor;
 
   @CreateDateColumn()

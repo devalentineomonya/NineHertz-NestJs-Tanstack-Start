@@ -28,7 +28,7 @@ export const ToggleStatsButton = (props: {
 
 export const CallStatsSidebar = () => {
   return (
-    <div className="rd__sidebar__call-stats">
+    <div className='relative h-full max-h-[calc(100dvh-175px)] overflow-y-scroll text-white'>
       <CallStats showCodecInfo />
     </div>
   );

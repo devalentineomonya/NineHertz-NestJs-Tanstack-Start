@@ -1,19 +1,19 @@
 import {
   CompositeButton,
-  Icon,
   WithTooltip,
   useNoiseCancellation,
-} from '@stream-io/video-react-sdk';
+} from "@stream-io/video-react-sdk";
+import { Ear, EarOff } from "lucide-react";
 
 export const ToggleNoiseCancellationButton = () => {
   const { isSupported, isEnabled, setEnabled } = useNoiseCancellation();
   if (!isSupported) return null;
   return (
     <WithTooltip
-      title={`Noise cancellation is ${isEnabled ? 'active' : 'inactive'}`}
+      title={`Noise cancellation is ${isEnabled ? "active" : "inactive"}`}
     >
       <CompositeButton onClick={() => setEnabled((v) => !v)} variant="primary">
-        <Icon icon={isEnabled ? 'anc' : 'anc-off'} />
+        {isEnabled ? <Ear className="size-4" /> : <EarOff className="size-4" />}
       </CompositeButton>
     </WithTooltip>
   );

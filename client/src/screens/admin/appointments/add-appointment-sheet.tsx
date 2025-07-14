@@ -1,15 +1,5 @@
 import { Button } from "@/components/ui/button";
 import {
-  Drawer,
-  DrawerClose,
-  DrawerContent,
-  DrawerFooter,
-  DrawerHeader,
-  DrawerTitle,
-} from "@/components/ui/drawer";
-import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
-import {
   Command,
   CommandEmpty,
   CommandGroup,
@@ -17,22 +7,15 @@ import {
   CommandItem,
   CommandList,
 } from "@/components/ui/command";
+import { DateTimePicker24h } from "@/components/ui/date-time-picker";
 import {
-  Popover,
-  PopoverContent,
-  PopoverTrigger,
-} from "@/components/ui/popover";
-import { useAddAppointmentStore } from "@/stores/use-add-appointment-store";
-import { useAddAppointmentService } from "@/services/appointments/use-add-appointment";
-import { useGetPatients } from "@/services/patients/use-get-patients";
-import { useGetDoctors } from "@/services/doctors/use-get-doctors";
-import { zodResolver } from "@hookform/resolvers/zod";
-import { Check, ChevronsUpDown, Loader } from "lucide-react";
-import { useForm, UseFormReturn } from "react-hook-form";
-import { toast } from "sonner";
-import { z } from "zod";
-import { cn } from "@/lib/utils";
-import { useState } from "react";
+  Drawer,
+  DrawerClose,
+  DrawerContent,
+  DrawerFooter,
+  DrawerHeader,
+  DrawerTitle,
+} from "@/components/ui/drawer";
 import {
   Form,
   FormControl,
@@ -41,7 +24,11 @@ import {
   FormLabel,
   FormMessage,
 } from "@/components/ui/form";
-import { Calendar } from "@/components/ui/calendar";
+import {
+  Popover,
+  PopoverContent,
+  PopoverTrigger,
+} from "@/components/ui/popover";
 import {
   Select,
   SelectContent,
@@ -49,7 +36,17 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { format } from "date-fns";
+import { cn } from "@/lib/utils";
+import { useAddAppointmentService } from "@/services/appointments/use-add-appointment";
+import { useGetDoctors } from "@/services/doctors/use-get-doctors";
+import { useGetPatients } from "@/services/patients/use-get-patients";
+import { useAddAppointmentStore } from "@/stores/use-add-appointment-store";
+import { zodResolver } from "@hookform/resolvers/zod";
+import { Check, ChevronsUpDown, Loader } from "lucide-react";
+import { useForm, UseFormReturn } from "react-hook-form";
+import { toast } from "sonner";
+import { z } from "zod";
+
 const appointmentStatuses = ["scheduled", "completed", "cancelled"] as const;
 const appointmentTypes = ["virtual", "physical"] as const;
 
@@ -68,8 +65,6 @@ export const AddAppointmentDrawer = () => {
   const addAppointmentMutation = useAddAppointmentService();
   const { data: patients, isLoading: loadingPatients } = useGetPatients();
   const { data: doctors, isLoading: loadingDoctors } = useGetDoctors();
-  const [date, setDate] = useState<Date | undefined>(new Date());
-  const [time, setTime] = useState("09:00");
 
   const form = useForm({
     resolver: zodResolver(appointmentFormSchema),
@@ -83,15 +78,7 @@ export const AddAppointmentDrawer = () => {
 
   const onSubmit = async (data: AppointmentFormValues) => {
     try {
-      const [hours, minutes] = time.split(":").map(Number);
-      const datetime = new Date(data.datetime);
-      datetime.setHours(hours, minutes, 0, 0);
-
-      await addAppointmentMutation.mutateAsync({
-        ...data,
-        datetime: datetime,
-      });
-
+      await addAppointmentMutation.mutateAsync(data);
       toast.success("Appointment created successfully");
       onClose();
       form.reset();
@@ -99,6 +86,8 @@ export const AddAppointmentDrawer = () => {
       toast.error("Failed to create appointment");
     }
   };
+
+  const isSubmitting = addAppointmentMutation.isPending;
 
   return (
     <Drawer direction="right" open={isOpen} onOpenChange={onClose}>
@@ -112,61 +101,23 @@ export const AddAppointmentDrawer = () => {
         <div className="px-6 py-4 overflow-y-auto">
           <Form {...form}>
             <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
-              {/* Date and Time */}
-              <div className="grid grid-cols-2 gap-4">
-                {/* Date Picker */}
-                <FormField
-                  control={form.control}
-                  name="datetime"
-                  render={({ field }) => (
-                    <FormItem className="flex flex-col">
-                      <FormLabel>Date</FormLabel>
-                      <Popover>
-                        <PopoverTrigger asChild>
-                          <FormControl>
-                            <Button
-                              variant={"outline"}
-                              className={cn(
-                                "pl-3 text-left font-normal",
-                                !field.value && "text-muted-foreground"
-                              )}
-                            >
-                              {field.value ? (
-                                format(field.value, "PPP")
-                              ) : (
-                                <span>Pick a date</span>
-                              )}
-                            </Button>
-                          </FormControl>
-                        </PopoverTrigger>
-                        <PopoverContent className="w-auto p-0" align="start">
-                          <Calendar
-                            mode="single"
-                            selected={field.value}
-                            onSelect={(date) => {
-                              field.onChange(date);
-                              setDate(date);
-                            }}
-                            disabled={(date) => date < new Date()}
-                            autoFocus
-                          />
-                        </PopoverContent>
-                      </Popover>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
-
-                {/* Time Selector */}
-                <div className="space-y-2">
-                  <Label>Time</Label>
-                  <Input
-                    type="time"
-                    value={time}
-                    onChange={(e) => setTime(e.target.value)}
-                  />
-                </div>
-              </div>
+              <FormField
+                control={form.control}
+                name="datetime"
+                render={({ field }) => (
+                  <FormItem className="flex flex-col">
+                    <FormLabel>Date & Time</FormLabel>
+                    <FormControl>
+                      <DateTimePicker24h
+                        value={field.value}
+                        onChange={field.onChange}
+                        disabled={isSubmitting}
+                      />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
 
               {/* Status */}
               <FormField
@@ -178,6 +129,7 @@ export const AddAppointmentDrawer = () => {
                     <Select
                       onValueChange={field.onChange}
                       defaultValue={field.value}
+                      disabled={isSubmitting}
                     >
                       <FormControl>
                         <SelectTrigger className="w-full">
@@ -214,6 +166,7 @@ export const AddAppointmentDrawer = () => {
                               "w-full justify-between",
                               !field.value && "text-muted-foreground"
                             )}
+                            disabled={isSubmitting || loadingPatients}
                           >
                             {field.value
                               ? patients?.find(
@@ -280,6 +233,7 @@ export const AddAppointmentDrawer = () => {
                               "w-full justify-between",
                               !field.value && "text-muted-foreground"
                             )}
+                            disabled={isSubmitting || loadingDoctors}
                           >
                             {field.value
                               ? doctors?.data?.find(
@@ -328,6 +282,7 @@ export const AddAppointmentDrawer = () => {
                   </FormItem>
                 )}
               />
+
               {/* Type */}
               <FormField
                 control={form.control}
@@ -338,6 +293,7 @@ export const AddAppointmentDrawer = () => {
                     <Select
                       onValueChange={field.onChange}
                       defaultValue={field.value}
+                      disabled={isSubmitting}
                     >
                       <FormControl>
                         <SelectTrigger className="w-full">
@@ -364,9 +320,9 @@ export const AddAppointmentDrawer = () => {
           <Button
             variant="primary"
             onClick={form.handleSubmit(onSubmit)}
-            disabled={addAppointmentMutation.isPending}
+            disabled={isSubmitting}
           >
-            {addAppointmentMutation.isPending ? (
+            {isSubmitting ? (
               <div className="flex items-center gap-2">
                 <Loader className="animate-spin" size={16} />
                 Scheduling...
@@ -376,7 +332,9 @@ export const AddAppointmentDrawer = () => {
             )}
           </Button>
           <DrawerClose asChild>
-            <Button variant="outline">Cancel</Button>
+            <Button variant="outline" disabled={isSubmitting}>
+              Cancel
+            </Button>
           </DrawerClose>
         </DrawerFooter>
       </DrawerContent>

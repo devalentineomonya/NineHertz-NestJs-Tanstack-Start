@@ -1,5 +1,9 @@
 import { ApiProperty } from '@nestjs/swagger';
 import { UserResponseDto } from '../../user/dto/user-response.dto';
+// import { AppointmentResponseDto } from 'src/appointment/dto/appointment-response.dto';
+// import { ConsultationResponseDto } from 'src/consultation/dto/consultation-response.dto';
+// import { CreatePrescriptionDto } from 'src/prescription/dto/create-prescription.dto';
+// import { OrderResponseDto } from 'src/order/dto/order-response.dto';
 
 export class PatientResponseDto {
   @ApiProperty({
@@ -37,4 +41,24 @@ export class PatientResponseDto {
     description: 'Associated user account',
   })
   user: UserResponseDto;
+  // @ApiProperty({
+  //   type: AppointmentResponseDto,
+  //   description: 'Associated user appointments',
+  // })
+  // appointments: AppointmentResponseDto[];
+  // @ApiProperty({
+  //   type: ConsultationResponseDto,
+  //   description: 'Associated user consultations',
+  // })
+  // consultations: ConsultationResponseDto[];
+  // @ApiProperty({
+  //   type: CreatePrescriptionDto,
+  //   description: 'Associated user appointments',
+  // })
+  // prescriptions: CreatePrescriptionDto[];
+  //   @ApiProperty({
+  //     type: OrderResponseDto,
+  //     description: 'Associated user appointments',
+  //   })
+  //   orders: OrderResponseDto[];
 }

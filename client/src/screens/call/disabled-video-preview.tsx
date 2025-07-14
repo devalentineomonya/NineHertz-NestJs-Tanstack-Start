@@ -6,17 +6,17 @@ import {
 export const DisabledVideoPreview = () => {
   const mockParticipants: StreamVideoParticipant[] = [
     {
-        userId: "R2-D2",
-        name: "John Doe",
-        isSpeaking: false,
-        sessionId: "",
-        publishedTracks: [],
-        trackLookupPrefix: "",
-        connectionQuality: "unknown" as any,
-        isDominantSpeaker: false,
-        audioLevel: 0,
-        image: "",
-        roles: []
+      userId: "R2-D2",
+      name: "John Doe",
+      isSpeaking: false,
+      sessionId: "",
+      publishedTracks: [],
+      trackLookupPrefix: "",
+      connectionQuality: "unknown" as any,
+      isDominantSpeaker: false,
+      audioLevel: 0,
+      image: "",
+      roles: [],
     },
   ];
 

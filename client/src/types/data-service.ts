@@ -43,11 +43,11 @@ interface CreatePatientDto {
 }
 interface PatientResponseDto extends CreatePatientDto {
   id: string;
-  status: 'active' | 'inactive'
+  status: "active" | "inactive";
   dateOfBirth: Date;
   medicalHistory: Record<string, any>;
   user: UserResponseDto;
-  appointment:AppointmentResponseDto
+  appointment: AppointmentResponseDto;
 }
 interface UpdatePatientDto extends Partial<CreatePatientDto> {}
 
@@ -62,8 +62,8 @@ interface CreateDoctorDto {
 }
 interface DoctorResponseDto extends CreateDoctorDto {
   id: string;
-  status:'active' | 'inactive'
-  createdAt:string,
+  status: "active" | "inactive";
+  createdAt: string;
   user: UserResponseDto;
 }
 interface UpdateDoctorDto extends Partial<CreateDoctorDto> {}
@@ -85,7 +85,12 @@ interface AdminResponseDto extends CreateAdminDto {
   updatedAt: Date;
 }
 interface UpdateAdminDto extends Partial<CreateAdminDto> {}
-type AdminPaginatedDto = AdminResponseDto; // Alias for clarity
+interface AdminPaginatedDto {
+  data: AdminResponseDto[];
+  total: number;
+  page: number;
+  limit: number;
+}
 
 // ================== Pharmacist Types ==================
 interface CreatePharmacistDto extends BaseProfileDto {
@@ -94,6 +99,11 @@ interface CreatePharmacistDto extends BaseProfileDto {
 }
 interface PharmacistResponseDto extends CreatePharmacistDto {
   id: string;
+  createdAt: string;
+  updatedAt: string;
+  status: "active" | "inactive";
+  user: UserResponseDto;
+  pharmacy: PharmacyResponseDto;
 }
 interface UpdatePharmacistDto extends Partial<CreatePharmacistDto> {}
 
@@ -219,15 +229,15 @@ interface OrderItemResponseDto extends CreateOrderItemDto {
 interface OrderResponseDto
   extends Omit<CreateOrderDto, "items" | "patientId" | "pharmacyId"> {
   id: string;
-  orderDate: Date;
+  orderDate: string;
   stripePaymentId: string;
   paystackReference: string;
   paymentStatus: string;
   patient: PatientResponseDto;
   pharmacy: PharmacyResponseDto;
   items: OrderItemResponseDto[];
-  createdAt: Date;
-  updatedAt: Date;
+  createdAt: string;
+  updatedAt: string;
 }
 interface UpdateOrderDto extends Partial<CreateOrderDto> {}
 interface OrderPaginatedDto {
@@ -264,7 +274,7 @@ interface VerifyEmailDto {
 }
 
 // ================== Prescription Types ==================
-interface CreatePrescriptionDto {
+interface BasePrescriptionDto {
   medicationDetails: string;
   issueDate: string;
   expiryDate: string;
@@ -272,4 +282,29 @@ interface CreatePrescriptionDto {
   doctorId: string;
   pharmacyId?: string;
 }
+
+interface CreatePrescriptionDto extends BasePrescriptionDto {}
+
+interface PrescriptionResponseDto
+  extends Omit<BasePrescriptionDto, "patientId" | "doctorId"> {
+  id: string;
+  isFulfilled: boolean;
+  patient: PatientResponseDto;
+  prescribedBy: DoctorResponseDto;
+}
+
 interface UpdatePrescriptionDto extends Partial<CreatePrescriptionDto> {}
+
+interface ChatMessage {
+  role: "user" | "assistant";
+  content: string;
+  parts: {
+    type: "text";
+    text: string;
+  }[];
+}
+
+interface CreateChatDto {
+  id: string;
+  messages: ChatMessage[];
+}

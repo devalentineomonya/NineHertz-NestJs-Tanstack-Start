@@ -17,6 +17,7 @@ import {
   useSidebar,
 } from "@/components/ui/sidebar";
 import { useUserSessionStore } from "@/stores/user-session-store";
+import { Link } from "@tanstack/react-router";
 
 export function NavUser({
   user,
@@ -24,6 +25,7 @@ export function NavUser({
   user: {
     name: string;
     email: string;
+    role: string;
   } | null;
 }) {
   const { isMobile } = useSidebar();
@@ -72,10 +74,12 @@ export function NavUser({
             <DropdownMenuSeparator />
 
             <DropdownMenuGroup>
-              <DropdownMenuItem>
-                <BadgeCheck />
-                Account
-              </DropdownMenuItem>
+              <Link to={`${user?.role}/profile`}>
+                <DropdownMenuItem>
+                  <BadgeCheck />
+                  Account
+                </DropdownMenuItem>
+              </Link>
             </DropdownMenuGroup>
             <DropdownMenuSeparator />
             <DropdownMenuItem onClick={clearSession}>

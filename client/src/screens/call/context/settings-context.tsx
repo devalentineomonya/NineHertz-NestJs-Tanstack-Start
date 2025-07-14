@@ -1,12 +1,12 @@
-import { createContext, PropsWithChildren, useContext } from 'react';
-import { useLanguage } from '@/hooks/use-language';
+import { createContext, PropsWithChildren, useContext } from "react";
+import { useLanguage } from "@/hooks/use-language";
 import {
   DeviceSelectionPreference,
   useDeviceSelectionPreference,
-} from '@/hooks/use-device-preference-selection';
+} from "@/hooks/use-device-preference-selection";
 
 const defaultState: Settings = {
-  deviceSelectionPreference: 'recent',
+  deviceSelectionPreference: "recent",
   setDeviceSelectionPreference: () => {},
 };
 

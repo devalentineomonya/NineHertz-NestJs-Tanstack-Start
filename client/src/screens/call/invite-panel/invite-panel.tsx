@@ -1,6 +1,6 @@
 import { useCallback, useEffect, useState } from "react";
 import { Icon, IconButton, useI18n } from "@stream-io/video-react-sdk";
-
+import {Button } from "@/components/ui/button"
 export const InvitePopup = ({
   callId,
   close,
@@ -53,19 +53,20 @@ export const Invite = () => {
   const { isCopied, copyInviteLink } = useCopyInviteLink();
   return (
     <div className="mt-5">
-      <h2 className="text-base font-medium text-gray-800">
+      <h2 className="text-base font-medium text-background">
         Share the link
       </h2>
-      <p className="text-xs text-gray-500 mt-1">
+      <p className="text-xs text-gray-200 mt-1">
         Click the button below to copy the call link:
       </p>
-      <button
-        className="flex items-center justify-center gap-2 px-4 py-2 mt-4 font-medium text-white bg-blue-500 rounded-md hover:bg-blue-600"
+      <Button
+      variant={"primary"}
+        className="flex items-center justify-center gap-2 px-4 py-2 mt-4 font-medium text-white"
         onClick={copyInviteLink}
       >
         <Icon icon="person-add" />
         {isCopied ? "Copied invite link" : "Copy invite link"}
-      </button>
+      </Button>
     </div>
   );
 };
@@ -74,20 +75,7 @@ export const InvitePanel = () => {
   return (
     <div className="flex flex-col">
       <Invite />
-      <div className="mt-5">
-        <h2 className="text-base font-medium text-gray-800">
-          Test on mobile
-        </h2>
-        <p className="text-xs text-gray-500 mt-1">
-          To test on a mobile device, scan the QR Code below:
-        </p>
-        <div className="flex justify-center items-center mt-4 bg-gray-100 w-full rounded-md p-4">
-          <div className="bg-white w-[100px] h-[100px] rounded-md flex items-center justify-center border border-gray-200">
-            {/* QR Code placeholder */}
-            <div className="text-xs text-gray-500">QR Code</div>
-          </div>
-        </div>
-      </div>
+
     </div>
   );
 };

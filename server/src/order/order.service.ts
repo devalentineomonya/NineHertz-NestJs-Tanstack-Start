@@ -54,8 +54,8 @@ export class OrderService {
 
     const pharmacy = await this.pharmacyRepository.findOne({
       where: { id: createDto.pharmacyId },
-      relations: ['institution'],
     });
+
     if (!pharmacy) {
       throw new NotFoundException(
         `Pharmacy with ID ${createDto.pharmacyId} not found`,
@@ -139,7 +139,6 @@ export class OrderService {
         'patient',
         'patient.user',
         'pharmacy',
-        'pharmacy.institution',
         'items',
         'items.medicine',
       ],
@@ -163,7 +162,6 @@ export class OrderService {
         'patient',
         'patient.user',
         'pharmacy',
-        'pharmacy.institution',
         'items',
         'items.medicine',
       ],
@@ -186,7 +184,6 @@ export class OrderService {
         'patient',
         'patient.user',
         'pharmacy',
-        'pharmacy.institution',
         'items',
         'items.medicine',
       ],

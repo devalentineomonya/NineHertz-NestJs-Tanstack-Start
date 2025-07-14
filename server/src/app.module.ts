@@ -20,6 +20,7 @@ import { APP_INTERCEPTOR, APP_GUARD } from '@nestjs/core';
 import { AuthModule } from './auth/auth.module';
 import { PharmacyModule } from './pharmacy/pharmacy.module';
 import { PharmacistModule } from './pharmacist/pharmacist.module';
+import { ChatModule } from './chat/chat.module';
 
 @Module({
   imports: [
@@ -38,6 +39,7 @@ import { PharmacistModule } from './pharmacist/pharmacist.module';
     StreamModule,
     DatabaseModule,
     AuthModule,
+    ChatModule,
     CacheModule.registerAsync({
       imports: [ConfigModule],
       inject: [ConfigService],

@@ -9,7 +9,7 @@ import {
 } from "@/components/ui/dialog";
 import { Loader } from "lucide-react";
 import { useDeletePatientStore } from "@/stores/use-delete-patient";
-import { useDeletePatient } from "@/services/users/use-delete-patient";
+import { useDeletePatient } from "@/services/patients/use-delete-patient";
 
 export function DeletePatientConfirmModal() {
   const { isOpen,patientId, closeModal } = useDeletePatientStore();

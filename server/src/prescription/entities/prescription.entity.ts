@@ -4,6 +4,7 @@ import {
   Column,
   ManyToOne,
   Index,
+  JoinColumn,
 } from 'typeorm';
 import { Patient } from 'src/patient/entities/patient.entity';
 import { Doctor } from 'src/doctor/entities/doctor.entity';
@@ -29,7 +30,10 @@ export class Prescription {
   @ManyToOne(() => Patient, (patient) => patient.prescriptions)
   patient: Patient;
 
-  @ManyToOne(() => Doctor, (doctor) => doctor.prescriptions)
+  @ManyToOne(() => Doctor, (doctor) => doctor.prescriptions, {
+    onDelete: 'CASCADE',
+  })
+  @JoinColumn({ name: 'doctorId' })
   prescribedBy: Doctor;
 
   @ManyToOne(() => Pharmacy, { nullable: true })

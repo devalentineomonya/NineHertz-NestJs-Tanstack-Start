@@ -7,8 +7,6 @@ import {
   DrawerHeader,
   DrawerTitle,
 } from "@/components/ui/drawer";
-import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
 import {
   Command,
   CommandEmpty,
@@ -32,7 +30,6 @@ import { useForm } from "react-hook-form";
 import { toast } from "sonner";
 import { z } from "zod";
 import { cn } from "@/lib/utils";
-import { useState } from "react";
 import {
   Form,
   FormControl,
@@ -41,9 +38,9 @@ import {
   FormLabel,
   FormMessage,
 } from "@/components/ui/form";
-import { Calendar } from "@/components/ui/calendar";
 import { Textarea } from "@/components/ui/textarea";
-import { format } from "date-fns";
+import { Input } from "@/components/ui/input";
+import { DateTimePicker24h } from "@/components/ui/date-time-picker";
 
 const consultationFormSchema = z.object({
   startTime: z.date().min(new Date(), "Start time must be in the future"),
@@ -53,6 +50,9 @@ const consultationFormSchema = z.object({
   notes: z.string().optional(),
   patientId: z.string().min(1, "Patient selection is required"),
   doctorId: z.string().min(1, "Doctor selection is required"),
+}).refine(data => !data.endTime || data.endTime > data.startTime, {
+  message: "End time must be after start time",
+  path: ["endTime"],
 });
 
 type ConsultationFormValues = z.infer<typeof consultationFormSchema>;
@@ -62,9 +62,6 @@ export const AddConsultationDrawer = () => {
   const addConsultationMutation = useAddConsultationService();
   const { data: patients = [], isLoading: loadingPatients } = useGetPatients();
   const { data: doctors, isLoading: loadingDoctors } = useGetDoctors();
-  const [startDate, setStartDate] = useState<Date | undefined>(new Date());
-  const [startTime, setStartTime] = useState("09:00");
-  const [endTime, setEndTime] = useState("10:00");
 
   const form = useForm<ConsultationFormValues>({
     resolver: zodResolver(consultationFormSchema),
@@ -87,30 +84,21 @@ export const AddConsultationDrawer = () => {
 
   const onSubmit = async (data: ConsultationFormValues) => {
     try {
-      // Combine date and time for startTime
-      const [startHours, startMinutes] = startTime.split(":").map(Number);
-      const startDateTime = new Date(data.startTime);
-      startDateTime.setHours(startHours, startMinutes, 0, 0);
-
-      // Handle endTime
-      let endDateTime: Date | undefined;
-      if (data.endTime) {
-        const [endHours, endMinutes] = endTime.split(":").map(Number);
-        endDateTime = new Date(data.endTime);
-        endDateTime.setHours(endHours, endMinutes, 0, 0);
-      } else if (data.duration) {
-        endDateTime = calculateEndTime(startDateTime, data.duration);
+      // Calculate end time if only duration is provided
+      let endDateTime = data.endTime;
+      if (!endDateTime && data.duration) {
+        endDateTime = calculateEndTime(data.startTime, data.duration);
       }
 
+      // Calculate duration if end time is provided
       let duration = data.duration;
-      if (!duration && endDateTime) {
-        const diffInMs = endDateTime.getTime() - startDateTime.getTime();
+      if (endDateTime && !duration) {
+        const diffInMs = endDateTime.getTime() - data.startTime.getTime();
         duration = Math.round(diffInMs / 60000);
       }
 
       await addConsultationMutation.mutateAsync({
         ...data,
-        startTime: startDateTime,
         endTime: endDateTime,
         duration,
       });
@@ -136,104 +124,44 @@ export const AddConsultationDrawer = () => {
           <Form {...form}>
             <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
               {/* Start Time */}
-              <div className="grid grid-cols-2 gap-4">
-                <FormField
-                  control={form.control}
-                  name="startTime"
-                  render={({ field }) => (
-                    <FormItem className="flex flex-col">
-                      <FormLabel>Start Date</FormLabel>
-                      <Popover>
-                        <PopoverTrigger asChild>
-                          <FormControl>
-                            <Button
-                              variant={"outline"}
-                              className={cn(
-                                "pl-3 text-left font-normal",
-                                !field.value && "text-muted-foreground"
-                              )}
-                            >
-                              {field.value ? (
-                                format(field.value, "PPP")
-                              ) : (
-                                <span>Pick a date</span>
-                              )}
-                            </Button>
-                          </FormControl>
-                        </PopoverTrigger>
-                        <PopoverContent className="w-auto p-0" align="start">
-                          <Calendar
-                            mode="single"
-                            selected={field.value}
-                            onSelect={(date) => {
-                              field.onChange(date);
-                              setStartDate(date);
-                            }}
-                            disabled={(date) => date < new Date()}
-                            autoFocus
-                          />
-                        </PopoverContent>
-                      </Popover>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
-
-                <div className="space-y-2">
-                  <Label>Start Time</Label>
-                  <Input
-                    type="time"
-                    value={startTime}
-                    onChange={(e) => setStartTime(e.target.value)}
-                  />
-                </div>
-              </div>
+              <FormField
+                control={form.control}
+                name="startTime"
+                render={({ field }) => (
+                  <FormItem className="flex flex-col">
+                    <FormLabel>Start Date & Time</FormLabel>
+                    <FormControl>
+                      <DateTimePicker24h
+                        value={field.value}
+                        onChange={field.onChange}
+                      />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
 
               {/* End Time */}
-              <div className="grid grid-cols-2 gap-4">
-                <div className="space-y-2">
-                  <Label>End Date</Label>
-                  <Popover>
-                    <PopoverTrigger asChild>
-                      <Button
-                        variant={"outline"}
-                        className={cn(
-                          "pl-3 text-left font-normal w-full",
-                          !form.watch("endTime") && "text-muted-foreground"
-                        )}
-                      >
-                        {form.watch("endTime") ? (
-                          form.watch("endTime") ? (
-                            format(form.watch("endTime") as Date, "PPP")
-                          ) : (
-                            "Pick a date"
-                          )
-                        ) : (
-                          <span>Pick a date</span>
-                        )}
-                      </Button>
-                    </PopoverTrigger>
-                    <PopoverContent className="w-auto p-0" align="start">
-                      <Calendar
-                        mode="single"
-                        selected={form.watch("endTime")}
-                        onSelect={(date) => form.setValue("endTime", date)}
-                        disabled={(date) => date < new Date()}
-                        initialFocus
+              <FormField
+                control={form.control}
+                name="endTime"
+                render={({ field }) => (
+                  <FormItem className="flex flex-col">
+                    <FormLabel>End Date & Time (optional)</FormLabel>
+                    <FormControl>
+                      <DateTimePicker24h
+                        value={field.value}
+                        onChange={field.onChange}
+                        disabledDate={(date) => {
+                          const startTime = form.getValues("startTime");
+                          return startTime ? date < startTime : false;
+                        }}
                       />
-                    </PopoverContent>
-                  </Popover>
-                </div>
-
-                <div className="space-y-2">
-                  <Label>End Time (optional)</Label>
-                  <Input
-                    type="time"
-                    value={endTime}
-                    onChange={(e) => setEndTime(e.target.value)}
-                  />
-                </div>
-              </div>
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
 
               {/* Duration and Video Session ID */}
               <div className="grid grid-cols-2 gap-4">

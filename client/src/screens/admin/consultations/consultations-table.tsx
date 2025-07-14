@@ -14,7 +14,7 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import { useDataTable } from "@/hooks/use-data-table";
-import { useGetConsultation } from "@/services/consultations/use-get-consultation";
+import { useGetConsultations } from "@/services/consultations/use-get-consultations";
 import { useAddConsultationStore } from "@/stores/use-add-consultation-store";
 
 import type { ColumnDef } from "@tanstack/react-table";
@@ -40,7 +40,7 @@ const statusVariants = {
 };
 
 export function AdminConsultations() {
-  const { data, isLoading } = useGetConsultation();
+  const { data, isLoading } = useGetConsultations();
   const { onOpen } = useAddConsultationStore();
   const [patientName] = useQueryState(
     "patientName",
@@ -150,7 +150,9 @@ export function AdminConsultations() {
           <div className="flex items-center gap-3">
             <Avatar className="w-10 h-10 rounded-md overflow-hidden">
               <AvatarImage
-                src={`https://avatar.vercel.sh/${encodeURIComponent(row.original.patient.fullName)}`}
+                src={`https://avatar.vercel.sh/${encodeURIComponent(
+                  row.original.patient.fullName
+                )}`}
                 alt={row.original.patient.fullName}
               />
               <AvatarFallback>
@@ -184,7 +186,9 @@ export function AdminConsultations() {
           <div className="flex items-center gap-3">
             <Avatar className="w-10 h-10 rounded-md overflow-hidden">
               <AvatarImage
-                src={`https://avatar.vercel.sh/${encodeURIComponent(row.original.doctor.fullName)}`}
+                src={`https://avatar.vercel.sh/${encodeURIComponent(
+                  row.original.doctor.fullName
+                )}`}
                 alt={row.original.doctor.fullName}
               />
               <AvatarFallback>

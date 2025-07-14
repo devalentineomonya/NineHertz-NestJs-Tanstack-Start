@@ -31,6 +31,12 @@ export class DoctorResponseDto {
     days: string[];
     hours: string[];
   };
+  @ApiProperty({
+    example: 'active',
+    description: 'Doctor status indicating if they are active or inactive',
+    enum: ['active', 'inactive'],
+  })
+  status: 'active' | 'inactive';
 
   @ApiProperty({
     example: 150.0,

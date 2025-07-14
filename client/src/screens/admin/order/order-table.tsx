@@ -2,6 +2,7 @@
 
 import { DataTable } from "@/components/data-table/data-table";
 import { DataTableColumnHeader } from "@/components/data-table/data-table-column-header";
+import { DataTableSkeleton } from "@/components/data-table/data-table-skeleton";
 import { DataTableToolbar } from "@/components/data-table/data-table-toolbar";
 
 import { Badge } from "@/components/ui/badge";
@@ -14,14 +15,14 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import { useDataTable } from "@/hooks/use-data-table";
+import { useGetOrders } from "@/services/order/use-get-orders";
+import { useAddOrderStore } from "@/stores/use-add-order-store";
 
 import type { ColumnDef } from "@tanstack/react-table";
 import {
   ShoppingCart,
   User,
-  Calendar,
   Package,
-  CreditCard,
   MoreHorizontal,
   Clock,
   Truck,
@@ -29,129 +30,23 @@ import {
   XCircle,
   RefreshCw,
   ArrowLeftRight,
+  PlusSquare,
 } from "lucide-react";
 import { parseAsArrayOf, parseAsString, useQueryState } from "nuqs";
 import * as React from "react";
 
 enum OrderStatus {
-  PENDING = "PENDING",
-  PROCESSING = "PROCESSING",
-  SHIPPED = "SHIPPED",
-  DELIVERED = "DELIVERED",
-  CANCELLED = "CANCELLED",
-  RETURNED = "RETURNED",
+  PENDING = "pending",
+  PROCESSING = "processing",
+  SHIPPED = "shipped",
+  DELIVERED = "delivered",
+  CANCELLED = "cancelled",
+  RETURNED = "returned",
 }
-
-interface Patient {
-  id: string;
-  fullName: string;
-}
-
-interface OrderItem {
-  id: string;
-  medicineName: string;
-  quantity: number;
-  unitPrice: number;
-}
-
-interface Order {
-  id: string;
-  orderDate: Date;
-  status: OrderStatus;
-  totalAmount: number;
-  paymentStatus: "unpaid" | "paid" | "refunded";
-  patient: Patient;
-  items: OrderItem[];
-  createdAt: Date;
-  updatedAt: Date;
-}
-
-const data: Order[] = [
-  {
-    id: "ord-1",
-    orderDate: new Date(2024, 5, 15),
-    status: OrderStatus.PROCESSING,
-    totalAmount: 125.75,
-    paymentStatus: "paid",
-    patient: {
-      id: "p1",
-      fullName: "John Doe",
-    },
-    items: [
-      { id: "item-1", medicineName: "Amoxicillin 500mg", quantity: 2, unitPrice: 25.5 },
-      { id: "item-2", medicineName: "Vitamin C 1000mg", quantity: 1, unitPrice: 74.75 },
-    ],
-    createdAt: new Date(2024, 5, 15),
-    updatedAt: new Date(2024, 5, 15),
-  },
-  {
-    id: "ord-2",
-    orderDate: new Date(2024, 5, 10),
-    status: OrderStatus.DELIVERED,
-    totalAmount: 89.99,
-    paymentStatus: "paid",
-    patient: {
-      id: "p2",
-      fullName: "Jane Smith",
-    },
-    items: [
-      { id: "item-3", medicineName: "Lisinopril 10mg", quantity: 3, unitPrice: 29.99 },
-    ],
-    createdAt: new Date(2024, 5, 10),
-    updatedAt: new Date(2024, 5, 12),
-  },
-  {
-    id: "ord-3",
-    orderDate: new Date(2024, 5, 18),
-    status: OrderStatus.PENDING,
-    totalAmount: 210.5,
-    paymentStatus: "unpaid",
-    patient: {
-      id: "p3",
-      fullName: "Robert Johnson",
-    },
-    items: [
-      { id: "item-4", medicineName: "Metformin 850mg", quantity: 4, unitPrice: 32.5 },
-      { id: "item-5", medicineName: "Blood Pressure Monitor", quantity: 1, unitPrice: 82.5 },
-    ],
-    createdAt: new Date(2024, 5, 18),
-    updatedAt: new Date(2024, 5, 18),
-  },
-  {
-    id: "ord-4",
-    orderDate: new Date(2024, 5, 5),
-    status: OrderStatus.CANCELLED,
-    totalAmount: 45.25,
-    paymentStatus: "refunded",
-    patient: {
-      id: "p4",
-      fullName: "Emily Wilson",
-    },
-    items: [
-      { id: "item-6", medicineName: "Atorvastatin 20mg", quantity: 1, unitPrice: 45.25 },
-    ],
-    createdAt: new Date(2024, 5, 5),
-    updatedAt: new Date(2024, 5, 6),
-  },
-  {
-    id: "ord-5",
-    orderDate: new Date(2024, 5, 20),
-    status: OrderStatus.SHIPPED,
-    totalAmount: 156.4,
-    paymentStatus: "paid",
-    patient: {
-      id: "p5",
-      fullName: "Michael Brown",
-    },
-    items: [
-      { id: "item-7", medicineName: "Albuterol Inhaler", quantity: 2, unitPrice: 78.2 },
-    ],
-    createdAt: new Date(2024, 5, 20),
-    updatedAt: new Date(2024, 5, 21),
-  },
-];
 
 export function AdminOrdersTable() {
+  const { onOpen } = useAddOrderStore();
+  const { data, isLoading } = useGetOrders();
   const [patientName] = useQueryState(
     "patientName",
     parseAsString.withDefault("")
@@ -166,7 +61,7 @@ export function AdminOrdersTable() {
   );
 
   const filteredData = React.useMemo(() => {
-    return data.filter((order) => {
+    return data?.data.filter((order) => {
       const matchesPatient =
         patientName === "" ||
         order.patient.fullName
@@ -174,22 +69,17 @@ export function AdminOrdersTable() {
           .includes(patientName.toLowerCase());
 
       const matchesOrderStatus =
-        orderStatus.length === 0 ||
-        orderStatus.includes(order.status);
+        orderStatus.length === 0 || orderStatus.includes(order.orderDate);
 
       const matchesPaymentStatus =
         paymentStatus.length === 0 ||
         paymentStatus.includes(order.paymentStatus);
 
-      return (
-        matchesPatient &&
-        matchesOrderStatus &&
-        matchesPaymentStatus
-      );
+      return matchesPatient && matchesOrderStatus && matchesPaymentStatus;
     });
-  }, [patientName, orderStatus, paymentStatus]);
+  }, [data, patientName, orderStatus, paymentStatus]);
 
-  const columns = React.useMemo<ColumnDef<Order>[]>(
+  const columns = React.useMemo<ColumnDef<OrderResponseDto>[]>(
     () => [
       {
         id: "select",
@@ -226,9 +116,11 @@ export function AdminOrdersTable() {
           <div className="flex items-center gap-3">
             <ShoppingCart className="size-5 text-blue-500" />
             <div>
-              <div className="font-medium">ORD-{row.original.id.split("-")[1]}</div>
+              <div className="font-medium">
+                ORD-{row.original.id.substring(0, 8)}
+              </div>
               <div className="text-sm text-gray-500">
-                {row.original.orderDate.toLocaleDateString()}
+                {row.original.createdAt}
               </div>
             </div>
           </div>
@@ -268,7 +160,8 @@ export function AdminOrdersTable() {
           <div className="flex items-center gap-2">
             <Package className="size-4 text-gray-500" />
             <span>
-              {row.original.items.length} item{row.original.items.length > 1 ? "s" : ""}
+              {row.original.items.length} item
+              {row.original.items.length > 1 ? "s" : ""}
             </span>
           </div>
         ),
@@ -281,11 +174,7 @@ export function AdminOrdersTable() {
         ),
         cell: ({ cell }) => {
           const amount = cell.getValue<number>();
-          return (
-            <div className="font-medium">
-              ${amount.toFixed(2)}
-            </div>
-          );
+          return <div className="font-medium">${amount.toFixed(2)}</div>;
         },
         enableSorting: true,
       },
@@ -297,7 +186,12 @@ export function AdminOrdersTable() {
         ),
         cell: ({ cell }) => {
           const status = cell.getValue<OrderStatus>();
-          let variant: "default" | "secondary" | "warning" | "success" | "destructive";
+          let variant:
+            | "default"
+            | "secondary"
+            | "warning"
+            | "success"
+            | "destructive";
           let icon: React.ReactNode;
 
           switch (status) {
@@ -332,21 +226,28 @@ export function AdminOrdersTable() {
           return (
             <Badge variant={variant} className="capitalize gap-2">
               {icon}
-              {status.toLowerCase()}
+              {status}
             </Badge>
           );
         },
         meta: {
           label: "Order Status",
           variant: "multiSelect",
-          options: Object.values(OrderStatus).map(status => ({
-            label: status.charAt(0) + status.slice(1).toLowerCase(),
+          options: Object.values(OrderStatus).map((status) => ({
+            label: status.charAt(0).toUpperCase() + status.slice(1),
             value: status,
-            icon: status === OrderStatus.PENDING ? Clock :
-                  status === OrderStatus.PROCESSING ? RefreshCw :
-                  status === OrderStatus.SHIPPED ? Truck :
-                  status === OrderStatus.DELIVERED ? CheckCircle :
-                  status === OrderStatus.CANCELLED ? XCircle : ArrowLeftRight
+            icon:
+              status === OrderStatus.PENDING
+                ? Clock
+                : status === OrderStatus.PROCESSING
+                ? RefreshCw
+                : status === OrderStatus.SHIPPED
+                ? Truck
+                : status === OrderStatus.DELIVERED
+                ? CheckCircle
+                : status === OrderStatus.CANCELLED
+                ? XCircle
+                : ArrowLeftRight,
           })),
         },
         enableColumnFilter: true,
@@ -443,9 +344,10 @@ export function AdminOrdersTable() {
                   </>
                 )}
 
-                {order.paymentStatus === "paid" && order.status !== OrderStatus.CANCELLED && (
-                  <DropdownMenuItem>Issue Refund</DropdownMenuItem>
-                )}
+                {order.paymentStatus === "paid" &&
+                  order.status !== OrderStatus.CANCELLED && (
+                    <DropdownMenuItem>Issue Refund</DropdownMenuItem>
+                  )}
 
                 {order.status === OrderStatus.DELIVERED && (
                   <DropdownMenuItem>Process Return</DropdownMenuItem>
@@ -461,28 +363,56 @@ export function AdminOrdersTable() {
   );
 
   const { table } = useDataTable({
-    data: filteredData,
+    data: filteredData ?? [],
     columns,
-    pageCount: Math.ceil(filteredData.length / 10),
+    pageCount: Math.ceil((data?.total || 10) / (data?.limit || 10)),
     initialState: {
+      pagination: {
+        pageIndex: (data?.page ?? 1) - 1,
+        pageSize: data?.limit ?? 10,
+      },
       sorting: [{ id: "orderDate", desc: true }],
       columnPinning: { right: ["actions"] },
     },
     getRowId: (row) => row.id,
   });
 
-  return (
-    <div className="data-table-container">
-      <DataTable table={table}>
-        <DataTableToolbar
-          table={table}
-          filters={[
-            "order",
-            "patient",
-            "orderStatus",
-            "paymentStatus"
+  if (isLoading) {
+    return (
+      <div className="space-y-4">
+        <DataTableSkeleton
+          columnCount={columns.length}
+          rowCount={10}
+          filterCount={5}
+          optionsCount={2}
+          withViewOptions={true}
+          withPagination={true}
+          cellWidths={[
+            "40px",
+            "120px",
+            "200px",
+            "180px",
+            "180px",
+            "120px",
+            "100px",
+            "140px",
+            "140px",
+            "40px",
           ]}
         />
+      </div>
+    );
+  }
+  return (
+    <div className="data-table-container">
+      <div className="w-fit min-w-56 mb-2">
+        <Button variant={"primary"} onClick={onOpen}>
+          <PlusSquare />
+          Create Order
+        </Button>
+      </div>
+      <DataTable table={table}>
+        <DataTableToolbar table={table} />
       </DataTable>
     </div>
   );

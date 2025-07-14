@@ -1,17 +1,27 @@
 import { create } from "zustand";
 
-interface ViewUser {
+interface ViewUserState {
   isOpen: boolean;
+  user: UserResponseDto | null;
   id: string | null;
-  user: UserResponseDto  | null;
-  onOpen: (id: string,user:UserResponseDto) => void;
+  onOpen: (user: UserResponseDto, id: string) => void;
   onClose: () => void;
 }
 
-export const useViewUser = create<ViewUser>((set) => ({
+export const useViewUser = create<ViewUserState>((set) => ({
   isOpen: false,
-  id: null,
   user: null,
-  onOpen: (id, user) => set({ isOpen: true, id, user }),
-  onClose: () => set({ isOpen: false, id: null, user: null }),
+  id: null,
+  onOpen: (user, id) =>
+    set({
+      isOpen: true,
+      user: user,
+      id,
+    }),
+  onClose: () =>
+    set({
+      isOpen: false,
+      user: null,
+      id: null,
+    }),
 }));

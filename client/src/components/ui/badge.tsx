@@ -20,7 +20,7 @@ const badgeVariants = cva(
         success:
           "border-transparent bg-gradient-to-b from-green-500 to-green-600 text-white shadow-green-400/25 [a&]:hover:from-green-500 [a&]:hover:to-green-700",
         warning:
-          "border-transparent bg-yellow-600 text-muted-background [a&]:hover:bg-muted/90",
+          "border-transparent bg-gradient-to-b from-yellow-500 to-yellow-600 text-white shadow-yellow-400/25text-muted-background [a&]:hover:bg-muted/90",
       },
     },
     defaultVariants: {
