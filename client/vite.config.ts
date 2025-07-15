@@ -5,10 +5,10 @@ import tailwindcss from "@tailwindcss/vite";
 import { VitePWA } from "vite-plugin-pwa";
 
 export default defineConfig({
-  server: {
-    port: 5173,
-    host: "react.dev.lo",
-  },
+  // server: {
+  //   port: 5173,
+  //   host: "react.dev.lo",
+  // },
   plugins: [
     tsConfigPaths({
       projects: ["./tsconfig.json"],
@@ -17,11 +17,7 @@ export default defineConfig({
     tailwindcss(),
     VitePWA({
       registerType: "autoUpdate",
-      injectManifest: {
-        globPatterns: ["**/*.{js,css,html,png,jpg}"],
-        globDirectory: "dist",
-      },
-      injectRegister: "auto",
+      strategies: "generateSW",
       manifest: {
         name: "NineHertz Admin Dashboard",
         short_name: "NineAdmin",
@@ -47,31 +43,84 @@ export default defineConfig({
             src: "/pwa-maskable.png",
             sizes: "512x512",
             type: "image/png",
-            purpose: "any maskable",
+            purpose: "maskable",
           },
         ],
       },
       workbox: {
+        globPatterns: ["**/*.{js,css,html,png,jpg,svg,woff2}"],
+        globDirectory: "dist",
+        skipWaiting: true,
+        clientsClaim: true,
+        offlineGoogleAnalytics: true,
         runtimeCaching: [
           {
             urlPattern: /^https:\/\/(cdn|fonts|api)\./,
             handler: "CacheFirst",
             options: {
-              cacheName: "external-cache",
+              cacheName: "external-assets",
               expiration: {
                 maxEntries: 30,
-                maxAgeSeconds: 60 * 60 * 24 * 7,
+                maxAgeSeconds: 60 * 60 * 24 * 30,
               },
             },
           },
           {
-            urlPattern: ({ request }) => request.destination === "document",
+            urlPattern: /\.(?:js|css|html)$/,
+            handler: "StaleWhileRevalidate",
+            options: {
+              cacheName: "static-assets",
+            },
+          },
+          {
+            urlPattern: /\.(?:png|jpg|jpeg|svg|gif)$/,
+            handler: "CacheFirst",
+            options: {
+              cacheName: "image-assets",
+              expiration: {
+                maxEntries: 60,
+                maxAgeSeconds: 60 * 60 * 24 * 30,
+              },
+            },
+          },
+
+          // Offline fallback route
+          {
+            urlPattern: ({ request }) => request.mode === "navigate",
             handler: "NetworkFirst",
             options: {
-              cacheName: "page-cache",
+              cacheName: "offline-fallback",
+              networkTimeoutSeconds: 3,
               expiration: {
-                maxEntries: 20,
-                maxAgeSeconds: 24 * 60 * 60,
+                maxEntries: 10,
+              },
+              plugins: [
+                {
+                  cacheWillUpdate: async ({ response }) => {
+                    if (response.status >= 400) {
+                      return null;
+                    }
+                    return response;
+                  },
+                },
+              ],
+            },
+          },
+          {
+            urlPattern: /^https:\/\/fonts\.googleapis\.com/,
+            handler: "StaleWhileRevalidate",
+            options: {
+              cacheName: "google-fonts-stylesheets",
+            },
+          },
+          {
+            urlPattern: /^https:\/\/fonts\.gstatic\.com/,
+            handler: "CacheFirst",
+            options: {
+              cacheName: "google-fonts-webfonts",
+              expiration: {
+                maxEntries: 30,
+                maxAgeSeconds: 60 * 60 * 24 * 365,
               },
             },
           },

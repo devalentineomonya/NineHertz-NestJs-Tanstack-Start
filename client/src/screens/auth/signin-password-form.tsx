@@ -74,7 +74,7 @@ export const SignUpOTPForm: React.FC<SignUpOTPFormProps> = ({
           name="otp"
         >
           {(field) => {
-            console.log(field.state.meta.errors);
+  
             return (
               <>
                 <Input

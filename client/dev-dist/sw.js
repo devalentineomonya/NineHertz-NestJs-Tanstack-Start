@@ -67,7 +67,7 @@ if (!self.define) {
     });
   };
 }
-define(['./workbox-bf4e18d6'], (function (workbox) { 'use strict';
+define(['./workbox-a75716e7'], (function (workbox) { 'use strict';
 
   self.skipWaiting();
   workbox.clientsClaim();
@@ -82,27 +82,48 @@ define(['./workbox-bf4e18d6'], (function (workbox) { 'use strict';
     "revision": "3ca0b8505b4bec776b69afdba2768812"
   }, {
     "url": "index.html",
-    "revision": "0.hadhj5nfkho"
+    "revision": "0.gndorvru208"
   }], {});
   workbox.cleanupOutdatedCaches();
   workbox.registerRoute(new workbox.NavigationRoute(workbox.createHandlerBoundToURL("index.html"), {
     allowlist: [/^\/$/]
   }));
   workbox.registerRoute(/^https:\/\/(cdn|fonts|api)\./, new workbox.CacheFirst({
-    "cacheName": "external-cache",
+    "cacheName": "external-assets",
     plugins: [new workbox.ExpirationPlugin({
       maxEntries: 30,
-      maxAgeSeconds: 604800
+      maxAgeSeconds: 2592000
+    })]
+  }), 'GET');
+  workbox.registerRoute(/\.(?:js|css|html)$/, new workbox.StaleWhileRevalidate({
+    "cacheName": "static-assets",
+    plugins: []
+  }), 'GET');
+  workbox.registerRoute(/\.(?:png|jpg|jpeg|svg|gif)$/, new workbox.CacheFirst({
+    "cacheName": "image-assets",
+    plugins: [new workbox.ExpirationPlugin({
+      maxEntries: 60,
+      maxAgeSeconds: 2592000
     })]
   }), 'GET');
   workbox.registerRoute(({
     request
-  }) => request.destination === "document", new workbox.NetworkFirst({
-    "cacheName": "page-cache",
+  }) => request.mode === "navigate", new workbox.NetworkFirst({
+    "cacheName": "offline-fallback",
+    "networkTimeoutSeconds": 3,
     plugins: [new workbox.ExpirationPlugin({
-      maxEntries: 20,
-      maxAgeSeconds: 86400
-    })]
+      maxEntries: 10
+    }), {
+      cacheWillUpdate: async ({
+        response
+      }) => {
+        if (response.status >= 400) {
+          return null;
+        }
+        return response;
+      }
+    }]
   }), 'GET');
+  workbox.initialize({});
 
 }));

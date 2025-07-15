@@ -121,9 +121,6 @@ export function AddOrderDrawer() {
     form.setValue(`items.${index}.quantity`, value);
     calculateTotal();
   };
-  useEffect(() => {
-    console.log(form.formState.errors);
-  });
   const handleSubmit: SubmitHandler<OrderFormValues> = async (data) => {
     try {
       await handler.mutateAsync(data);

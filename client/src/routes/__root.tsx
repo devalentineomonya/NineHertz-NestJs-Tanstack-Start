@@ -1,7 +1,5 @@
 /// <reference types="vite/client" />
 import { HeadContent, Scripts, createRootRoute } from "@tanstack/react-router";
-import { TanStackRouterDevtools } from "@tanstack/react-router-devtools";
-import { ReactQueryDevtools } from "@tanstack/react-query-devtools";
 import * as React from "react";
 import { NotFound } from "@/components/common/not-found";
 import { DefaultCatchBoundary } from "@/components/common/try-catch-boundary";
@@ -14,7 +12,10 @@ import { Toaster } from "@/components/ui/sonner";
 import "@stream-io/video-react-sdk/dist/css/styles.css";
 
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
-import { InstallPWAButton } from "@/components/common/download-app";
+import { InstallPWAButton } from "@/components/common/install-pwa-button";
+import { useOffline } from "@/hooks/use-is-offline";
+import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
+import { WifiOff } from "lucide-react";
 
 export const Route = createRootRoute({
   head: () => ({
@@ -38,14 +39,13 @@ export const Route = createRootRoute({
   shellComponent: RootDocument,
 });
 
-if ('serviceWorker' in navigator) {
-  navigator.serviceWorker.register('/sw.js', { scope: '/' })
-    .then(reg => console.log('SW registered: ', reg))
-    .catch(err => console.log('SW registration failed: ', err));
-}
-
 function RootDocument({ children }: { children: React.ReactNode }) {
   const queryClient = new QueryClient();
+  const isOffline = useOffline();
+
+  // Only show offline alert in production or when actually offline
+  const showOfflineAlert = isOffline && (import.meta.env.PROD || !navigator.onLine);
+
   return (
     <html className="scroll-smooth scroll-">
       <head>
@@ -54,11 +54,22 @@ function RootDocument({ children }: { children: React.ReactNode }) {
       <body>
         <QueryClientProvider client={queryClient}>
           <NuqsAdapter>
+            {showOfflineAlert && (
+              <div className="fixed top-0 left-0 right-0 z-50">
+                <Alert variant="destructive" className="rounded-none border-x-0 border-t-0">
+                  <WifiOff className="h-4 w-4" />
+                  <AlertTitle>Offline Mode</AlertTitle>
+                  <AlertDescription>
+                    You're currently offline. App functionality may be limited.
+                  </AlertDescription>
+                </Alert>
+              </div>
+            )}
             <Navbar />
-            {children}
+            <div className={showOfflineAlert ? "mt-12" : ""}>
+              {children}
+            </div>
             <FooterSection />
-            {/* <TanStackRouterDevtools position="top-right" />
-            <ReactQueryDevtools position="top" buttonPosition="top-right" /> */}
             <InstallPWAButton />
             <Toaster richColors position="top-center" />
             <Scripts />

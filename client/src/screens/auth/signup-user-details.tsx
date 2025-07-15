@@ -70,7 +70,6 @@ export const SignUpUserDataForm: React.FC<SignUpUserDataFormProps> = ({
           name="first_name"
         >
           {(field) => {
-            console.log(field.state.meta.errors);
             return (
               <div className="w-full">
                 <Input
@@ -102,7 +101,7 @@ export const SignUpUserDataForm: React.FC<SignUpUserDataFormProps> = ({
           name="last_name"
         >
           {(field) => {
-            console.log(field.state.meta.errors);
+
             return (
               <div className="w-full">
                 <Input
@@ -144,7 +143,6 @@ export const SignUpUserDataForm: React.FC<SignUpUserDataFormProps> = ({
           name="phone_number"
         >
           {(field) => {
-            console.log(field.state.meta.errors);
             return (
               <div className="w-full">
                 <PhoneInput
@@ -190,7 +188,6 @@ export const SignUpUserDataForm: React.FC<SignUpUserDataFormProps> = ({
           name="password"
         >
           {(field) => {
-            console.log(field.state.meta.errors);
             return (
               <div className="w-full">
                 <Input

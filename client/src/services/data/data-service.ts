@@ -26,7 +26,6 @@ export class DataServices {
 
   private getAccessToken(): string | null {
     const session = this.getUserSession();
-    console.log("Session",session?.session)
     return session?.accessToken || null;
   }
   private refreshQueue: Array<{ resolve: (token: string) => void; reject: (error: any) => void }> = [];

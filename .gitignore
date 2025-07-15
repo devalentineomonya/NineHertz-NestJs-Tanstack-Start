@@ -25,7 +25,7 @@ client/.env.*
 client/node_modules/
 client/coverage/
 client/*.tsbuildinfo
-
+client/dev-dist
 # --- Server Directory ---
 server/dist/
 server/.env
