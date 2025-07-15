@@ -52,7 +52,6 @@ export default defineConfig({
         ],
       },
       workbox: {
-        navigateFallback: "/offline.html",
         runtimeCaching: [
           {
             urlPattern: /^https:\/\/(cdn|fonts|api)\./,

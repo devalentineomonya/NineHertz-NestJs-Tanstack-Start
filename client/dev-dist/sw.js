@@ -81,11 +81,11 @@ define(['./workbox-bf4e18d6'], (function (workbox) { 'use strict';
     "url": "registerSW.js",
     "revision": "3ca0b8505b4bec776b69afdba2768812"
   }, {
-    "url": "/offline.html",
-    "revision": "0.qe4ej1dhlo8"
+    "url": "index.html",
+    "revision": "0.hadhj5nfkho"
   }], {});
   workbox.cleanupOutdatedCaches();
-  workbox.registerRoute(new workbox.NavigationRoute(workbox.createHandlerBoundToURL("/offline.html"), {
+  workbox.registerRoute(new workbox.NavigationRoute(workbox.createHandlerBoundToURL("index.html"), {
     allowlist: [/^\/$/]
   }));
   workbox.registerRoute(/^https:\/\/(cdn|fonts|api)\./, new workbox.CacheFirst({
@@ -95,9 +95,14 @@ define(['./workbox-bf4e18d6'], (function (workbox) { 'use strict';
       maxAgeSeconds: 604800
     })]
   }), 'GET');
-  workbox.registerRoute(/\/auth\/.*/, new workbox.NetworkFirst({
-    "cacheName": "auth-pages",
-    plugins: []
+  workbox.registerRoute(({
+    request
+  }) => request.destination === "document", new workbox.NetworkFirst({
+    "cacheName": "page-cache",
+    plugins: [new workbox.ExpirationPlugin({
+      maxEntries: 20,
+      maxAgeSeconds: 86400
+    })]
   }), 'GET');
 
 }));

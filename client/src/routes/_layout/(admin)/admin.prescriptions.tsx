@@ -1,4 +1,4 @@
-import { AdminPrescriptions } from "@/screens/admin/prescriptions/prescriptions-table";
+import { PrescriptionsTable } from "@/screens/admin/prescriptions/prescriptions-table";
 import { createFileRoute } from "@tanstack/react-router";
 
 export const Route = createFileRoute("/_layout/(admin)/admin/prescriptions")({
@@ -6,5 +6,5 @@ export const Route = createFileRoute("/_layout/(admin)/admin/prescriptions")({
 });
 
 function RouteComponent() {
-  return <AdminPrescriptions />;
+  return <PrescriptionsTable />;
 }

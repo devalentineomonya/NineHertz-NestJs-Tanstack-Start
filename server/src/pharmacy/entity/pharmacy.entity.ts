@@ -28,4 +28,9 @@ export class Pharmacy {
 
   @OneToMany(() => Pharmacist, (pharmacist) => pharmacist.pharmacy)
   pharmacists: Pharmacist[];
+
+  @Column({ type: 'timestamp', default: () => 'CURRENT_TIMESTAMP' })
+  createdAt: Date;
+  @Column({ type: 'timestamp', default: () => 'CURRENT_TIMESTAMP' })
+  updatedAt: Date;
 }

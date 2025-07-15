@@ -22,6 +22,7 @@ import {
 } from "lucide-react";
 import type { ColumnDef, FilterFn } from "@tanstack/react-table";
 import { format } from "date-fns";
+import { useViewPharmacyStore } from "@/stores/use-view-pharmacy-store";
 
 const nameFilter: FilterFn<PharmacyResponseDto> = (row, columnId, value) =>
   row.getValue<string>(columnId).toLowerCase().includes(value.toLowerCase());
@@ -73,9 +74,7 @@ export const pharmacyColumns: ColumnDef<PharmacyResponseDto>[] = [
           </div>
           <div>
             <div className="font-medium">{row.original.name}</div>
-            <div className="text-sm text-gray-500">
-              Created 
-            </div>
+            <div className="text-sm text-gray-500">Created</div>
           </div>
         </div>
       );
@@ -208,10 +207,9 @@ export const pharmacyColumns: ColumnDef<PharmacyResponseDto>[] = [
   {
     id: "actions",
     cell: function Cell({ row }) {
-      //   const { onOpen: onViewOpen } = useViewPharmacyStore();
       const { onOpen: onEditOpen } = useEditPharmacyStore();
       const { onOpen: onDeleteOpen } = useDeletePharmacyStore();
-
+      const { onOpen: onViewPharmacy } = useViewPharmacyStore();
       const pharmacy = row.original;
 
       return (
@@ -224,7 +222,7 @@ export const pharmacyColumns: ColumnDef<PharmacyResponseDto>[] = [
           </DropdownMenuTrigger>
           <DropdownMenuContent align="end">
             <DropdownMenuItem
-            //  onClick={() => onViewOpen(pharmacy)}
+              onClick={() => onViewPharmacy(pharmacy.id, pharmacy)}
             >
               View Details
             </DropdownMenuItem>

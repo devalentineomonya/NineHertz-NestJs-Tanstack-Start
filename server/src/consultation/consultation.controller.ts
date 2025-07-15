@@ -7,10 +7,8 @@ import {
   Param,
   Delete,
   Query,
+  Req,
 } from '@nestjs/common';
-import { ConsultationService } from './consultation.service';
-import { CreateConsultationDto } from './dto/create-consultation.dto';
-import { UpdateConsultationDto } from './dto/update-consultation.dto';
 import {
   ApiTags,
   ApiOperation,
@@ -18,15 +16,25 @@ import {
   ApiBearerAuth,
   ApiQuery,
 } from '@nestjs/swagger';
+import { Roles } from 'src/auth/decorators/roles.decorators';
+import { Role } from 'src/auth/enums/role.enum';
+import { RequestWithUser } from 'src/shared/types/request.types';
+import { ConsultationService } from './consultation.service';
+import { CreateConsultationDto } from './dto/create-consultation.dto';
+import { UpdateConsultationDto } from './dto/update-consultation.dto';
 import { ConsultationResponseDto } from './dto/consultation-response.dto';
 import { ConsultationPaginatedDto } from './dto/consultation-paginated.dto';
 
 @ApiTags('Consultation')
 @ApiBearerAuth()
+@Roles(Role.DOCTOR, Role.PATIENT, Role.ADMIN)
 @Controller('consultations')
 export class ConsultationController {
   constructor(private readonly consultationService: ConsultationService) {}
 
+  /*=======================================================
+                    CREATE  CONSULTATION
+  ========================================================*/
   @Post()
   @ApiOperation({ summary: 'Create a new consultation' })
   @ApiResponse({
@@ -40,6 +48,9 @@ export class ConsultationController {
     return this.consultationService.create(createConsultationDto);
   }
 
+  /*=======================================================
+              GET ALL CONSULTATIONS WITH FILTERS
+  ========================================================*/
   @Get()
   @ApiOperation({ summary: 'Get all consultations with pagination' })
   @ApiResponse({
@@ -80,6 +91,7 @@ export class ConsultationController {
   findAll(
     @Query('page') page = 1,
     @Query('limit') limit = 10,
+    @Req() req: RequestWithUser,
     @Query('patientId') patientId?: string,
     @Query('doctorId') doctorId?: string,
     @Query('date') date?: string,
@@ -87,9 +99,14 @@ export class ConsultationController {
     return this.consultationService.findAll(
       { page, limit },
       { patientId, doctorId, date },
+      req.user.sub,
+      req.user.role,
     );
   }
 
+  /*=======================================================
+                  GET  CONSULTATION BY ID
+  ========================================================*/
   @Get(':id')
   @ApiOperation({ summary: 'Get consultation by ID' })
   @ApiResponse({
@@ -102,6 +119,9 @@ export class ConsultationController {
     return this.consultationService.findOne(id);
   }
 
+  /*=======================================================
+                  UPDATE  CONSULTATION BY ID
+  ========================================================*/
   @Patch(':id')
   @ApiOperation({ summary: 'Update consultation' })
   @ApiResponse({
@@ -117,6 +137,10 @@ export class ConsultationController {
     return this.consultationService.update(id, updateConsultationDto);
   }
 
+  /*=======================================================
+                  DELETE  CONSULTATION BY ID
+  ========================================================*/
+  @Roles(Role.ADMIN)
   @Delete(':id')
   @ApiOperation({ summary: 'Delete consultation' })
   @ApiResponse({

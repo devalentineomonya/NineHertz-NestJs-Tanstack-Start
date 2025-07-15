@@ -1,13 +1,8 @@
 import { AddAdminDrawer } from "@/screens/admin/admin/add-admin-drawer";
-import { AddAppointmentDrawer } from "@/screens/admin/appointments/add-appointment-sheet";
-import { RescheduleDrawer } from "@/screens/admin/appointments/reschedule-appointment-drawer";
-import { ViewAppointmentDrawer } from "@/screens/admin/appointments/view-appointment-sheet";
-import { AddConsultationDrawer } from "@/screens/admin/consultations/add-consultation-sheet";
 import { AddDoctorDrawer } from "@/screens/admin/doctors/add-doctor-sheet";
 import { DoctorAvailabilityDrawer } from "@/screens/admin/doctors/doctor-availability";
 import { UpdateDoctorDrawer } from "@/screens/admin/doctors/update-doctor-sheet";
 import { UpdateDoctorAvailabilityDrawer } from "@/screens/admin/doctors/update-time-slots";
-import { AddMedicineDrawer } from "@/screens/admin/medicine/add-medicine-sheet";
 import { AddOrderDrawer } from "@/screens/admin/order/add-order-drawer";
 import { AddPatientDrawer } from "@/screens/admin/patients/add-patient-drawer";
 import { UpdatePatientDrawer } from "@/screens/admin/patients/edit-patient-drawer";
@@ -16,7 +11,19 @@ import { AddPharmacistDrawer } from "@/screens/admin/pharmacist/add-pharmacist-s
 import { UpdatePharmacistDrawer } from "@/screens/admin/pharmacist/update-pharmacist-drawer";
 import { ViewPharmacistDrawer } from "@/screens/admin/pharmacist/view-pharmacist-sheet";
 import { AddPharmacyDrawer } from "@/screens/admin/pharmacy/add-pharmacy-sheet";
+import { EditPharmacyDrawer } from "@/screens/admin/pharmacy/edit-pharmacy-sheet";
+import { ViewPharmacyDrawer } from "@/screens/admin/pharmacy/view-pharmacy-drawer";
 import { AddPrescriptionDrawer } from "@/screens/admin/prescriptions/add-prescriptions-drawer";
+import { EditPrescriptionDrawer } from "@/screens/admin/prescriptions/edit-prescription-sheet";
+import { ViewPrescriptionDrawer } from "@/screens/admin/prescriptions/view-prescription-drawer";
+import { AddAppointmentDrawer } from "@/screens/appointments/add-appointment-sheet";
+import { RescheduleDrawer } from "@/screens/appointments/reschedule-appointment-drawer";
+import { ViewAppointmentDrawer } from "@/screens/appointments/view-appointment-sheet";
+import { AddConsultationDrawer } from "@/screens/consultations/add-consultation-sheet";
+import { ViewConsultationDrawer } from "@/screens/consultations/view-consultation-sheet";
+import { AddMedicineDrawer } from "@/screens/medicine/add-medicine-sheet";
+import { EditMedicineDrawer } from "@/screens/medicine/edit-medicine-drawer";
+import { ViewMedicineDrawer } from "@/screens/medicine/view-medicine-drawer";
 import { AddUserDrawer } from "@/screens/users/add-user-sheet";
 import { EditUserDrawer } from "@/screens/users/update-user-drawer";
 import { ViewUserSheet } from "@/screens/users/view-user-sheet";
@@ -44,11 +51,22 @@ export const SheetProvider = () => (
     <ViewAppointmentDrawer />
     <RescheduleDrawer />
 
-    <AddAdminDrawer />
     <AddConsultationDrawer />
+    <ViewConsultationDrawer />
+
     <AddPrescriptionDrawer />
-    <AddPharmacyDrawer />
+    <ViewPrescriptionDrawer />
+    <EditPrescriptionDrawer />
+
     <AddMedicineDrawer />
+    <EditMedicineDrawer />
+    <ViewMedicineDrawer />
+
+    <AddPharmacyDrawer />
+    <ViewPharmacyDrawer />
+    <EditPharmacyDrawer />
+
+    <AddAdminDrawer />
     <AddOrderDrawer />
   </>
 );

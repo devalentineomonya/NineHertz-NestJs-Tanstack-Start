@@ -8,15 +8,17 @@ import {
   Delete,
   Query,
 } from '@nestjs/common';
-import { DoctorService } from './doctor.service';
-import { CreateDoctorDto } from './dto/create-doctor.dto';
-import { UpdateDoctorDto } from './dto/update-doctor.dto';
 import {
   ApiTags,
   ApiOperation,
   ApiResponse,
   ApiBearerAuth,
 } from '@nestjs/swagger';
+import { Roles } from 'src/auth/decorators/roles.decorators';
+import { Role } from 'src/auth/enums/role.enum';
+import { DoctorService } from './doctor.service';
+import { CreateDoctorDto } from './dto/create-doctor.dto';
+import { UpdateDoctorDto } from './dto/update-doctor.dto';
 import { DoctorResponseDto } from './dto/doctor-response.dto';
 import { PaginationDto } from 'src/shared/dto/pagination.dto';
 import { DoctorFilterDto } from './dto/doctor-filter.dto';
@@ -24,11 +26,16 @@ import { DoctorAvailabilityDto } from './dto/availability-slot.dto';
 
 @ApiTags('Doctor')
 @ApiBearerAuth()
+@Roles(Role.ADMIN, Role.DOCTOR, Role.PATIENT)
 @Controller('doctors')
 export class DoctorController {
   constructor(private readonly doctorService: DoctorService) {}
 
+  /*=======================================================
+                  CREATE  DOCTOR PROFILE
+  ========================================================*/
   @Post()
+  @Roles(Role.ADMIN)
   @ApiOperation({ summary: 'Create a new doctor profile' })
   @ApiResponse({
     status: 201,
@@ -41,7 +48,16 @@ export class DoctorController {
     return this.doctorService.create(createDoctorDto);
   }
 
+  /*=======================================================
+              GET ALL DOCTORS WITH FILTERS & PAGINATION
+  ========================================================*/
   @Get()
+  @ApiOperation({ summary: 'Get all doctors' })
+  @ApiResponse({
+    status: 200,
+    description: 'List of doctors',
+    type: [DoctorResponseDto],
+  })
   async findAll(
     @Query() pagination: PaginationDto,
     @Query() filters: DoctorFilterDto,
@@ -49,6 +65,9 @@ export class DoctorController {
     return this.doctorService.findAll(pagination, filters);
   }
 
+  /*=======================================================
+                  GET DOCTOR BY ID
+  ========================================================*/
   @Get(':id')
   @ApiOperation({ summary: 'Get doctor by ID' })
   @ApiResponse({
@@ -61,7 +80,11 @@ export class DoctorController {
     return this.doctorService.findOne(id);
   }
 
+  /*=======================================================
+                  UPDATE DOCTOR PROFILE BY ID
+  ========================================================*/
   @Patch(':id')
+  @Roles(Role.ADMIN)
   @ApiOperation({ summary: 'Update doctor profile' })
   @ApiResponse({
     status: 200,
@@ -73,7 +96,11 @@ export class DoctorController {
     return this.doctorService.update(id, updateDoctorDto);
   }
 
+  /*=======================================================
+                  DELETE DOCTOR PROFILE BY ID
+  ========================================================*/
   @Delete(':id')
+  @Roles(Role.ADMIN)
   @ApiOperation({ summary: 'Delete doctor profile' })
   @ApiResponse({ status: 204, description: 'Doctor deleted successfully' })
   @ApiResponse({ status: 404, description: 'Doctor not found' })
@@ -81,6 +108,9 @@ export class DoctorController {
     return this.doctorService.remove(id);
   }
 
+  /*=======================================================
+              GET DOCTOR AVAILABILITY BY ID
+  ========================================================*/
   @Get(':id/availability')
   @ApiOperation({ summary: 'Get doctor availability' })
   @ApiResponse({
@@ -89,10 +119,7 @@ export class DoctorController {
     type: DoctorAvailabilityDto,
   })
   @ApiResponse({ status: 404, description: 'Doctor not found' })
-  getAvailability(
-    @Param('id') id: string,
-    // @Query('dayOfWeek') dayOfWeek?: DoctorAvailabilityQueryDto,
-  ) {
+  getAvailability(@Param('id') id: string) {
     return this.doctorService.getDoctorAvailability(id);
   }
 }

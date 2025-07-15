@@ -3,7 +3,7 @@ import { ConfigService } from '@nestjs/config';
 import { PassportStrategy } from '@nestjs/passport';
 import { InjectRepository } from '@nestjs/typeorm';
 import { ExtractJwt, Strategy } from 'passport-jwt';
-import { Admin } from 'src/admin/entities/admin.entity';
+
 import { JWTPayload } from 'src/shared/types/jwt-payload.types';
 import { User } from 'src/user/entities/user.entity';
 import { Repository } from 'typeorm';
@@ -18,9 +18,6 @@ export class AccessTokenStrategy extends PassportStrategy(
 
     @InjectRepository(User)
     private readonly userRepository: Repository<User>,
-
-    @InjectRepository(Admin)
-    private readonly adminRepository: Repository<Admin>,
   ) {
     super({
       jwtFromRequest: ExtractJwt.fromAuthHeaderAsBearerToken(),

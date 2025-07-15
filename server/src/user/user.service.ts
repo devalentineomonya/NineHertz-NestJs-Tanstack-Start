@@ -30,7 +30,11 @@ export class UserService {
     return savedUser;
   }
 
-  async findAll(filterDto?: FindUsersFilterDto): Promise<
+  async findAll(
+    filterDto?: FindUsersFilterDto,
+    id?: string,
+    role?: string,
+  ): Promise<
     Array<
       User & {
         profile: {
@@ -41,7 +45,6 @@ export class UserService {
       }
     >
   > {
-    // Create query with relations
     const query = this.userRepository
       .createQueryBuilder('user')
       .leftJoinAndSelect('user.patientProfile', 'patientProfile')
@@ -49,12 +52,12 @@ export class UserService {
       .leftJoinAndSelect('user.adminProfile', 'adminProfile')
       .leftJoinAndSelect('user.pharmacistProfile', 'pharmacistProfile');
 
-    // Apply filters
+    // Apply filters from DTO
     if (filterDto) {
-      const { role, email, isEmailVerified, search } = filterDto;
+      const { role: dtoRole, email, isEmailVerified, search } = filterDto;
 
-      if (role) {
-        query.andWhere('user.role = :role', { role });
+      if (dtoRole) {
+        query.andWhere('user.role = :role', { role: dtoRole });
       }
 
       if (email) {
@@ -75,7 +78,11 @@ export class UserService {
       }
     }
 
-    // Get users with profiles
+    if (id && role !== 'admin') {
+      query.andWhere('user.id = :id', { id });
+      query.andWhere('user.role = :role', { role });
+    }
+
     const users = await query.getMany();
 
     // Transform each user to include profile field

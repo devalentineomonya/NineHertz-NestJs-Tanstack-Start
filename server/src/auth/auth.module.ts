@@ -10,7 +10,6 @@ import { ContactHelper } from 'src/shared/helpers/contact.helper';
 import { GoogleStrategy } from './strategy/google.strategy';
 import { User } from 'src/user/entities/user.entity';
 import { TypeOrmModule } from '@nestjs/typeorm';
-import { Admin } from 'src/admin/entities/admin.entity';
 import { UserService } from 'src/user/user.service';
 import { MailService } from 'src/shared/mail/mail.service';
 
@@ -20,7 +19,7 @@ import { MailService } from 'src/shared/mail/mail.service';
       global: true,
     }),
     PassportModule,
-    TypeOrmModule.forFeature([User, Admin]),
+    TypeOrmModule.forFeature([User]),
   ],
   controllers: [AuthController],
   providers: [
@@ -32,6 +31,7 @@ import { MailService } from 'src/shared/mail/mail.service';
     ContactHelper,
     UserService,
     MailService,
+    ContactHelper,
   ],
 })
 export class AuthModule {}

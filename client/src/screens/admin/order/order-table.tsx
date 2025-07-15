@@ -20,17 +20,17 @@ import { useAddOrderStore } from "@/stores/use-add-order-store";
 
 import type { ColumnDef } from "@tanstack/react-table";
 import {
-  ShoppingCart,
-  User,
-  Package,
-  MoreHorizontal,
-  Clock,
-  Truck,
-  CheckCircle,
-  XCircle,
-  RefreshCw,
   ArrowLeftRight,
+  CheckCircle,
+  Clock,
+  MoreHorizontal,
+  Package,
   PlusSquare,
+  RefreshCw,
+  ShoppingCart,
+  Truck,
+  User,
+  XCircle,
 } from "lucide-react";
 import { parseAsArrayOf, parseAsString, useQueryState } from "nuqs";
 import * as React from "react";
@@ -44,7 +44,7 @@ enum OrderStatus {
   RETURNED = "returned",
 }
 
-export function AdminOrdersTable() {
+export function OrdersTable() {
   const { onOpen } = useAddOrderStore();
   const { data, isLoading } = useGetOrders();
   const [patientName] = useQueryState(

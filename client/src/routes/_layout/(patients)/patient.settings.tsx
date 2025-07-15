@@ -1,9 +1,10 @@
-import { createFileRoute } from '@tanstack/react-router'
+import { Settings } from "@/screens/settings/setting";
+import { createFileRoute } from "@tanstack/react-router";
 
-export const Route = createFileRoute('/_layout/(patients)/patient/settings')({
+export const Route = createFileRoute("/_layout/(patients)/patient/settings")({
   component: RouteComponent,
-})
+});
 
 function RouteComponent() {
-  return <div>Hello "/_layout/(patients)/patient/settings"!</div>
+  return <Settings />;
 }

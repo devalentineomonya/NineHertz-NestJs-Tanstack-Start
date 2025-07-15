@@ -1,21 +1,19 @@
-import { useEffect, useInsertionEffect, useState } from "react";
-import {
-  useForm,
-  SubmitHandler,
-  Controller,
-  useFieldArray,
-} from "react-hook-form";
-import { zodResolver } from "@hookform/resolvers/zod";
-import * as z from "zod";
 import { Button } from "@/components/ui/button";
 import {
+  Command,
+  CommandEmpty,
+  CommandGroup,
+  CommandInput,
+  CommandItem,
+  CommandList,
+} from "@/components/ui/command";
+import {
   Drawer,
+  DrawerClose,
   DrawerContent,
+  DrawerFooter,
   DrawerHeader,
   DrawerTitle,
-  DrawerDescription,
-  DrawerFooter,
-  DrawerClose,
 } from "@/components/ui/drawer";
 import {
   Form,
@@ -27,33 +25,29 @@ import {
 } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
 import {
+  Popover,
+  PopoverContent,
+  PopoverTrigger,
+} from "@/components/ui/popover";
+import {
   Select,
   SelectContent,
   SelectItem,
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { Plus, Minus, X, Loader, ChevronsUpDown, Check } from "lucide-react";
-import { useGetPharmacies } from "@/services/pharmacies/use-get-pharmacies";
-import { useGetMedicine } from "@/services/medicines/use-get-medicine";
-import { useAddOrderStore } from "@/stores/use-add-order-store";
-import { useGetPatients } from "@/services/patients/use-get-patients";
-import { useAddOrderService } from "@/services/order/use-add-order";
-import { toast } from "sonner";
-import {
-  Popover,
-  PopoverContent,
-  PopoverTrigger,
-} from "@/components/ui/popover";
-import {
-  Command,
-  CommandEmpty,
-  CommandGroup,
-  CommandInput,
-  CommandItem,
-  CommandList,
-} from "@/components/ui/command";
 import { cn } from "@/lib/utils";
+import { useGetMedicines } from "@/services/medicines/use-get-medicines";
+import { useAddOrderService } from "@/services/order/use-add-order";
+import { useGetPatients } from "@/services/patients/use-get-patients";
+import { useGetPharmacies } from "@/services/pharmacies/use-get-pharmacies";
+import { useAddOrderStore } from "@/stores/use-add-order-store";
+import { zodResolver } from "@hookform/resolvers/zod";
+import { Check, ChevronsUpDown, Loader, Minus, Plus, X } from "lucide-react";
+import { useEffect, useState } from "react";
+import { SubmitHandler, useFieldArray, useForm } from "react-hook-form";
+import { toast } from "sonner";
+import * as z from "zod";
 
 enum OrderStatus {
   PENDING = "pending",
@@ -85,7 +79,7 @@ export function AddOrderDrawer() {
   const [total, setTotal] = useState(0);
   const { data: patients, isLoading: loadingPatients } = useGetPatients();
   const { data: pharmacies, isLoading: loadingPharmacies } = useGetPharmacies();
-  const { data: medicines, isLoading: loadingMedicines } = useGetMedicine();
+  const { data: medicines, isLoading: loadingMedicines } = useGetMedicines();
   const { onClose, isOpen } = useAddOrderStore();
   const handler = useAddOrderService();
   const form = useForm<OrderFormValues>({

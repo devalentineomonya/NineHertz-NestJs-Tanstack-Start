@@ -208,6 +208,8 @@ export class InventoryItemService {
         orderIds: item.pharmacy.orders?.map((order) => order.id) || [],
         pharmacistIds:
           item.pharmacy.pharmacists?.map((pharmacist) => pharmacist.id) || [],
+        createdAt: item.pharmacy.createdAt,
+        updatedAt: item.pharmacy.updatedAt,
       },
     };
   }

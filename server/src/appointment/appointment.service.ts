@@ -76,20 +76,29 @@ export class AppointmentService {
   async findAll(
     pagination: PaginationDto,
     filters: AppointmentFilter,
+    id?: string,
+    role?: string,
   ): Promise<AppointmentPaginatedDto> {
     const { page = 1, limit = 10 } = pagination;
     const skip = (page - 1) * limit;
 
     const where: FindOptionsWhere<Appointment> = {};
-
     if (filters.status) {
       where.status = filters.status;
     }
-    if (filters.patientId) {
-      where.patient = { id: filters.patientId };
-    }
-    if (filters.doctorId) {
-      where.doctor = { id: filters.doctorId };
+    if (id && role) {
+      if (role === 'patient') {
+        where.patient = { id };
+      } else if (role === 'doctor') {
+        where.doctor = { id };
+      }
+    } else {
+      if (filters.patientId) {
+        where.patient = { id: filters.patientId };
+      }
+      if (filters.doctorId) {
+        where.doctor = { id: filters.doctorId };
+      }
     }
 
     const [appointments, total] = await this.appointmentRepository.findAndCount(

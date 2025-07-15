@@ -1,4 +1,4 @@
-import { AdminConsultations } from "@/screens/admin/consultations/consultations-table";
+import { ConsultationsTable } from "@/screens/consultations/consultations-table";
 import { createFileRoute } from "@tanstack/react-router";
 
 export const Route = createFileRoute("/_layout/(admin)/admin/consultations")({
@@ -6,5 +6,5 @@ export const Route = createFileRoute("/_layout/(admin)/admin/consultations")({
 });
 
 function RouteComponent() {
-  return <AdminConsultations />;
+  return <ConsultationsTable />;
 }

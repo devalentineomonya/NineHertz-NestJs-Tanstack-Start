@@ -1,6 +1,8 @@
-// src/chat/chat.controller.ts
 import { Body, Controller, Header, Post, Req, Res } from '@nestjs/common';
+import { ApiBearerAuth } from '@nestjs/swagger';
 import { Request, Response } from 'express';
+import { Roles } from 'src/auth/decorators/roles.decorators';
+import { Role } from 'src/auth/enums/role.enum';
 import { ChatService } from './chat.service';
 import { CreateChatDto } from './dto/create-chat.dto';
 
@@ -9,6 +11,8 @@ export class ChatController {
   constructor(private readonly chatService: ChatService) {}
 
   @Post()
+  @ApiBearerAuth()
+  @Roles(Role.DOCTOR, Role.PATIENT, Role.PHARMACIST, Role.ADMIN)
   @Header('Content-Type', 'text/event-stream')
   @Header('Cache-Control', 'no-cache')
   @Header('Connection', 'keep-alive')

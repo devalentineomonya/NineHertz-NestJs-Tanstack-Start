@@ -43,6 +43,8 @@ export class PharmacistService {
             address: pharmacist.pharmacy.address,
             contactPhone: pharmacist.pharmacy.contactPhone,
             licenseNumber: pharmacist.pharmacy.licenseNumber,
+            createdAt: pharmacist.pharmacy.createdAt,
+            updatedAt: pharmacist.pharmacy.updatedAt,
             inventoryIds: pharmacist.pharmacy.inventory?.map((item) => item.id),
             orderIds: pharmacist.pharmacy.orders?.map((order) => order.id),
             pharmacistIds: pharmacist.pharmacy.pharmacists?.map(
@@ -125,4 +127,3 @@ export class PharmacistService {
     }
   }
 }
-  

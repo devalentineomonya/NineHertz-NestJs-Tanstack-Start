@@ -18,6 +18,7 @@ import { Avatar } from "./avatar";
 
 import { useIsMobile } from "@/hooks/use-mobile";
 import { formatDistanceToNow } from "date-fns";
+import { useUserSessionStore } from "@/stores/user-session-store";
 
 interface ChatMessage {
   id: string;
@@ -92,6 +93,7 @@ export default function ChatBot({
 }: ChatBotProps = {}) {
   const isMobile = useIsMobile();
   const [isOpen, setIsOpen] = useState(open);
+  const { session } = useUserSessionStore();
 
   const initialMessages = useMemo(
     () => [
@@ -105,7 +107,6 @@ export default function ChatBot({
     [initialMessage]
   );
 
-
   const {
     messages: rawChatMessages,
     input,
@@ -117,7 +118,9 @@ export default function ChatBot({
     keepLastMessageOnError: true,
     streamProtocol: "text",
     api: `${import.meta.env.VITE_API_BASE_URL}/chat`,
-
+    headers: {
+      Authorization: `Bearer ${session?.accessToken}`,
+    },
   });
 
   const isLoading = status !== "error" && status !== "ready";

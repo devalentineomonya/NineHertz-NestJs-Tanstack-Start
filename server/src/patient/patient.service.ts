@@ -37,8 +37,18 @@ export class PatientService {
     return this.patientRepository.save(patient);
   }
 
-  async findAll(): Promise<Patient[]> {
-    return this.patientRepository.find({ relations: ['user', 'appointments'] });
+  async findAll(id?: string, role?: string): Promise<Patient[]> {
+    const query = this.patientRepository
+      .createQueryBuilder('patient')
+      .leftJoinAndSelect('patient.user', 'user')
+      .leftJoinAndSelect('patient.appointments', 'appointments');
+
+    if (id && role === 'patient') {
+      query.where('user.id = :id', { id });
+      query.andWhere('user.role = :role', { role: 'patient' });
+    }
+
+    return query.getMany();
   }
 
   async findOne(id: string): Promise<Patient> {

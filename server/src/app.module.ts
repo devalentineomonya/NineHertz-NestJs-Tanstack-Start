@@ -21,6 +21,9 @@ import { AuthModule } from './auth/auth.module';
 import { PharmacyModule } from './pharmacy/pharmacy.module';
 import { PharmacistModule } from './pharmacist/pharmacist.module';
 import { ChatModule } from './chat/chat.module';
+import { AccessTokenGuard } from './auth/guards/access-token.guard';
+import { RolesGuard } from './auth/guards/roles.guard';
+import { ContactHelper } from './shared/helpers/contact.helper';
 
 @Module({
   imports: [
@@ -40,6 +43,7 @@ import { ChatModule } from './chat/chat.module';
     DatabaseModule,
     AuthModule,
     ChatModule,
+
     CacheModule.registerAsync({
       imports: [ConfigModule],
       inject: [ConfigService],
@@ -68,6 +72,7 @@ import { ChatModule } from './chat/chat.module';
     }),
   ],
   providers: [
+    ContactHelper,
     {
       provide: APP_INTERCEPTOR,
       useClass: CacheInterceptor,
@@ -75,6 +80,14 @@ import { ChatModule } from './chat/chat.module';
     {
       provide: APP_GUARD,
       useClass: ThrottlerGuard,
+    },
+    {
+      provide: APP_GUARD,
+      useClass: AccessTokenGuard,
+    },
+    {
+      provide: APP_GUARD,
+      useClass: RolesGuard,
     },
   ],
 })

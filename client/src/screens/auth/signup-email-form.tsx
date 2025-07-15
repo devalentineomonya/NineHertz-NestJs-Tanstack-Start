@@ -1,7 +1,7 @@
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { useSignupService } from "@/services/auth/use-user-signup";
-import { useSignUpStore } from "@/services/users/stores/use-signup-store";
+import { useSignUpStore } from "@/stores/use-signup-store";
 import { useForm } from "@tanstack/react-form";
 import { AxiosError } from "axios";
 import { ArrowLeft, Loader } from "lucide-react";

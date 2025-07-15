@@ -1,22 +1,38 @@
 import {
-  Controller,
-  Post,
   Body,
-  Param,
-  Get,
-  Put,
+  Controller,
   Delete,
+  Get,
+  Param,
+  Post,
+  Put,
+  Req,
 } from '@nestjs/common';
-import { ApiTags, ApiOperation, ApiResponse, ApiParam } from '@nestjs/swagger';
-import { PatientService } from './patient.service';
+import {
+  ApiBearerAuth,
+  ApiOperation,
+  ApiParam,
+  ApiResponse,
+  ApiTags,
+} from '@nestjs/swagger';
+import { Roles } from 'src/auth/decorators/roles.decorators';
+import { Role } from 'src/auth/enums/role.enum';
+import { RequestWithUser } from 'src/shared/types/request.types';
 import { CreatePatientDto } from './dto/create-patient.dto';
-import { UpdatePatientDto } from './dto/update-patient.dto';
 import { PatientResponseDto } from './dto/patient-response.dto';
+import { UpdatePatientDto } from './dto/update-patient.dto';
+import { PatientService } from './patient.service';
 
 @ApiTags('patients')
+@Roles(Role.DOCTOR, Role.PATIENT, Role.PHARMACIST, Role.ADMIN)
+@ApiBearerAuth()
 @Controller('patients')
 export class PatientController {
   constructor(private readonly patientService: PatientService) {}
+
+  /*=======================================================
+                CREATE PATIENT WITH USER ID
+  ========================================================*/
 
   @Post(':userId')
   @ApiOperation({ summary: 'Create a new patient' })
@@ -37,6 +53,10 @@ export class PatientController {
     return await this.patientService.create(createPatientDto, userId);
   }
 
+  /*=======================================================
+                        GET ALL PATIENTS
+  ========================================================*/
+
   @Get()
   @ApiOperation({ summary: 'Retrieve all patients' })
   @ApiResponse({
@@ -44,9 +64,13 @@ export class PatientController {
     description: 'List of patients',
     type: [PatientResponseDto],
   })
-  async findAll(): Promise<PatientResponseDto[]> {
-    return await this.patientService.findAll();
+  async findAll(@Req() req: RequestWithUser): Promise<PatientResponseDto[]> {
+    return await this.patientService.findAll(req.user.sub, req.user.role);
   }
+
+  /*=======================================================
+                        GET  PATIENT WITH ID
+  ========================================================*/
 
   @Get(':id')
   @ApiOperation({ summary: 'Retrieve a patient by ID' })
@@ -60,6 +84,10 @@ export class PatientController {
   async findOne(@Param('id') id: string): Promise<PatientResponseDto> {
     return await this.patientService.findOne(id);
   }
+
+  /*=======================================================
+                  GET  PATIENT WITH USER ID
+  ========================================================*/
 
   @Get('user/:userId')
   @ApiOperation({ summary: 'Retrieve a patient by User ID' })
@@ -79,6 +107,10 @@ export class PatientController {
     return await this.patientService.findByUserId(userId);
   }
 
+  /*=======================================================
+                  UPDATE  PATIENT WITH ID
+  ========================================================*/
+
   @Put(':id')
   @ApiOperation({ summary: 'Update a patient by ID' })
   @ApiParam({ name: 'id', description: 'Patient ID' })
@@ -95,6 +127,11 @@ export class PatientController {
     return await this.patientService.update(id, updatePatientDto);
   }
 
+  /*=======================================================
+                  DELETE  PATIENT WITH ID
+  ========================================================*/
+
+  @Roles(Role.ADMIN)
   @Delete(':id')
   @ApiOperation({ summary: 'Delete a patient by ID' })
   @ApiParam({ name: 'id', description: 'Patient ID' })

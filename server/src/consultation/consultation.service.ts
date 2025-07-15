@@ -91,18 +91,32 @@ export class ConsultationService {
   async findAll(
     pagination: PaginationDto,
     filters: ConsultationFilter,
+    id?: string,
+    role?: string,
   ): Promise<ConsultationPaginatedDto> {
     const { page = 1, limit = 10 } = pagination;
     const skip = (page - 1) * limit;
 
     const where: FindOptionsWhere<Consultation> = {};
 
-    if (filters.patientId) {
-      where.patient = { id: filters.patientId };
+    // Role-based filtering
+    if (id && role) {
+      if (role === 'patient') {
+        where.patient = { id };
+      } else if (role === 'doctor') {
+        where.doctor = { id };
+      }
+    } else {
+      // Filter from ConsultationFilter if role/id not provided directly
+      if (filters.patientId) {
+        where.patient = { id: filters.patientId };
+      }
+      if (filters.doctorId) {
+        where.doctor = { id: filters.doctorId };
+      }
     }
-    if (filters.doctorId) {
-      where.doctor = { id: filters.doctorId };
-    }
+
+    // Date filter logic
     if (filters.date) {
       const startDate = new Date(filters.date);
       startDate.setHours(0, 0, 0, 0);
@@ -121,11 +135,11 @@ export class ConsultationService {
         skip,
         order: { startTime: 'ASC' },
       });
+
     return {
       data: consultations.map((consultation) =>
         this.mapToResponseDto(consultation),
       ),
-
       total,
       page,
       limit,

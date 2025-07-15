@@ -4,7 +4,7 @@ import {
   BadRequestException,
 } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
-import { Repository } from 'typeorm';
+import { FindOptionsWhere, Repository } from 'typeorm';
 import { Prescription } from './entities/prescription.entity';
 import { CreatePrescriptionDto } from './dto/create-prescription.dto';
 import { UpdatePrescriptionDto } from './dto/update-prescription.dto';
@@ -52,19 +52,47 @@ export class PrescriptionService {
 
     return this.prescriptionRepo.save(prescription);
   }
+  async findAll(userId: string, role: string): Promise<Prescription[]> {
+    const where: FindOptionsWhere<Prescription> = {};
 
-  async findAll(): Promise<Prescription[]> {
+    if (role === 'docotor') {
+      where.prescribedBy = { id: userId };
+    } else if (role === 'patient') {
+      where.patient = { id: userId };
+    } else if (role === 'pharmacist') {
+      where.fulfilledBy = { id: userId };
+    }
+
     return this.prescriptionRepo.find({
+      where,
       relations: ['patient', 'prescribedBy', 'fulfilledBy'],
     });
   }
 
-  async findOne(id: string): Promise<Prescription> {
+  async findOne(
+    id: string,
+    userId?: string,
+    role?: string,
+  ): Promise<Prescription> {
+    const where: FindOptionsWhere<Prescription> = { id };
+
+    if (role === 'doctor') {
+      where.prescribedBy = { id: userId };
+    } else if (role === 'patient') {
+      where.patient = { id: userId };
+    } else if (role === 'pharmacist') {
+      where.fulfilledBy = { id: userId };
+    }
+
     const prescription = await this.prescriptionRepo.findOne({
-      where: { id },
+      where,
       relations: ['patient', 'prescribedBy', 'fulfilledBy'],
     });
-    if (!prescription) throw new NotFoundException('Prescription not found');
+
+    if (!prescription) {
+      throw new NotFoundException('Prescription not found');
+    }
+
     return prescription;
   }
 

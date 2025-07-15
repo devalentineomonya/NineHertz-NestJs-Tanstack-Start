@@ -138,6 +138,9 @@ interface CreateConsultationDto {
 interface ConsultationResponseDto
   extends Required<Omit<CreateConsultationDto, "patientId" | "doctorId">> {
   id: string;
+  status: "ended" | "completed" | "in-progress" | "scheduled";
+  recordingUrl?: string;
+  aiAnalysis?: string;
   patient: PatientResponseDto;
   doctor: DoctorResponseDto;
   createdAt: Date;
@@ -206,6 +209,8 @@ interface PharmacyResponseDto extends CreatePharmacyDto {
   inventoryIds: string[];
   orderIds: string[];
   pharmacistIds: string[];
+  createdAt: string;
+  updatedAt: string;
 }
 interface UpdatePharmacyDto extends Partial<CreatePharmacyDto> {}
 

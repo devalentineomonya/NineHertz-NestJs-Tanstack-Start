@@ -11,7 +11,7 @@ interface UserSession {
 interface JwtPayload {
   sub: string;
   email: string;
-  role: string;
+  role: "admin" | "patient" | "pharmacist" | "doctor";
   name?: string;
 }
 
@@ -49,7 +49,7 @@ export const useUserSessionStore = create<UserSessionStore>()(
           console.error("Token decoding failed:", error);
           return null;
         }
-      }
+      },
     }),
     {
       name: "user-session",

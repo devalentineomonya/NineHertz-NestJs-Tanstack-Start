@@ -23,6 +23,8 @@ export class PharmacyService {
       inventoryIds: pharmacy.inventory?.map((item) => item.id) || [],
       orderIds: pharmacy.orders?.map((order) => order.id) || [],
       pharmacistIds: pharmacy.pharmacists?.map((ph) => ph.id) || [],
+      createdAt: pharmacy.createdAt,
+      updatedAt: pharmacy.updatedAt,
     });
   }
 

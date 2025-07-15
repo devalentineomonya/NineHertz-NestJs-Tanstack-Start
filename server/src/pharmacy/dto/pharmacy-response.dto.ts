@@ -25,6 +25,12 @@ export class PharmacyResponseDto {
   @ApiProperty({ type: [String] })
   pharmacistIds: string[];
 
+  @ApiProperty()
+  createdAt: Date;
+
+  @ApiProperty()
+  updatedAt: Date;
+
   constructor(partial: Partial<PharmacyResponseDto>) {
     Object.assign(this, partial);
   }

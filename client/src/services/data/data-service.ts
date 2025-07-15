@@ -1,5 +1,5 @@
 import { redirect } from "@tanstack/react-router";
-import axios, { AxiosInstance, AxiosResponse, AxiosError } from "axios";
+import axios, { AxiosInstance, AxiosResponse, AxiosError, InternalAxiosRequestConfig } from "axios";
 
 type ApiMethod = "get" | "post" | "put" | "patch" | "delete";
 
@@ -17,8 +17,35 @@ interface ApiEndpoint<Request = any, Response = any> {
 
 export class DataServices {
   private axiosInstance: AxiosInstance;
+  private session: { accessToken?: string; refreshToken?: string } | null = null;
+  private getUserSession() {
+    const session = localStorage.getItem("user-session");
+    const parsedSession = session ? JSON.parse(session) : null;
+    return parsedSession?.state?.session
+  }
+
+  private getAccessToken(): string | null {
+    const session = this.getUserSession();
+    console.log("Session",session?.session)
+    return session?.accessToken || null;
+  }
+  private refreshQueue: Array<{ resolve: (token: string) => void; reject: (error: any) => void }> = [];
   private isRefreshing = false;
-  private refreshQueue: ((token: string) => void)[] = [];
+  public setSession(sessionData: { accessToken: string; refreshToken: string }): void {
+    this.session = sessionData;
+    localStorage.setItem("user-session", JSON.stringify(sessionData));
+  }
+
+  public clearSession(): void {
+    this.session = null;
+    localStorage.removeItem("user-session");
+  }
+
+
+  private getRefreshToken(): string | null {
+    return this.session?.refreshToken || null;
+  }
+
 
   public readonly api = {
     user: {
@@ -186,29 +213,8 @@ export class DataServices {
         }
       },
     },
-    "chat": {
-      post: this.createEndpoint<CreateChatDto, ChatResponseDto>("post", "/chat"),
-    },
+
   };
-
-  constructor() {
-    this.axiosInstance = axios.create({
-      baseURL: import.meta.env.VITE_API_BASE_URL || "",
-      timeout: 300_000,
-      headers: { "Content-Type": "application/json" },
-    });
-    this.setupInterceptors();
-  }
-
-  private getUserSession() {
-    const session = localStorage.getItem("user-session");
-    return session ? JSON.parse(session) : null;
-  }
-
-  private getAccessToken(): string | null {
-    const session = this.getUserSession();
-    return session?.accessToken || null;
-  }
 
   private createEndpoint<Request, Response>(
     method: ApiMethod,
@@ -237,69 +243,106 @@ export class DataServices {
     };
   }
 
+
+
+  constructor() {
+    const sessionData = localStorage.getItem("user-session");
+    this.session = sessionData ? JSON.parse(sessionData) : null;
+
+    this.axiosInstance = axios.create({
+      baseURL: import.meta.env.VITE_API_BASE_URL || "",
+      timeout: 300_000,
+      headers: { "Content-Type": "application/json" },
+    });
+
+    this.setupInterceptors();
+  }
+
   private setupInterceptors() {
+    // Request Interceptor
     this.axiosInstance.interceptors.request.use(
       (config) => {
         const accessToken = this.getAccessToken();
-        if (accessToken) config.headers.Authorization = `Bearer ${accessToken}`;
+        console.log("Url",config.baseURL,config.url,"Request Interceptor",accessToken)
+        if (accessToken) {
+          config.headers.Authorization = `Bearer ${accessToken}`;
+        }
         return config;
       },
       (error) => Promise.reject(error)
     );
 
+    // Response Interceptor
     this.axiosInstance.interceptors.response.use(
       (response) => response,
       async (error: AxiosError) => {
-        const originalRequest = error.config;
-        if (!originalRequest) return Promise.reject(error);
+        const originalRequest = error.config as InternalAxiosRequestConfig & { _retry?: boolean };
+        const isAuthRoute = originalRequest?.url?.includes("/auth/");
 
-        if (error.response?.status !== 401) return Promise.reject(error);
-        if (originalRequest.url?.includes("/auth/login")) return Promise.reject(error);
+        // Skip handling for these cases
+        if (!originalRequest ||
+            error.response?.status !== 401 ||
+            isAuthRoute ||
+            originalRequest._retry) {
+          return Promise.reject(error);
+        }
 
+        // Queue requests during refresh
         if (this.isRefreshing) {
-          return new Promise((resolve) => {
-            this.refreshQueue.push((token) => {
-              originalRequest.headers.Authorization = `Bearer ${token}`;
-              resolve(this.axiosInstance(originalRequest));
+          return new Promise((resolve, reject) => {
+            this.refreshQueue.push({
+              resolve: () => {
+                originalRequest.headers.Authorization = `Bearer ${this.getAccessToken()}`;
+                resolve(this.axiosInstance(originalRequest));
+              },
+              reject
             });
           });
         }
 
+        originalRequest._retry = true;
         this.isRefreshing = true;
 
         try {
-          const session = this.getUserSession();
-          if (!session?.refreshToken || !session.userId)
-            throw new Error("No valid session found");
+          const refreshToken = this.getRefreshToken();
+          if (!refreshToken) throw new Error("No refresh token available");
 
+          // Use a separate axios instance for token refresh
           const refreshClient = axios.create({
-            baseURL: import.meta.env.VITE_API_BASE_URL || "",
-            headers: {
-              "Content-Type": "application/json",
-              Authorization: `Bearer ${session.refreshToken}`
-            },
+            baseURL: import.meta.env.VITE_API_BASE_URL,
+            headers: { "Content-Type": "application/json" },
           });
 
-          const response = await refreshClient.post<{ accessToken: string; refreshToken: string }>(
-            "/auth/refresh",
-            { refreshToken: session.refreshToken }
-          );
+          const response = await refreshClient.post<{
+            accessToken: string;
+            refreshToken: string;
+          }>("/auth/refresh", { refreshToken });
 
-          const updatedSession = {
-            ...session,
+          // Update session with new tokens
+          this.setSession({
             accessToken: response.data.accessToken,
             refreshToken: response.data.refreshToken,
-          };
-          localStorage.setItem("user-session", JSON.stringify(updatedSession));
-          originalRequest.headers.Authorization = `Bearer ${updatedSession.accessToken}`;
+          });
 
-          this.refreshQueue.forEach((cb) => cb(updatedSession.accessToken));
-          this.refreshQueue = [];
+          // Update original request headers
+          originalRequest.headers.Authorization = `Bearer ${response.data.accessToken}`;
+
+          // Process queued requests
+          this.refreshQueue.forEach((cb) => cb.resolve(response.data.accessToken));
+
           return this.axiosInstance(originalRequest);
         } catch (refreshError) {
-          localStorage.removeItem("user-session");
-          redirect({ to: "/auth/signin" });
-          return Promise.reject(new Error("Session expired. Please login again."));
+          // Clear session and reject queued requests
+          this.clearSession();
+          this.refreshQueue.forEach((cb) => cb.reject(refreshError));
+          this.refreshQueue = [];
+
+          // Redirect to login if not already on auth page
+          if (!window.location.pathname.startsWith("/auth")) {
+            redirect({ to: "/auth/signin" });
+          }
+
+          return Promise.reject(new Error("Session expired. Please log in again."));
         } finally {
           this.isRefreshing = false;
         }
@@ -307,3 +350,5 @@ export class DataServices {
     );
   }
 }
+
+export const dataServices = new DataServices();

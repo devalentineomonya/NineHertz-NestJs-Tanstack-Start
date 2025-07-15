@@ -1,8 +1,8 @@
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { useVerifyWithOTP } from "@/services/auth/use-verify-with-otp";
-import { useSignUpStore } from "@/services/users/stores/use-signup-store";
-import { useUserSessionStore } from "@/services/users/stores/user-session-store";
+import { useSignUpStore } from "@/stores/use-signup-store";
+import { useUserSessionStore } from "@/stores/user-session-store";
 import { useForm } from "@tanstack/react-form";
 import { AxiosError } from "axios";
 import { ArrowLeft, Loader } from "lucide-react";

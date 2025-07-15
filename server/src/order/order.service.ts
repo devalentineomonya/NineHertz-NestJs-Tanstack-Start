@@ -379,6 +379,8 @@ export class OrderService {
         address: order.pharmacy.address,
         contactPhone: order.pharmacy.contactPhone,
         licenseNumber: order.pharmacy.licenseNumber,
+        createdAt: order.pharmacy.createdAt,
+        updatedAt: order.pharmacy.updatedAt,
         inventoryIds:
           order.pharmacy.inventory?.map((inventory) => inventory.id) || [],
         orderIds: order.pharmacy.orders?.map((order) => order.id) || [],

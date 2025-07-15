@@ -278,7 +278,7 @@ export const userColumns: ColumnDef<UserResponseDto>[] = [
           </DropdownMenuTrigger>
           <DropdownMenuContent align="end">
             <DropdownMenuItem
-              onClick={() => onViewUserOpen(userId, row.original)}
+              onClick={() => onViewUserOpen(row.original, userId)}
             >
               View Details
             </DropdownMenuItem>

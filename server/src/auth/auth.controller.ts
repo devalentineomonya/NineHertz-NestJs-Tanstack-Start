@@ -32,8 +32,11 @@ import { UpdatePasswordDto } from './dto/update-password.dto';
 import { UpdateEmailDto } from './dto/update-email.dto';
 import { Profile } from 'passport-google-oauth20';
 import { VerifyEmailDto } from './dto/verify-email.dto';
+import { Public } from './decorators/public.decorators';
+import { RefreshTokenGuard } from './guards/refresh-token.guard';
 
 @ApiTags('Auth')
+@Public()
 @Controller('auth')
 export class AuthController {
   constructor(
@@ -81,6 +84,7 @@ export class AuthController {
     return this.authService.login(user);
   }
 
+  @UseGuards(RefreshTokenGuard)
   @Post('refresh')
   @HttpCode(HttpStatus.OK)
   @ApiOperation({ summary: 'Refresh access token' })

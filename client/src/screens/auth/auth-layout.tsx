@@ -84,11 +84,11 @@ export const AuthLayout: React.FC<AuthLayoutProps> = ({
                   animate={{ opacity: 1, x: 0 }}
                   transition={{ duration: 0.5 }}
                 >
-                  <Link to="/" className="flex items-center gap-2">
+                  <div className="flex items-center gap-2">
                     <div className="w-10 h-10 rounded-full bg-gradient-to-br from-green-500 to-green-700 flex items-center justify-center">
                       <span className="text-white font-bold text-lg">NH</span>
                     </div>
-                  </Link>
+                  </div>
                 </motion.div>
               </Link>
             </div>

@@ -8,7 +8,10 @@ import {
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
+import { useCancelAppointmentStore } from "@/stores/use-cancel-appointment-store";
+import { useMarkAsCompleteStore } from "@/stores/use-mark-as-complete-store";
 import { useRescheduleAppointmentStore } from "@/stores/use-reschedule-appointment";
+import { useSendReminderStore } from "@/stores/use-send-reminder-store";
 import useViewAppointmentStore from "@/stores/use-view-appointment-store";
 import { Avatar, AvatarFallback, AvatarImage } from "@radix-ui/react-avatar";
 import type { ColumnDef } from "@tanstack/react-table";
@@ -22,6 +25,7 @@ import {
   User,
   XCircle,
 } from "lucide-react";
+import { useUserSessionStore } from "@/stores/user-session-store";
 
 enum AppointmentStatus {
   SCHEDULED = "scheduled",
@@ -238,6 +242,12 @@ export const appointmentColumns: ColumnDef<AppointmentResponseDto>[] = [
       const { onOpen: onViewAppointment } = useViewAppointmentStore();
       const { onOpen: onRescheduleAppointment } =
         useRescheduleAppointmentStore();
+      const { onOpen: onCancelAppointment } = useCancelAppointmentStore();
+      const { onOpen: onSendReminder } = useSendReminderStore();
+      const { onOpen: onMarkAsComplete } = useMarkAsCompleteStore();
+      const { getCurrentUser } = useUserSessionStore();
+      const currentUser = getCurrentUser();
+
       return (
         <DropdownMenu>
           <DropdownMenuTrigger asChild>
@@ -259,16 +269,32 @@ export const appointmentColumns: ColumnDef<AppointmentResponseDto>[] = [
                 ? "Reschedule"
                 : "Reschedule (New)"}
             </DropdownMenuItem>
+
             {row.original.status === AppointmentStatus.SCHEDULED && (
-              <DropdownMenuItem variant="destructive">
+              <DropdownMenuItem
+                variant="destructive"
+                onClick={() => onCancelAppointment(row.original.id)}
+              >
                 Cancel Appointment
               </DropdownMenuItem>
             )}
-            {row.original.status !== AppointmentStatus.COMPLETED && (
-              <DropdownMenuItem>Mark as Completed</DropdownMenuItem>
-            )}
-            {row.original.status === AppointmentStatus.SCHEDULED && (
-              <DropdownMenuItem>Send Reminder</DropdownMenuItem>
+            {currentUser?.role === "admin" && (
+              <>
+                {row.original.status !== AppointmentStatus.COMPLETED && (
+                  <DropdownMenuItem
+                    onClick={() => onMarkAsComplete(row.original.id)}
+                  >
+                    Mark as Completed
+                  </DropdownMenuItem>
+                )}
+                {row.original.status === AppointmentStatus.SCHEDULED && (
+                  <DropdownMenuItem
+                    onClick={() => onSendReminder(row.original.id)}
+                  >
+                    Send Reminder
+                  </DropdownMenuItem>
+                )}
+              </>
             )}
           </DropdownMenuContent>
         </DropdownMenu>
