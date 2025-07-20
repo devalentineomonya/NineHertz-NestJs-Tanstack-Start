@@ -7,7 +7,7 @@ export const useAddMedicineService = () => {
   return useMutation({
     mutationFn: async (data: CreateMedicineDto) => {
       const response = await dataService.api.medicines.post.call({
-        json: data,
+      json: data,
       });
       return response.data;
     },

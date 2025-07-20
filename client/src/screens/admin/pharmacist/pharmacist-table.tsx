@@ -3,9 +3,8 @@ import { DataTableSkeleton } from "@/components/data-table/data-table-skeleton";
 import { DataTableToolbar } from "@/components/data-table/data-table-toolbar";
 import { Button } from "@/components/ui/button";
 import { useDataTable } from "@/hooks/use-data-table";
-import { DeleteUserConfirmModal } from "@/screens/users/delete-user-confirm-modal";
 import { userColumns } from "@/screens/users/users-table-columns";
-import { useGetPharmacies } from "@/services/pharmacists/use-get-pharmacists";
+import { useGetPharmacists } from "@/services/pharmacists/use-get-pharmacists";
 import { useAddPharmacistStore } from "@/stores/use-add-pharmacist-store";
 import { PlusSquare } from "lucide-react";
 import {
@@ -32,7 +31,7 @@ export function AdminPharmacist() {
     parseAsArrayOf(parseAsString).withDefault([])
   );
 
-  const { data: users, isLoading } = useGetPharmacies();
+  const { data: users, isLoading } = useGetPharmacists();
 
   const filteredData = React.useMemo(() => {
     return users?.filter((user) => {

@@ -1,17 +1,14 @@
 import { Badge } from "@/components/ui/badge";
-import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import {
   Drawer,
-  DrawerClose,
   DrawerContent,
-  DrawerFooter,
   DrawerHeader,
   DrawerTitle,
 } from "@/components/ui/drawer";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { useViewMedicineStore } from "@/stores/use-view-medicine-store";
-import { Pill, FileText, DollarSign, Factory, Barcode } from "lucide-react";
+import { Pill, FileText, DollarSign, Barcode } from "lucide-react";
 
 export const ViewMedicineDrawer = () => {
   const {
@@ -38,10 +35,14 @@ export const ViewMedicineDrawer = () => {
               <p className="text-sm text-muted-foreground">ID: {medicineId}</p>
             </div>
           </div>
-          <Badge variant="secondary">Medicine</Badge>
+          <Badge
+            variant={selectedMedicine.type === "otc" ? "warning" : "success"}
+          >
+            {selectedMedicine.type}
+          </Badge>
         </DrawerHeader>
 
-        <ScrollArea className="px-6 py-4 h-[calc(100dvh-172px)]">
+        <ScrollArea className="px-6 py-4 h-[calc(100dvh-160px)]">
           <div className="space-y-4">
             {/* Medicine Details Card */}
             <Card>
@@ -144,12 +145,6 @@ export const ViewMedicineDrawer = () => {
             </Card>
           </div>
         </ScrollArea>
-
-        <DrawerFooter className="flex flex-row justify-end gap-3 border-t pt-4">
-          <DrawerClose asChild>
-            <Button>Close</Button>
-          </DrawerClose>
-        </DrawerFooter>
       </DrawerContent>
     </Drawer>
   );

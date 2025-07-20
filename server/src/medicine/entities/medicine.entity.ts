@@ -31,6 +31,9 @@ export class Medicine {
   @Column()
   manufacturer: string;
 
+  @Column({ type: 'enum', enum: ['prescribed', 'otc'] })
+  type: 'prescribed' | 'otc';
+
   @Column({ nullable: true, unique: true })
   barcode: string;
 

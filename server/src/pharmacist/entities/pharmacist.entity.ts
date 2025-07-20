@@ -1,11 +1,9 @@
-import { Pharmacy } from 'src/pharmacy/entity/pharmacy.entity';
 import { User } from 'src/user/entities/user.entity';
 import { CreateDateColumn, UpdateDateColumn } from 'typeorm';
 import {
   Column,
   Entity,
   JoinColumn,
-  ManyToOne,
   OneToOne,
   PrimaryGeneratedColumn,
 } from 'typeorm';
@@ -20,12 +18,12 @@ export class Pharmacist {
   @Column({ unique: true })
   licenseNumber: string;
 
+  @Column()
+  phoneNumber: string;
+
   @OneToOne(() => User)
   @JoinColumn()
   user: User;
-
-  @ManyToOne(() => Pharmacy, (pharmacy) => pharmacy.pharmacists)
-  pharmacy: Pharmacy;
 
   @CreateDateColumn()
   createdAt: Date;

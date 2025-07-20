@@ -21,7 +21,8 @@ export const useAddPatientService = () => {
       return response.data;
     },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["patients", "users"] });
+      queryClient.invalidateQueries({ queryKey: ["patients"] });
+      queryClient.invalidateQueries({ queryKey: ["users"] });
     },
   });
 };

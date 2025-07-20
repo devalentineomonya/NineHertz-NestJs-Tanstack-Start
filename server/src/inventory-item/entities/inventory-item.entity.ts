@@ -7,7 +7,6 @@ import {
   UpdateDateColumn,
 } from 'typeorm';
 import { Medicine } from '../../medicine/entities/medicine.entity';
-import { Pharmacy } from 'src/pharmacy/entity/pharmacy.entity';
 
 @Entity()
 export class InventoryItem {
@@ -25,9 +24,6 @@ export class InventoryItem {
 
   @ManyToOne(() => Medicine, (medicine) => medicine.inventoryItems)
   medicine: Medicine;
-
-  @ManyToOne(() => Pharmacy, (pharmacy) => pharmacy.inventory)
-  pharmacy: Pharmacy;
 
   @CreateDateColumn()
   createdAt: Date;

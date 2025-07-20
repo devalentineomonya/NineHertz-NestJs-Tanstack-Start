@@ -10,7 +10,7 @@ import { CreatePrescriptionDto } from './dto/create-prescription.dto';
 import { UpdatePrescriptionDto } from './dto/update-prescription.dto';
 import { Patient } from '../patient/entities/patient.entity';
 import { Doctor } from '../doctor/entities/doctor.entity';
-import { Pharmacy } from '../pharmacy/entity/pharmacy.entity';
+import { Pharmacist } from 'src/pharmacist/entities/pharmacist.entity';
 
 @Injectable()
 export class PrescriptionService {
@@ -21,8 +21,8 @@ export class PrescriptionService {
     private readonly patientRepo: Repository<Patient>,
     @InjectRepository(Doctor)
     private readonly doctorRepo: Repository<Doctor>,
-    @InjectRepository(Pharmacy)
-    private readonly pharmacyRepo: Repository<Pharmacy>,
+    @InjectRepository(Pharmacist)
+    private readonly pharmacistRepo: Repository<Pharmacist>,
   ) {}
 
   async create(dto: CreatePrescriptionDto): Promise<Prescription> {
@@ -32,22 +32,22 @@ export class PrescriptionService {
     const doctor = await this.doctorRepo.findOneBy({ id: dto.doctorId });
     if (!doctor) throw new NotFoundException('Doctor not found');
 
-    let pharmacy: Pharmacy | undefined = undefined;
-    if (dto.pharmacyId) {
-      pharmacy =
-        (await this.pharmacyRepo.findOneBy({ id: dto.pharmacyId })) ||
+    let pharmacist: Pharmacist | undefined = undefined;
+    if (dto.pharmacistId) {
+      pharmacist =
+        (await this.pharmacistRepo.findOneBy({ id: dto.pharmacistId })) ||
         undefined;
-      if (!pharmacy) throw new NotFoundException('Pharmacy not found');
+      if (!pharmacist) throw new NotFoundException('Pharmacist not found');
     }
 
     const prescription = this.prescriptionRepo.create({
-      medicationDetails: dto.medicationDetails,
+      items: dto.items,
       issueDate: new Date(dto.issueDate),
       expiryDate: new Date(dto.expiryDate),
       patient,
       prescribedBy: doctor,
-      fulfilledBy: pharmacy,
-      isFulfilled: !!dto.pharmacyId,
+      fulfilledBy: pharmacist,
+      isFulfilled: !!dto.pharmacistId,
     });
 
     return this.prescriptionRepo.save(prescription);
@@ -55,7 +55,7 @@ export class PrescriptionService {
   async findAll(userId: string, role: string): Promise<Prescription[]> {
     const where: FindOptionsWhere<Prescription> = {};
 
-    if (role === 'docotor') {
+    if (role === 'doctor') {
       where.prescribedBy = { id: userId };
     } else if (role === 'patient') {
       where.patient = { id: userId };
@@ -95,18 +95,30 @@ export class PrescriptionService {
 
     return prescription;
   }
+  async findByPatientId(patientId: string): Promise<Prescription[]> {
+    const patient = await this.patientRepo.findOneBy({ id: patientId });
+    if (!patient) {
+      throw new NotFoundException('Patient not found');
+    }
+
+    return this.prescriptionRepo.find({
+      where: { patient: { id: patientId } },
+      relations: ['patient', 'prescribedBy', 'fulfilledBy'],
+      order: { issueDate: 'DESC' },
+    });
+  }
 
   async update(id: string, dto: UpdatePrescriptionDto): Promise<Prescription> {
     const prescription = await this.findOne(id);
 
-    // Handle pharmacy fulfillment
+    // Handle Pharmacist fulfillment
     if (
       dto.isFulfilled === true &&
-      !dto.pharmacyId &&
+      !dto.pharmacistId &&
       !prescription.fulfilledBy
     ) {
       throw new BadRequestException(
-        'Pharmacy ID is required when fulfilling prescription',
+        'Pharmacist ID is required when fulfilling prescription',
       );
     }
 
@@ -123,18 +135,17 @@ export class PrescriptionService {
       prescription.prescribedBy = doctor;
     }
 
-    if (dto.pharmacyId) {
-      const pharmacy = await this.pharmacyRepo.findOneBy({
-        id: dto.pharmacyId,
+    if (dto.pharmacistId) {
+      const pharmacist = await this.pharmacistRepo.findOneBy({
+        id: dto.pharmacistId,
       });
-      if (!pharmacy) throw new NotFoundException('Pharmacy not found');
-      prescription.fulfilledBy = pharmacy;
+      if (!pharmacist) throw new NotFoundException('Pharmacist not found');
+      prescription.fulfilledBy = pharmacist;
       prescription.isFulfilled = true;
     }
 
     // Update direct fields
-    if (dto.medicationDetails)
-      prescription.medicationDetails = dto.medicationDetails;
+    if (dto.items) prescription.items = dto.items;
     if (dto.issueDate) prescription.issueDate = new Date(dto.issueDate);
     if (dto.expiryDate) prescription.expiryDate = new Date(dto.expiryDate);
     if (dto.isFulfilled === false) {

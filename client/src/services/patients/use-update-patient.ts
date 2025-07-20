@@ -20,7 +20,8 @@ export const useUpdatePatientService = () => {
     },
 
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["patients", "users"] });
+      queryClient.invalidateQueries({ queryKey: ["patients"] });
+      queryClient.invalidateQueries({ queryKey: ["users"] });
     },
   });
 };

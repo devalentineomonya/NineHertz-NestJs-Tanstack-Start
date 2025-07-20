@@ -5,13 +5,11 @@ import {
   Column,
   ManyToOne,
   OneToMany,
-  CreateDateColumn,
   UpdateDateColumn,
 } from 'typeorm';
 import { Patient } from '../../patient/entities/patient.entity';
 import { OrderItem } from './order-item.entity';
 import { OrderStatus } from 'src/enums/order.enum';
-import { Pharmacy } from 'src/pharmacy/entity/pharmacy.entity';
 
 @Entity()
 @Index(['status', 'paymentStatus', 'orderDate'])
@@ -51,10 +49,6 @@ export class Order {
   @OneToMany(() => OrderItem, (item) => item.order, { cascade: true })
   items: OrderItem[];
 
-  @ManyToOne(() => Pharmacy, (pharmacy) => pharmacy.orders)
-  pharmacy: Pharmacy;
-
-  @CreateDateColumn()
   createdAt: Date;
 
   @UpdateDateColumn()

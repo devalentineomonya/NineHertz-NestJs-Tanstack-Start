@@ -78,6 +78,24 @@ export class PrescriptionController {
   }
 
   /*=======================================================
+            GET PRESCRIPTIONS BY PATIENT ID
+========================================================*/
+  @Roles(Role.DOCTOR, Role.ADMIN, Role.PATIENT)
+  @Get('patient/:patientId')
+  @ApiOperation({ summary: 'Get all prescriptions for a specific patient' })
+  @ApiResponse({
+    status: 200,
+    description: 'List of prescriptions for the given patient',
+    type: [Prescription],
+  })
+  @ApiResponse({ status: 404, description: 'Patient not found' })
+  async findByPatientId(
+    @Param('patientId', ParseUUIDPipe) patientId: string,
+  ): Promise<Prescription[]> {
+    return this.prescriptionService.findByPatientId(patientId);
+  }
+
+  /*=======================================================
               UPDATE PRESCRIPTION BY ID
   ========================================================*/
   @Patch(':id')

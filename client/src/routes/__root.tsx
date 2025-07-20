@@ -10,7 +10,7 @@ import FooterSection from "@/components/shared/footer/footer";
 import { NuqsAdapter } from "nuqs/adapters/react";
 import { Toaster } from "@/components/ui/sonner";
 import "@stream-io/video-react-sdk/dist/css/styles.css";
-
+// import "react-big-calendar/lib/sass/styles";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { InstallPWAButton } from "@/components/common/install-pwa-button";
 import { useOffline } from "@/hooks/use-is-offline";
@@ -44,7 +44,8 @@ function RootDocument({ children }: { children: React.ReactNode }) {
   const isOffline = useOffline();
 
   // Only show offline alert in production or when actually offline
-  const showOfflineAlert = isOffline && (import.meta.env.PROD || !navigator.onLine);
+  const showOfflineAlert =
+    isOffline && (import.meta.env.PROD || !navigator.onLine);
 
   return (
     <html className="scroll-smooth scroll-">
@@ -56,7 +57,10 @@ function RootDocument({ children }: { children: React.ReactNode }) {
           <NuqsAdapter>
             {showOfflineAlert && (
               <div className="fixed top-0 left-0 right-0 z-50">
-                <Alert variant="destructive" className="rounded-none border-x-0 border-t-0">
+                <Alert
+                  variant="destructive"
+                  className="rounded-none border-x-0 border-t-0"
+                >
                   <WifiOff className="h-4 w-4" />
                   <AlertTitle>Offline Mode</AlertTitle>
                   <AlertDescription>
@@ -66,9 +70,7 @@ function RootDocument({ children }: { children: React.ReactNode }) {
               </div>
             )}
             <Navbar />
-            <div className={showOfflineAlert ? "mt-12" : ""}>
-              {children}
-            </div>
+            <div className={showOfflineAlert ? "mt-12" : ""}>{children}</div>
             <FooterSection />
             <InstallPWAButton />
             <Toaster richColors position="top-center" />

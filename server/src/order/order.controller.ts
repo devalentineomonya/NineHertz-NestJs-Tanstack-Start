@@ -34,7 +34,7 @@ export class OrderController {
   @ApiResponse({ status: 400, description: 'Bad request' })
   @ApiResponse({
     status: 404,
-    description: 'Patient, Pharmacy or Medicine not found',
+    description: 'Patient, Medicine not found',
   })
   create(@Body() createOrderDto: CreateOrderDto) {
     return this.orderService.create(createOrderDto);

@@ -126,7 +126,6 @@ export const medicineColumns: ColumnDef<MedicineResponseDto>[] = [
       variant: "text",
       icon: Factory,
     },
-    enableColumnFilter: true,
   },
   {
     id: "price",
@@ -138,15 +137,28 @@ export const medicineColumns: ColumnDef<MedicineResponseDto>[] = [
       const price = cell.getValue<number>();
       return (
         <div className="font-medium">
-          ${price.toLocaleString(undefined, { minimumFractionDigits: 2 })}
+          Kes {price.toLocaleString(undefined, { minimumFractionDigits: 2 })}
         </div>
       );
     },
     enableSorting: true,
   },
   {
-    id: "barcode",
+    id: "type",
+    accessorKey: "type",
+    header: ({ column }) => (
+      <DataTableColumnHeader column={column} title="Type" />
+    ),
+    cell: ({ row }) => {
+      const type = row.original.type;
+      return <div className="font-medium">{type}</div>;
+    },
+    enableSorting: true,
+    enableColumnFilter: true,
+  },
+  {
     accessorKey: "barcode",
+    id: "barcode",
     header: ({ column }) => (
       <DataTableColumnHeader column={column} title="Barcode" />
     ),
@@ -206,21 +218,22 @@ export const medicineColumns: ColumnDef<MedicineResponseDto>[] = [
               <Eye className="mr-2 h-4 w-4" />
               View Details
             </DropdownMenuItem>
-            {currentUser?.role === "super" && (
-              <>
-                <DropdownMenuItem onClick={() => onEditMedicine(medicine.id)}>
-                  <Edit2 className="mr-2 h-4 w-4" />
-                  Edit Medicine
-                </DropdownMenuItem>
-                <DropdownMenuItem
-                  onClick={() => onDeleteMedicine(row.original.id)}
-                  className="text-red-600"
-                >
-                  <Trash2 className="mr-2 h-4 w-4" />
-                  Delete Medicine
-                </DropdownMenuItem>
-              </>
-            )}
+            {/* {currentUser?.role === "admin" ||
+              (currentUser?.role === "pharmacist" && ( */}
+            <>
+              <DropdownMenuItem onClick={() => onEditMedicine(medicine.id)}>
+                <Edit2 className="mr-2 h-4 w-4" />
+                Edit Medicine
+              </DropdownMenuItem>
+              <DropdownMenuItem
+                onClick={() => onDeleteMedicine(row.original.id)}
+                className="text-red-600"
+              >
+                <Trash2 className="mr-2 h-4 w-4" />
+                Delete Medicine
+              </DropdownMenuItem>
+            </>
+            {/* ))} */}
           </DropdownMenuContent>
         </DropdownMenu>
       );

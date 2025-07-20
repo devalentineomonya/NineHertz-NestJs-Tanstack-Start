@@ -4,10 +4,9 @@ import { PharmacistController } from './pharmacist.controller';
 import { TypeOrmModule } from '@nestjs/typeorm';
 import { Pharmacist } from './entities/pharmacist.entity';
 import { User } from 'src/user/entities/user.entity';
-import { Pharmacy } from 'src/pharmacy/entity/pharmacy.entity';
 
 @Module({
-  imports: [TypeOrmModule.forFeature([Pharmacy, User, Pharmacist])],
+  imports: [TypeOrmModule.forFeature([User, Pharmacist])],
   controllers: [PharmacistController],
   providers: [PharmacistService],
 })

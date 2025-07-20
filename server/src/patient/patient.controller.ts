@@ -104,7 +104,9 @@ export class PatientController {
   async findByUserId(
     @Param('userId') userId: string,
   ): Promise<PatientResponseDto> {
-    return await this.patientService.findByUserId(userId);
+    return (await this.patientService.findByUserId(
+      userId,
+    )) as unknown as PatientResponseDto;
   }
 
   /*=======================================================
@@ -124,7 +126,10 @@ export class PatientController {
     @Param('id') id: string,
     @Body() updatePatientDto: UpdatePatientDto,
   ): Promise<PatientResponseDto> {
-    return await this.patientService.update(id, updatePatientDto);
+    return (await this.patientService.update(
+      id,
+      updatePatientDto,
+    )) as unknown as PatientResponseDto;
   }
 
   /*=======================================================

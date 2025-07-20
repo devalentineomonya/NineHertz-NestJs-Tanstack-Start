@@ -41,7 +41,7 @@ export class StreamService {
 
     const call = this.streamClient.video.call('default', callId);
 
-    const createdCall = await call.getOrCreate({
+    await call.getOrCreate({
       data: {
         created_by: { id: `doctor-${doctorId}` },
         members: [
@@ -51,13 +51,11 @@ export class StreamService {
         starts_at: scheduledTime,
       },
     });
-    console.log(createdCall);
     return { id: callId };
   }
   async upsertUser(user: StreamUser): Promise<void> {
     try {
-      const streamUser = await this.streamClient.upsertUsers([user]);
-      console.dir(streamUser);
+      await this.streamClient.upsertUsers([user]);
     } catch (error: unknown) {
       if (error instanceof Error) {
         console.error('Error details:', error);

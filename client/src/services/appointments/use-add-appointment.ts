@@ -1,15 +1,18 @@
-import { useMutation } from "@tanstack/react-query";
-import { DataServices } from "../data/data-service";
+import { useMutation, useQueryClient } from "@tanstack/react-query";
+import { dataServices } from "../data/data-service";
 
 export const useAddAppointmentService = () => {
-  const dataService = new DataServices();
+  const queryClient = useQueryClient();
   return useMutation({
     mutationFn: async (data: CreateAppointmentDto) => {
-      const response = await dataService.api.appointments.post.call({
+      const response = await dataServices.api.appointments.post.call({
         json: data,
       });
 
       return response.data;
+    },
+    onSuccess: async () => {
+      await queryClient.invalidateQueries({ queryKey: ["appointments"] });
     },
   });
 };

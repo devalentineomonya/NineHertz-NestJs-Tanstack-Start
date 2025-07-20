@@ -1,33 +1,17 @@
 import { ApiProperty } from '@nestjs/swagger';
 import { UserResponseDto } from '../../user/dto/user-response.dto';
-// import { AppointmentResponseDto } from 'src/appointment/dto/appointment-response.dto';
-// import { ConsultationResponseDto } from 'src/consultation/dto/consultation-response.dto';
-// import { CreatePrescriptionDto } from 'src/prescription/dto/create-prescription.dto';
-// import { OrderResponseDto } from 'src/order/dto/order-response.dto';
 
 export class PatientResponseDto {
-  @ApiProperty({
-    example: 'f47ac10b-58cc-4372-a567-0e02b2c3d479',
-    description: 'Unique patient ID',
-  })
+  @ApiProperty({ description: 'Unique patient ID' })
   id: string;
 
-  @ApiProperty({
-    example: 'John Doe',
-    description: 'Patient full name',
-  })
+  @ApiProperty({ description: 'Patient full name' })
   fullName: string;
 
-  @ApiProperty({
-    example: '+1234567890',
-    description: 'Patient phone number',
-  })
+  @ApiProperty({ description: 'Patient phone number' })
   phone: string;
 
-  @ApiProperty({
-    example: '1990-01-15',
-    description: 'Patient date of birth',
-  })
+  @ApiProperty({ description: 'Patient date of birth' })
   dateOfBirth: Date;
 
   @ApiProperty({
@@ -41,24 +25,55 @@ export class PatientResponseDto {
     description: 'Associated user account',
   })
   user: UserResponseDto;
-  // @ApiProperty({
-  //   type: AppointmentResponseDto,
-  //   description: 'Associated user appointments',
-  // })
-  // appointments: AppointmentResponseDto[];
-  // @ApiProperty({
-  //   type: ConsultationResponseDto,
-  //   description: 'Associated user consultations',
-  // })
-  // consultations: ConsultationResponseDto[];
-  // @ApiProperty({
-  //   type: CreatePrescriptionDto,
-  //   description: 'Associated user appointments',
-  // })
-  // prescriptions: CreatePrescriptionDto[];
-  //   @ApiProperty({
-  //     type: OrderResponseDto,
-  //     description: 'Associated user appointments',
-  //   })
-  //   orders: OrderResponseDto[];
+
+  @ApiProperty({
+    type: [Object],
+    description: 'Associated orders',
+    example: [
+      {
+        id: 'ord_123',
+        status: 'completed',
+        orderDate: '2023-01-01',
+        totalAmount: 99.99,
+      },
+    ],
+  })
+  orders?: {
+    id: string;
+    status: string;
+    orderDate: Date;
+    totalAmount: number;
+  }[];
+
+  @ApiProperty({
+    type: [Object],
+    description: 'Associated appointments',
+    example: [
+      { id: 'app_123', datetime: '2023-01-01T10:00:00Z', status: 'confirmed' },
+    ],
+  })
+  appointments?: {
+    id: string;
+    datetime: Date;
+    status: string;
+  }[];
+
+  @ApiProperty({
+    type: [Object],
+    description: 'Associated prescriptions',
+    example: [
+      { id: 'rx_123', issueDate: '2023-01-01', expiryDate: '2024-01-01' },
+    ],
+  })
+  prescriptions?: {
+    id: string;
+    issueDate: Date;
+    expiryDate: Date;
+  }[];
+
+  @ApiProperty({
+    description: 'Patient status (active or inactive)',
+    example: 'active',
+  })
+  status?: 'active' | 'inactive';
 }

@@ -67,9 +67,13 @@ if (!self.define) {
     });
   };
 }
-define(['./workbox-a75716e7'], (function (workbox) { 'use strict';
+define(['./workbox-86c9b217'], (function (workbox) { 'use strict';
 
-  self.skipWaiting();
+  self.addEventListener('message', event => {
+    if (event.data && event.data.type === 'SKIP_WAITING') {
+      self.skipWaiting();
+    }
+  });
   workbox.clientsClaim();
 
   /**
@@ -78,52 +82,12 @@ define(['./workbox-a75716e7'], (function (workbox) { 'use strict';
    * See https://goo.gl/S9QRab
    */
   workbox.precacheAndRoute([{
-    "url": "registerSW.js",
-    "revision": "3ca0b8505b4bec776b69afdba2768812"
-  }, {
     "url": "index.html",
-    "revision": "0.gndorvru208"
+    "revision": "0.0p1l9dsem0o"
   }], {});
   workbox.cleanupOutdatedCaches();
   workbox.registerRoute(new workbox.NavigationRoute(workbox.createHandlerBoundToURL("index.html"), {
     allowlist: [/^\/$/]
   }));
-  workbox.registerRoute(/^https:\/\/(cdn|fonts|api)\./, new workbox.CacheFirst({
-    "cacheName": "external-assets",
-    plugins: [new workbox.ExpirationPlugin({
-      maxEntries: 30,
-      maxAgeSeconds: 2592000
-    })]
-  }), 'GET');
-  workbox.registerRoute(/\.(?:js|css|html)$/, new workbox.StaleWhileRevalidate({
-    "cacheName": "static-assets",
-    plugins: []
-  }), 'GET');
-  workbox.registerRoute(/\.(?:png|jpg|jpeg|svg|gif)$/, new workbox.CacheFirst({
-    "cacheName": "image-assets",
-    plugins: [new workbox.ExpirationPlugin({
-      maxEntries: 60,
-      maxAgeSeconds: 2592000
-    })]
-  }), 'GET');
-  workbox.registerRoute(({
-    request
-  }) => request.mode === "navigate", new workbox.NetworkFirst({
-    "cacheName": "offline-fallback",
-    "networkTimeoutSeconds": 3,
-    plugins: [new workbox.ExpirationPlugin({
-      maxEntries: 10
-    }), {
-      cacheWillUpdate: async ({
-        response
-      }) => {
-        if (response.status >= 400) {
-          return null;
-        }
-        return response;
-      }
-    }]
-  }), 'GET');
-  workbox.initialize({});
 
 }));

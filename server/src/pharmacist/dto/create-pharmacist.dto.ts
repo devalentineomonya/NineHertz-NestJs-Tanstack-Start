@@ -1,4 +1,4 @@
-import { IsNotEmpty, IsString, IsUUID } from 'class-validator';
+import { IsNotEmpty, IsString, IsUUID, IsPhoneNumber } from 'class-validator';
 import { ApiProperty } from '@nestjs/swagger';
 
 export class CreatePharmacistDto {
@@ -17,8 +17,8 @@ export class CreatePharmacistDto {
   @IsUUID()
   userId: string;
 
-  @ApiProperty({ description: 'UUID of the associated pharmacy' })
+  @ApiProperty({ description: 'Phone number of the pharmacist' })
   @IsNotEmpty()
-  @IsUUID()
-  pharmacyId: string;
+  @IsPhoneNumber()
+  phoneNumber: string;
 }

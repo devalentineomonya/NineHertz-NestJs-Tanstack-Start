@@ -10,7 +10,6 @@ import {
 
 export class MedicineFilter {
   @ApiPropertyOptional({
-    example: 'paracetamol',
     description: 'Search term for medicine name or generic name',
   })
   @IsOptional()
@@ -18,7 +17,6 @@ export class MedicineFilter {
   search?: string;
 
   @ApiPropertyOptional({
-    example: 'Pharma Inc',
     description: 'Manufacturer name filter',
   })
   @IsOptional()
@@ -26,7 +24,6 @@ export class MedicineFilter {
   manufacturer?: string;
 
   @ApiPropertyOptional({
-    example: 5.0,
     description: 'Minimum price filter',
   })
   @IsOptional()
@@ -36,7 +33,6 @@ export class MedicineFilter {
   minPrice?: number;
 
   @ApiPropertyOptional({
-    example: 20.0,
     description: 'Maximum price filter',
   })
   @IsOptional()

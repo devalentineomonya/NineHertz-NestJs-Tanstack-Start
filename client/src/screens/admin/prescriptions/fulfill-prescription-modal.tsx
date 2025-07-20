@@ -8,8 +8,6 @@ import {
   DialogTitle,
 } from "@/components/ui/dialog";
 import { useFulfillPrescriptionStore } from "@/stores/use-fulfill-prescription-store";
-// import { useFulfillPrescriptionService } from "@/services/prescriptions/use-fulfill-prescription";
-import { useGetPharmacies } from "@/services/pharmacies/use-get-pharmacies";
 import {
   Command,
   CommandEmpty,
@@ -23,14 +21,16 @@ import {
   PopoverContent,
   PopoverTrigger,
 } from "@/components/ui/popover";
+import { cn } from "@/lib/utils";
+import { useGetPharmacists } from "@/services/pharmacists/use-get-pharmacists";
 import { Check, ChevronsUpDown, Loader } from "lucide-react";
 import { useState } from "react";
-import { cn } from "@/lib/utils";
 import { toast } from "sonner";
 
 export function FulfillPrescriptionModal() {
   const { isOpen, onClose, prescriptionId } = useFulfillPrescriptionStore();
-  const { data: pharmacies, isLoading: loadingPharmacies } = useGetPharmacies();
+  const { data: pharmacies, isLoading: loadingPharmacies } =
+    useGetPharmacists();
   //   const fulfillMutation = useFulfillPrescriptionService();
   const [open, setOpen] = useState(false);
   const [pharmacyId, setPharmacyId] = useState("");
@@ -70,38 +70,39 @@ export function FulfillPrescriptionModal() {
                 className="w-full justify-between"
               >
                 {pharmacyId
-                  ? pharmacies?.find((pharmacy) => pharmacy.id === pharmacyId)
-                      ?.name
-                  : "Select pharmacy..."}
+                  ? pharmacies?.find(
+                      (pharmacist) => pharmacist.id === pharmacyId
+                    )?.fullName
+                  : "Select pharmacist..."}
                 <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
               </Button>
             </PopoverTrigger>
             <PopoverContent className="w-full p-0">
               <Command>
-                <CommandInput placeholder="Search pharmacies..." />
+                <CommandInput placeholder="Search pharmacists..." />
                 <CommandList>
                   <CommandEmpty>
-                    {loadingPharmacies ? "Loading..." : "No pharmacies found"}
+                    {loadingPharmacies ? "Loading..." : "No pharmacists found"}
                   </CommandEmpty>
                   <CommandGroup>
-                    {pharmacies?.map((pharmacy) => (
+                    {pharmacies?.map((pharmacist) => (
                       <CommandItem
-                        key={pharmacy.id}
-                        value={pharmacy.name}
+                        key={pharmacist.id}
+                        value={pharmacist.fullName}
                         onSelect={() => {
-                          setPharmacyId(pharmacy.id);
+                          setPharmacyId(pharmacist.id);
                           setOpen(false);
                         }}
                       >
                         <Check
                           className={cn(
                             "mr-2 h-4 w-4",
-                            pharmacyId === pharmacy.id
+                            pharmacyId === pharmacist.id
                               ? "opacity-100"
                               : "opacity-0"
                           )}
                         />
-                        {pharmacy.name}
+                        {pharmacist.fullName}
                       </CommandItem>
                     ))}
                   </CommandGroup>

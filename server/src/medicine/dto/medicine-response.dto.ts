@@ -38,6 +38,13 @@ export class MedicineResponseDto {
   manufacturer: string;
 
   @ApiProperty({
+    enum: ['otc', 'prescribed'],
+    description:
+      'The type of drugs either otc, for over the counter drug or Prescribed',
+  })
+  type: 'otc' | 'prescribed';
+
+  @ApiProperty({
     example: '1234567890123',
     description: 'Barcode',
   })

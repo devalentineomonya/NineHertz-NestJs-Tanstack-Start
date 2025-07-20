@@ -16,11 +16,18 @@ import {
   FormMessage,
 } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
+import {
+  Select,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 import { Textarea } from "@/components/ui/textarea";
 import { useEditMedicineService } from "@/services/medicines/use-edit-medicine";
 import { useGetMedicine } from "@/services/medicines/use-get-medicine";
 import { useEditMedicineStore } from "@/stores/use-edit-medicine-store";
 import { zodResolver } from "@hookform/resolvers/zod";
+import { SelectContent } from "@radix-ui/react-select";
 import { Loader } from "lucide-react";
 import { useEffect } from "react";
 import { useForm } from "react-hook-form";
@@ -33,6 +40,9 @@ const medicineFormSchema = z.object({
   description: z.string().min(10, "Description must be at least 10 characters"),
   price: z.number().min(0.01, "Price must be at least $0.01"),
   manufacturer: z.string().min(2, "Manufacturer must be at least 2 characters"),
+  type: z.enum(["otc", "prescribed"], {
+    required_error: "Type is required",
+  }),
   barcode: z.string().optional(),
 });
 
@@ -51,7 +61,7 @@ export const EditMedicineDrawer = () => {
       name: "",
       genericName: "",
       description: "",
-      price: 0.01,
+      price: 10.00,
       manufacturer: "",
       barcode: "",
     },
@@ -63,7 +73,7 @@ export const EditMedicineDrawer = () => {
         name: medicine.name,
         genericName: medicine.genericName,
         description: medicine.description,
-        price: medicine.price,
+        price: Number(medicine.price),
         manufacturer: medicine.manufacturer,
         barcode: medicine.barcode || "",
       });
@@ -133,6 +143,31 @@ export const EditMedicineDrawer = () => {
                     <FormLabel>Generic Name</FormLabel>
                     <FormControl>
                       <Input placeholder="Amoxicillin trihydrate" {...field} />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+
+              <FormField
+                control={form.control}
+                name="type"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Type</FormLabel>
+                    <FormControl>
+                      <Select
+                        onValueChange={field.onChange}
+                        defaultValue={field.value}
+                      >
+                        <SelectTrigger className="border rounded px-3 py-2 w-full">
+                          <SelectValue placeholder=" Select type" />
+                        </SelectTrigger>
+                        <SelectContent>
+                          <SelectItem value="otc">OTC</SelectItem>
+                          <SelectItem value="prescribed">Prescribed</SelectItem>
+                        </SelectContent>
+                      </Select>
                     </FormControl>
                     <FormMessage />
                   </FormItem>

@@ -12,7 +12,7 @@ import {
 } from "@/components/ui/drawer";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { useViewPrescriptionStore } from "@/stores/use-view-prescription-store";
-import { format, differenceInDays } from "date-fns";
+import { format, differenceInDays, parseISO } from "date-fns";
 import {
   Pill,
   Calendar,
@@ -23,6 +23,9 @@ import {
   FileText,
   Clock,
   ChevronRight,
+  Printer,
+  Check,
+  X,
 } from "lucide-react";
 
 export const ViewPrescriptionDrawer = () => {
@@ -35,17 +38,16 @@ export const ViewPrescriptionDrawer = () => {
 
   if (!selectedPrescription) return null;
 
-  const isExpired =
-    differenceInDays(new Date(), new Date(selectedPrescription.expiryDate)) > 0;
-  const daysRemaining = Math.max(
-    0,
-    differenceInDays(new Date(selectedPrescription.expiryDate), new Date())
-  );
+  // Improved date handling with parseISO
+  const issueDate = parseISO(selectedPrescription.issueDate);
+  const expiryDate = parseISO(selectedPrescription.expiryDate);
+  const isExpired = differenceInDays(new Date(), expiryDate) > 0;
+  const daysRemaining = Math.max(0, differenceInDays(expiryDate, new Date()));
 
   return (
     <Drawer direction="right" open={isOpen} onOpenChange={onClose}>
-      <DrawerContent className="right-2 top-2 bottom-2 fixed flex data-[vaul-drawer-direction=right]:sm:max-w-lg bg-gradient-to-b from-white to-gray-50">
-        <DrawerHeader className="flex-row justify-between items-center border-b mt-2 pb-4">
+      <DrawerContent className="right-0 top-0 bottom-0 fixed flex data-[vaul-drawer-direction=right]:sm:max-w-lg bg-gradient-to-b from-white to-gray-50 w-full sm:w-[36rem]">
+        <DrawerHeader className="flex-row justify-between items-center border-b px-6 py-4">
           <div className="flex items-center gap-3">
             <div className="bg-blue-100 p-3 rounded-lg">
               <Pill className="h-6 w-6 text-blue-600" />
@@ -61,14 +63,15 @@ export const ViewPrescriptionDrawer = () => {
           </div>
           <Badge
             variant={selectedPrescription.isFulfilled ? "success" : "warning"}
+            className="text-sm py-1 px-3"
           >
             {selectedPrescription.isFulfilled ? "Fulfilled" : "Pending"}
           </Badge>
         </DrawerHeader>
 
-        <ScrollArea className="px-6 py-4 h-[calc(100dvh-172px)]">
-          <div className="space-y-4">
-            {/* Prescription Summary Card */}
+        <ScrollArea className="px-6 py-4 flex-1 h-[calc(100vh-150px)]">
+          <div className="space-y-6">
+            {/* Prescription Summary Card - Updated with status indicator */}
             <Card>
               <CardHeader>
                 <CardTitle className="flex items-center gap-2 text-gray-700">
@@ -84,7 +87,11 @@ export const ViewPrescriptionDrawer = () => {
                   <div>
                     <p className="text-sm text-muted-foreground">Medication</p>
                     <p className="font-medium">
-                      {selectedPrescription.medicationDetails}
+                      {selectedPrescription.items.map((item, index) => (
+                        <span key={index}>
+                          {item.medicineId || "Unknown Item"}
+                        </span>
+                      ))}
                     </p>
                   </div>
                 </div>
@@ -94,48 +101,52 @@ export const ViewPrescriptionDrawer = () => {
                     <p className="text-sm text-muted-foreground">Date Issued</p>
                     <p className="font-medium flex items-center gap-1">
                       <Calendar className="h-4 w-4" />
-                      {format(
-                        new Date(selectedPrescription.issueDate),
-                        "MMM d, yyyy"
-                      )}
+                      {format(issueDate, "MMM d, yyyy")}
                     </p>
                   </div>
                   <div>
                     <p className="text-sm text-muted-foreground">Expiry Date</p>
                     <p
                       className={`font-medium flex items-center gap-1 ${
-                        isExpired ? "text-destructive" : ""
+                        isExpired ? "text-destructive" : "text-amber-600"
                       }`}
                     >
                       <Clock className="h-4 w-4" />
-                      {format(
-                        new Date(selectedPrescription.expiryDate),
-                        "MMM d, yyyy"
-                      )}
+                      {format(expiryDate, "MMM d, yyyy")}
                     </p>
                   </div>
                 </div>
 
-                <div className="bg-gray-50 rounded-lg p-4">
+                <div className="bg-gray-50 rounded-lg p-4 border">
                   <div className="flex justify-between items-center">
                     <div>
                       <p className="text-sm text-muted-foreground">Status</p>
-                      <p className="font-medium">
-                        {selectedPrescription.isFulfilled
-                          ? "Fulfilled"
-                          : "Pending"}
+                      <p className="font-medium flex items-center gap-2">
+                        {selectedPrescription.isFulfilled ? (
+                          <>
+                            <CheckCircle className="h-4 w-4 text-green-500" />
+                            Fulfilled
+                          </>
+                        ) : (
+                          <>
+                            <Clock className="h-4 w-4 text-amber-500" />
+                            Pending
+                          </>
+                        )}
                       </p>
                     </div>
                     <div>
                       <p className="text-sm text-muted-foreground">Validity</p>
                       <p
                         className={`font-medium ${
-                          isExpired ? "text-destructive" : "text-success"
+                          isExpired ? "text-destructive" : "text-green-600"
                         }`}
                       >
                         {isExpired
                           ? "Expired"
-                          : `${daysRemaining} days remaining`}
+                          : `${daysRemaining} day${
+                              daysRemaining !== 1 ? "s" : ""
+                            } remaining`}
                       </p>
                     </div>
                   </div>
@@ -143,7 +154,7 @@ export const ViewPrescriptionDrawer = () => {
               </CardContent>
             </Card>
 
-            {/* Patient Information Card */}
+            {/* Patient Information Card - Added responsive layout */}
             <Card>
               <CardHeader>
                 <CardTitle className="flex items-center gap-2 text-gray-700">
@@ -151,8 +162,8 @@ export const ViewPrescriptionDrawer = () => {
                   Patient Information
                 </CardTitle>
               </CardHeader>
-              <CardContent className="flex gap-4">
-                <Avatar className="h-16 w-16 rounded-md">
+              <CardContent className="flex flex-col sm:flex-row gap-4">
+                <Avatar className="h-16 w-16 rounded-md mb-4 sm:mb-0">
                   <AvatarImage
                     src={`https://avatar.vercel.sh/${selectedPrescription.patient.id}`}
                   />
@@ -163,7 +174,7 @@ export const ViewPrescriptionDrawer = () => {
                       .join("")}
                   </AvatarFallback>
                 </Avatar>
-                <div className="grid grid-cols-2 gap-4 w-full">
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 w-full">
                   <div>
                     <p className="text-sm text-muted-foreground">Full Name</p>
                     <p className="font-medium">
@@ -183,7 +194,7 @@ export const ViewPrescriptionDrawer = () => {
                     <p className="font-medium">
                       {selectedPrescription.patient.dateOfBirth
                         ? format(
-                            new Date(selectedPrescription.patient.dateOfBirth),
+                            selectedPrescription.patient.dateOfBirth,
                             "MMM d, yyyy"
                           )
                         : "Not provided"}
@@ -191,15 +202,13 @@ export const ViewPrescriptionDrawer = () => {
                   </div>
                   <div>
                     <p className="text-sm text-muted-foreground">Gender</p>
-                    <p className="font-medium capitalize">
-                      {selectedPrescription.patient.gender || "Not provided"}
-                    </p>
+                    <p className="font-medium capitalize">{"Not provided"}</p>
                   </div>
                 </div>
               </CardContent>
             </Card>
 
-            {/* Prescribing Doctor Card */}
+            {/* Prescribing Doctor Card - Added email and clinic info */}
             <Card>
               <CardHeader>
                 <CardTitle className="flex items-center gap-2 text-gray-700">
@@ -207,8 +216,8 @@ export const ViewPrescriptionDrawer = () => {
                   Prescribing Doctor
                 </CardTitle>
               </CardHeader>
-              <CardContent className="flex gap-4">
-                <Avatar className="h-16 w-16 rounded-md">
+              <CardContent className="flex flex-col sm:flex-row gap-4">
+                <Avatar className="h-16 w-16 rounded-md mb-4 sm:mb-0">
                   <AvatarImage
                     src={`https://avatar.vercel.sh/${selectedPrescription.prescribedBy.id}`}
                   />
@@ -219,7 +228,7 @@ export const ViewPrescriptionDrawer = () => {
                       .join("")}
                   </AvatarFallback>
                 </Avatar>
-                <div className="grid grid-cols-2 gap-4 w-full">
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 w-full">
                   <div>
                     <p className="text-sm text-muted-foreground">Doctor Name</p>
                     <p className="font-medium">
@@ -243,16 +252,17 @@ export const ViewPrescriptionDrawer = () => {
                   </div>
                   <div>
                     <p className="text-sm text-muted-foreground">Contact</p>
-                    <p className="font-medium">
-                      {selectedPrescription.prescribedBy.phone ||
-                        "Not provided"}
-                    </p>
+                    <p className="font-medium">{"Not provided"}</p>
+                  </div>
+                  <div className="sm:col-span-2">
+                    <p className="text-sm text-muted-foreground">Clinic</p>
+                    <p className="font-medium">{"Not provided"}</p>
                   </div>
                 </div>
               </CardContent>
             </Card>
 
-            {/* Medication Details Card */}
+            {/* Medication Details Card - Added dosage information */}
             <Card>
               <CardHeader>
                 <CardTitle className="flex items-center gap-2 text-gray-700">
@@ -262,33 +272,54 @@ export const ViewPrescriptionDrawer = () => {
               </CardHeader>
               <CardContent>
                 <div className="space-y-4">
-                  <div className="flex items-center justify-between p-3 bg-gray-50 rounded-lg">
-                    <div>
-                      <p className="text-sm text-muted-foreground">
-                        Medication Name
-                      </p>
-                      <p className="font-medium">
-                        {selectedPrescription.medicationDetails}
-                      </p>
-                    </div>
-                    <ChevronRight className="h-5 w-5 text-gray-400" />
-                  </div>
+                  {selectedPrescription.items.map((item) => (
+                    <>
+                      <div className="flex items-center justify-between p-3 bg-gray-50 rounded-lg border">
+                        <div>
+                          <p className="text-sm text-muted-foreground">
+                            Medication Name
+                          </p>
+                          <p className="font-medium">{item.medicineId}</p>
+                        </div>
+                        <ChevronRight className="h-5 w-5 text-gray-400" />
+                      </div>
 
-                  {selectedPrescription.medicationDetails && (
-                    <div className="p-3 bg-gray-50 rounded-lg">
-                      <p className="text-sm text-muted-foreground">
-                        Additional Notes
-                      </p>
-                      <p className="font-medium whitespace-pre-line">
-                        {selectedPrescription.medicationDetails}
-                      </p>
-                    </div>
-                  )}
+                      <div className="grid grid-cols-2 gap-4">
+                        <div className="p-3 bg-gray-50 rounded-lg border">
+                          <p className="text-sm text-muted-foreground">
+                            Dosage
+                          </p>
+                          <p className="font-medium">
+                            {item.dosage || "Not specified"}
+                          </p>
+                        </div>
+                        <div className="p-3 bg-gray-50 rounded-lg border">
+                          <p className="text-sm text-muted-foreground">
+                            Frequency
+                          </p>
+                          <p className="font-medium">
+                            {item.frequency || "Not specified"}
+                          </p>
+                        </div>
+                      </div>
+
+                      {item.note && (
+                        <div className="p-3 bg-gray-50 rounded-lg border">
+                          <p className="text-sm text-muted-foreground">
+                            Special Instructions
+                          </p>
+                          <p className="font-medium whitespace-pre-line">
+                            {item.note}
+                          </p>
+                        </div>
+                      )}
+                    </>
+                  ))}
                 </div>
               </CardContent>
             </Card>
 
-            {/* Fulfillment History Card */}
+            {/* Fulfillment History Card - Added pharmacy details */}
             {selectedPrescription.isFulfilled && (
               <Card>
                 <CardHeader>
@@ -298,15 +329,15 @@ export const ViewPrescriptionDrawer = () => {
                   </CardTitle>
                 </CardHeader>
                 <CardContent className="space-y-4">
-                  <div className="grid grid-cols-2 gap-4">
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                     <div>
                       <p className="text-sm text-muted-foreground">
                         Fulfillment Date
                       </p>
                       <p className="font-medium">
-                        {selectedPrescription.updatedAt
+                        {selectedPrescription.fulfillmentDate
                           ? format(
-                              new Date(selectedPrescription.updatedAt),
+                              parseISO(selectedPrescription.fulfillmentDate),
                               "MMM d, yyyy 'at' h:mm a"
                             )
                           : "Not recorded"}
@@ -317,9 +348,19 @@ export const ViewPrescriptionDrawer = () => {
                         Fulfilled By
                       </p>
                       <p className="font-medium">
-                        {selectedPrescription.pharmacyId || "Not recorded"}
+                        {selectedPrescription.pharmacistId || "Not recorded"}
                       </p>
                     </div>
+                    {/* {selectedPrescription.pharmacy?.address && (
+                      <div className="sm:col-span-2">
+                        <p className="text-sm text-muted-foreground">
+                          Pharmacy Address
+                        </p>
+                        <p className="font-medium">
+                          {selectedPrescription.pharmacy.address}
+                        </p>
+                      </div>
+                    )} */}
                   </div>
                 </CardContent>
               </Card>
@@ -347,12 +388,12 @@ export const ViewPrescriptionDrawer = () => {
                   System Information
                 </CardTitle>
               </CardHeader>
-              <CardContent className="grid grid-cols-2 gap-4">
+              <CardContent className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                 <div>
                   <p className="text-sm text-muted-foreground">Created At</p>
                   <p className="font-medium">
                     {format(
-                      new Date(selectedPrescription.createdAt),
+                      parseISO(selectedPrescription.createdAt),
                       "MMM d, yyyy 'at' h:mm a"
                     )}
                   </p>
@@ -361,25 +402,23 @@ export const ViewPrescriptionDrawer = () => {
                   <p className="text-sm text-muted-foreground">Updated At</p>
                   <p className="font-medium">
                     {format(
-                      new Date(selectedPrescription.updatedAt),
+                      parseISO(selectedPrescription.updatedAt),
                       "MMM d, yyyy 'at' h:mm a"
                     )}
+                  </p>
+                </div>
+                <div className="sm:col-span-2">
+                  <p className="text-sm text-muted-foreground">
+                    Last Updated By
+                  </p>
+                  <p className="font-medium">
+                    {selectedPrescription.prescribedBy.fullName || "System"}
                   </p>
                 </div>
               </CardContent>
             </Card>
           </div>
         </ScrollArea>
-
-        <DrawerFooter className="flex flex-row justify-end gap-3 border-t pt-4">
-          <Button variant="outline">Print Prescription</Button>
-          {!selectedPrescription.isFulfilled && (
-            <Button>Mark as Fulfilled</Button>
-          )}
-          <DrawerClose asChild>
-            <Button variant="secondary">Close</Button>
-          </DrawerClose>
-        </DrawerFooter>
       </DrawerContent>
     </Drawer>
   );

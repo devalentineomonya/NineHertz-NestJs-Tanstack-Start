@@ -8,14 +8,13 @@ import {
 } from "@/components/ui/sidebar";
 import { Link } from "@tanstack/react-router";
 
-
 export function NavMain({
   items,
 }: {
   items: Array<{
     title: string;
     url: string;
-    icon?: React.ComponentType;
+    icon?: React.ComponentType<{ className?: string }>;
     isActive?: boolean;
   }>;
 }) {

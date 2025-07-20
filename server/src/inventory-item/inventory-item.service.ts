@@ -11,7 +11,6 @@ import { UpdateInventoryItemDto } from './dto/update-inventory-item.dto';
 import { InventoryItemResponseDto } from './dto/inventory-item-response.dto';
 import { InventoryItemPaginatedDto } from './dto/inventory-item-paginated.dto';
 import { Medicine } from '../medicine/entities/medicine.entity';
-import { Pharmacy } from 'src/pharmacy/entity/pharmacy.entity';
 import { PaginationDto } from 'src/shared/dto/pagination.dto';
 import { InventoryFilter } from './dto/inventory-filter.dto';
 
@@ -22,8 +21,6 @@ export class InventoryItemService {
     private inventoryItemRepository: Repository<InventoryItem>,
     @InjectRepository(Medicine)
     private medicineRepository: Repository<Medicine>,
-    @InjectRepository(Pharmacy)
-    private pharmacyRepository: Repository<Pharmacy>,
   ) {}
 
   async create(
@@ -38,27 +35,16 @@ export class InventoryItemService {
       );
     }
 
-    const pharmacy = await this.pharmacyRepository.findOne({
-      where: { id: createDto.pharmacyId },
-      relations: ['institution'],
-    });
-    if (!pharmacy) {
-      throw new NotFoundException(
-        `Pharmacy with ID ${createDto.pharmacyId} not found`,
-      );
-    }
-
     // Check if item already exists
     const existingItem = await this.inventoryItemRepository.findOne({
       where: {
         medicine: { id: createDto.medicineId },
-        pharmacy: { id: createDto.pharmacyId },
       },
     });
 
     if (existingItem) {
       throw new BadRequestException(
-        'Inventory item for this medicine already exists in this pharmacy',
+        'Inventory item for this medicine already exists',
       );
     }
 
@@ -66,7 +52,6 @@ export class InventoryItemService {
       quantity: createDto.quantity,
       reorderThreshold: createDto.reorderThreshold,
       medicine,
-      pharmacy,
       lastRestocked: new Date(),
     });
 
@@ -83,10 +68,6 @@ export class InventoryItemService {
 
     const where: FindOptionsWhere<InventoryItem> = {};
 
-    if (filters.pharmacyId) {
-      where.pharmacy = { id: filters.pharmacyId };
-    }
-
     if (filters.medicineId) {
       where.medicine = { id: filters.medicineId };
     }
@@ -97,7 +78,7 @@ export class InventoryItemService {
 
     const [items, total] = await this.inventoryItemRepository.findAndCount({
       where,
-      relations: ['medicine', 'pharmacy', 'pharmacy.institution'],
+      relations: ['medicine'],
       take: limit,
       skip,
       order: { lastRestocked: 'DESC' },
@@ -114,7 +95,7 @@ export class InventoryItemService {
   async findOne(id: string): Promise<InventoryItemResponseDto> {
     const item = await this.inventoryItemRepository.findOne({
       where: { id },
-      relations: ['medicine', 'pharmacy', 'pharmacy.institution'],
+      relations: ['medicine'],
     });
 
     if (!item) {
@@ -130,7 +111,7 @@ export class InventoryItemService {
   ): Promise<InventoryItemResponseDto> {
     const item = await this.inventoryItemRepository.findOne({
       where: { id },
-      relations: ['medicine', 'pharmacy'],
+      relations: ['medicine'],
     });
 
     if (!item) {
@@ -155,7 +136,7 @@ export class InventoryItemService {
   ): Promise<InventoryItemResponseDto> {
     const item = await this.inventoryItemRepository.findOne({
       where: { id },
-      relations: ['medicine', 'pharmacy'],
+      relations: ['medicine'],
     });
 
     if (!item) {
@@ -187,6 +168,7 @@ export class InventoryItemService {
       reorderThreshold: item.reorderThreshold,
       lastRestocked: item.lastRestocked,
       medicine: {
+        type: item.medicine.type,
         id: item.medicine.id,
         name: item.medicine.name,
         genericName: item.medicine.genericName,
@@ -196,20 +178,6 @@ export class InventoryItemService {
         barcode: item.medicine.barcode,
         createdAt: item.medicine.createdAt,
         updatedAt: item.medicine.updatedAt,
-      },
-      pharmacy: {
-        id: item.pharmacy.id,
-        name: item.pharmacy.name,
-        address: item.pharmacy.address,
-        contactPhone: item.pharmacy.contactPhone,
-        licenseNumber: item.pharmacy.licenseNumber,
-        inventoryIds:
-          item.pharmacy.inventory?.map((inventory) => inventory.id) || [],
-        orderIds: item.pharmacy.orders?.map((order) => order.id) || [],
-        pharmacistIds:
-          item.pharmacy.pharmacists?.map((pharmacist) => pharmacist.id) || [],
-        createdAt: item.pharmacy.createdAt,
-        updatedAt: item.pharmacy.updatedAt,
       },
     };
   }

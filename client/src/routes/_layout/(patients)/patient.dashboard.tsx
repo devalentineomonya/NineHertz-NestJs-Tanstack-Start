@@ -1,4 +1,3 @@
-import { PatientScheduler } from "@/screens/patient/dashboard-calendar";
 import { PatientDashboardStats } from "@/screens/patient/dashboard-stat-cards";
 import { PatientActivityTable } from "@/screens/patient/dashboard-upcoming";
 import { createFileRoute } from "@tanstack/react-router";
@@ -12,7 +11,6 @@ function RouteComponent() {
     <>
       <PatientDashboardStats />
       <PatientActivityTable />
-      <PatientScheduler />
     </>
   );
 }

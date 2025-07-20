@@ -5,6 +5,7 @@ import {
   IsNumber,
   Min,
   IsOptional,
+  IsIn,
 } from 'class-validator';
 
 export class CreateMedicineDto {
@@ -48,6 +49,15 @@ export class CreateMedicineDto {
   @IsString()
   @IsNotEmpty()
   manufacturer: string;
+
+  @ApiProperty({
+    example: 'otc',
+    description:
+      'The type of drugs either otc, for over the counter drug or Prescribed',
+  })
+  @IsIn(['otc', 'prescribed'])
+  @IsOptional()
+  type?: 'otc' | 'prescribed';
 
   @ApiProperty({
     example: '1234567890123',

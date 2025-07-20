@@ -1,18 +1,18 @@
 import {
-  Controller,
-  Get,
-  Post,
   Body,
-  Param,
-  Put,
+  Controller,
   Delete,
+  Get,
+  Param,
   ParseUUIDPipe,
+  Post,
+  Put,
 } from '@nestjs/common';
-import { PharmacistService } from './pharmacist.service';
+import { ApiOperation, ApiParam, ApiResponse, ApiTags } from '@nestjs/swagger';
 import { CreatePharmacistDto } from './dto/create-pharmacist.dto';
+import { PharmacistResponseDto } from './dto/pharmacist-response.dto';
 import { UpdatePharmacistDto } from './dto/update-pharmacist.dto';
-import { PharmacistResponseDto } from './dto/pharmacy-response.dto';
-import { ApiTags, ApiOperation, ApiResponse, ApiParam } from '@nestjs/swagger';
+import { PharmacistService } from './pharmacist.service';
 
 @ApiTags('Pharmacists')
 @Controller('pharmacists')

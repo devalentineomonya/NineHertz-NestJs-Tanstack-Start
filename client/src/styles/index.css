@@ -1,5 +1,5 @@
 @import url("https://fonts.googleapis.com/css2?family=Rubik:ital,wght@0,300..900;1,300..900&display=swap");
-@import "tailwindcss" source("../");
+@import "tailwindcss";
 @import "tw-animate-css";
 @plugin "tailwind-scrollbar-hide";
 
@@ -116,10 +116,10 @@
 
 @keyframes bg-shine {
   from {
-    backgroundposition: "0 0";
+    background-position: "0 0";
   }
   to {
-    backgroundposition: "-200% 0";
+    background-position: "-200% 0";
   }
 }
 
@@ -149,5 +149,8 @@
   .str-video__loading-indicator__icon.spinner {
     @apply h-24 w-24 text-green-600 border-green-600;
     mask-size: 4rem;
+  }
+  .chat-area::-webkit-scrollbar {
+    display: none;
   }
 }

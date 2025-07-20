@@ -5,11 +5,11 @@ import { PrescriptionController } from './prescription.controller';
 import { Prescription } from './entities/prescription.entity';
 import { Patient } from '../patient/entities/patient.entity';
 import { Doctor } from '../doctor/entities/doctor.entity';
-import { Pharmacy } from '../pharmacy/entity/pharmacy.entity';
+import { Pharmacist } from 'src/pharmacist/entities/pharmacist.entity';
 
 @Module({
   imports: [
-    TypeOrmModule.forFeature([Prescription, Patient, Doctor, Pharmacy]),
+    TypeOrmModule.forFeature([Prescription, Patient, Doctor, Pharmacist]),
   ],
   controllers: [PrescriptionController],
   providers: [PrescriptionService],

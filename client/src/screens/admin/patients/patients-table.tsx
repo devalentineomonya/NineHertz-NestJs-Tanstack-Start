@@ -1,18 +1,21 @@
 import { DataTable } from "@/components/data-table/data-table";
 import { DataTableSkeleton } from "@/components/data-table/data-table-skeleton";
 import { DataTableToolbar } from "@/components/data-table/data-table-toolbar";
+import { Button } from "@/components/ui/button";
 import { useDataTable } from "@/hooks/use-data-table";
 import { useGetPatients } from "@/services/patients/use-get-patients";
-import { parseAsArrayOf, parseAsString, useQueryState } from "nuqs";
-import * as React from "react";
-import { patientColumns } from "./patient-table-columns";
 import { useAddPatientStore } from "@/stores/use-add-patient-store";
 import { PlusSquare } from "lucide-react";
-import { Button } from "@/components/ui/button";
+import { parseAsArrayOf, parseAsString, useQueryState } from "nuqs";
+import * as React from "react";
 import { DeletePatientConfirmModal } from "./delete-patient-confirm";
+import { patientColumns } from "./patient-table-columns";
+import { useUserSessionStore } from "@/stores/user-session-store";
 
-export function AdminPatients() {
+export function PatientsTable() {
   const { data: patients, isLoading } = useGetPatients();
+  const { getCurrentUser } = useUserSessionStore();
+  const currentUser = getCurrentUser();
   const { onOpen: onPatientDrawerOpen } = useAddPatientStore();
   const [fullName] = useQueryState("fullName", parseAsString.withDefault(""));
   const [status] = useQueryState(
@@ -72,12 +75,14 @@ export function AdminPatients() {
 
   return (
     <div className="data-table-container">
-      <div className="w-fit min-w-56 mb-2">
-        <Button variant={"primary"} onClick={onPatientDrawerOpen}>
-          <PlusSquare />
-          Add Patient
-        </Button>
-      </div>
+      {currentUser?.role === "admin" && (
+        <div className="w-fit min-w-56 mb-2">
+          <Button variant={"primary"} onClick={onPatientDrawerOpen}>
+            <PlusSquare />
+            Add Patient
+          </Button>
+        </div>
+      )}
       <DataTable table={table}>
         <DataTableToolbar table={table} />
       </DataTable>

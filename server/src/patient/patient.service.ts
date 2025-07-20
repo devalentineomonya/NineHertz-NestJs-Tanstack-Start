@@ -5,6 +5,7 @@ import { Patient } from './entities/patient.entity';
 import { CreatePatientDto } from './dto/create-patient.dto';
 import { UpdatePatientDto } from './dto/update-patient.dto';
 import { User } from '../user/entities/user.entity';
+import { PatientResponseDto } from './dto/patient-response.dto';
 
 @Injectable()
 export class PatientService {
@@ -18,7 +19,7 @@ export class PatientService {
   async create(
     createPatientDto: CreatePatientDto,
     userId: string,
-  ): Promise<Patient> {
+  ): Promise<PatientResponseDto> {
     const user = await this.userRepository.findOne({ where: { id: userId } });
     if (!user) {
       throw new NotFoundException(`User with ID ${userId} not found`);
@@ -34,10 +35,25 @@ export class PatientService {
       user,
     });
 
-    return this.patientRepository.save(patient);
+    const savedPatient = await this.patientRepository.save(patient);
+    return {
+      id: savedPatient.id,
+      status: patient.status,
+      fullName: savedPatient.fullName,
+      phone: savedPatient.phone,
+      dateOfBirth: savedPatient.dateOfBirth,
+      medicalHistory: savedPatient.medicalHistory,
+      user: {
+        id: savedPatient.user.id,
+        email: savedPatient.user.email,
+        role: savedPatient.user.role,
+        isEmailVerified: savedPatient.user.isEmailVerified,
+        createdAt: savedPatient.user.createdAt,
+      },
+    };
   }
 
-  async findAll(id?: string, role?: string): Promise<Patient[]> {
+  async findAll(id?: string, role?: string): Promise<PatientResponseDto[]> {
     const query = this.patientRepository
       .createQueryBuilder('patient')
       .leftJoinAndSelect('patient.user', 'user')
@@ -48,10 +64,27 @@ export class PatientService {
       query.andWhere('user.role = :role', { role: 'patient' });
     }
 
-    return query.getMany();
+    const patients = await query.getMany();
+    return patients.map((patient) => ({
+      id: patient.id,
+      status: patient.status,
+      fullName: patient.fullName,
+      email: patient.user.email,
+      role: patient.user.role,
+      phone: patient.phone,
+      dateOfBirth: patient.dateOfBirth,
+      medicalHistory: patient.medicalHistory,
+      user: {
+        id: patient.user.id,
+        email: patient.user.email,
+        role: patient.user.role,
+        isEmailVerified: patient.user.isEmailVerified,
+        createdAt: patient.user.createdAt,
+      },
+    }));
   }
 
-  async findOne(id: string): Promise<Patient> {
+  async findOne(id: string): Promise<PatientResponseDto> {
     const patient = await this.patientRepository.findOne({
       where: { id },
       relations: [
@@ -66,7 +99,37 @@ export class PatientService {
     if (!patient) {
       throw new NotFoundException(`Patient with ID ${id} not found`);
     }
-    return patient;
+    return {
+      id: patient.id,
+      fullName: patient.fullName,
+      phone: patient.phone,
+      dateOfBirth: patient.dateOfBirth,
+      medicalHistory: patient.medicalHistory,
+      status: patient.status,
+      user: {
+        id: patient.user.id,
+        email: patient.user.email,
+        role: patient.user.role,
+        isEmailVerified: patient.user.isEmailVerified,
+        createdAt: patient.user.createdAt,
+      },
+      orders: patient.orders.map((order) => ({
+        id: order.id,
+        status: order.status,
+        orderDate: order.orderDate,
+        totalAmount: order.totalAmount,
+      })),
+      appointments: patient.appointments.map((appointment) => ({
+        id: appointment.id,
+        datetime: appointment.datetime,
+        status: appointment.status,
+      })),
+      prescriptions: patient.prescriptions.map((prescription) => ({
+        id: prescription.id,
+        issueDate: prescription.issueDate,
+        expiryDate: prescription.expiryDate,
+      })),
+    };
   }
 
   async findByUserId(userId: string): Promise<Patient> {
@@ -85,13 +148,30 @@ export class PatientService {
     id: string,
     updatePatientDto: UpdatePatientDto,
   ): Promise<Patient> {
-    const patient = await this.findOne(id);
+    const patient = await this.patientRepository.findOne({
+      where: { user: { id } },
+      relations: ['user'],
+    });
+
+    if (!patient) {
+      throw new NotFoundException(`Patient with ID ${id} not found`);
+    }
+
     Object.assign(patient, updatePatientDto);
-    return this.patientRepository.save(patient);
+    return await this.patientRepository.save(patient);
   }
 
+  // Remove Patient
   async remove(id: string): Promise<void> {
-    const patient = await this.findOne(id);
+    const patient = await this.patientRepository.findOne({
+      where: { user: { id } },
+      relations: ['user'],
+    });
+
+    if (!patient) {
+      throw new NotFoundException(`Patient with ID ${id} not found`);
+    }
+
     await this.patientRepository.remove(patient);
   }
 }

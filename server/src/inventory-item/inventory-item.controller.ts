@@ -36,7 +36,7 @@ export class InventoryItemController {
     type: InventoryItemResponseDto,
   })
   @ApiResponse({ status: 400, description: 'Bad request' })
-  @ApiResponse({ status: 404, description: 'Medicine or Pharmacy not found' })
+  @ApiResponse({ status: 404, description: 'Medicine not found' })
   create(@Body() createInventoryItemDto: CreateInventoryItemDto) {
     return this.inventoryItemService.create(createInventoryItemDto);
   }

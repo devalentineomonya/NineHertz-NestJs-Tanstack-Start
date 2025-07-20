@@ -14,7 +14,6 @@ export function CancelAppointmentModal() {
 
   const handleConfirm = () => {
     console.log("Canceling appointment:", appointmentId);
-    // Add your cancellation logic here
     onClose();
   };
 

@@ -164,36 +164,8 @@ export const ViewPharmacistDrawer = () => {
                   <div>
                     <p className="text-sm text-muted-foreground">Phone</p>
                     <p className="font-medium">
-                      {selectedPharmacist.phone || "Not provided"}
+                      {selectedPharmacist.phoneNumber || "Not provided"}
                     </p>
-                  </div>
-                </div>
-              </CardContent>
-            </Card>
-
-            {/* Pharmacy Card */}
-            <Card>
-              <CardHeader>
-                <CardTitle className="flex items-center gap-2 text-gray-700">
-                  <Building className="h-5 w-5" />
-                  Pharmacy Information
-                </CardTitle>
-              </CardHeader>
-              <CardContent>
-                <div className="flex items-start gap-3">
-                  <div className="bg-purple-50 rounded-full p-2 mt-0.5">
-                    <Building className="h-5 w-5 text-purple-600" />
-                  </div>
-                  <div>
-                    <p className="text-sm text-muted-foreground">Pharmacy</p>
-                    <p className="font-medium">
-                      {selectedPharmacist.pharmacy?.name || "Not assigned"}
-                    </p>
-                    {selectedPharmacist.pharmacy?.address && (
-                      <p className="text-sm text-muted-foreground mt-1">
-                        {selectedPharmacist.pharmacy.address}
-                      </p>
-                    )}
                   </div>
                 </div>
               </CardContent>

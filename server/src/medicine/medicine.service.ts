@@ -38,6 +38,15 @@ export class MedicineService {
 
     const medicine = this.medicineRepository.create(createDto);
     const savedMedicine = await this.medicineRepository.save(medicine);
+
+    const inventoryItem = this.inventoryItemRepository.create({
+      medicine: savedMedicine,
+      quantity: 0,
+      reorderThreshold: 50,
+      lastRestocked: new Date(),
+    });
+    await this.inventoryItemRepository.save(inventoryItem);
+
     return this.mapToResponseDto(savedMedicine);
   }
 
@@ -161,6 +170,7 @@ export class MedicineService {
 
   private mapToResponseDto(medicine: Medicine): MedicineResponseDto {
     return {
+      type: medicine.type,
       id: medicine.id,
       name: medicine.name,
       genericName: medicine.genericName,

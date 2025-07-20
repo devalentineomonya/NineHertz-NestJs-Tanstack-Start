@@ -24,6 +24,13 @@ import {
   FormMessage,
 } from "@/components/ui/form";
 import { Textarea } from "@/components/ui/textarea";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 
 const medicineFormSchema = z.object({
   name: z.string().min(2, "Name must be at least 2 characters"),
@@ -31,6 +38,9 @@ const medicineFormSchema = z.object({
   description: z.string().min(10, "Description must be at least 10 characters"),
   price: z.number().min(0.01, "Price must be at least $0.01"),
   manufacturer: z.string().min(2, "Manufacturer must be at least 2 characters"),
+  type: z.enum(["otc", "prescribed"], {
+    required_error: "Type is required",
+  }),
   barcode: z.string().optional(),
 });
 
@@ -46,9 +56,10 @@ export const AddMedicineDrawer = () => {
       name: "",
       genericName: "",
       description: "",
-      price: 0.01,
+      price: 10.0,
       manufacturer: "",
       barcode: "",
+      type: "otc",
     },
   });
 
@@ -104,7 +115,31 @@ export const AddMedicineDrawer = () => {
                   </FormItem>
                 )}
               />
-
+              {/* Type */}
+              <FormField
+                control={form.control}
+                name="type"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Type</FormLabel>
+                    <FormControl>
+                      <Select
+                        onValueChange={field.onChange}
+                        defaultValue={field.value}
+                      >
+                        <SelectTrigger className="border rounded px-3 py-2 w-full">
+                          <SelectValue placeholder=" Select type" />
+                        </SelectTrigger>
+                        <SelectContent>
+                          <SelectItem value="otc">OTC</SelectItem>
+                          <SelectItem value="prescribed">Prescribed</SelectItem>
+                        </SelectContent>
+                      </Select>
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
               {/* Description */}
               <FormField
                 control={form.control}
@@ -130,12 +165,12 @@ export const AddMedicineDrawer = () => {
                 name="price"
                 render={({ field }) => (
                   <FormItem>
-                    <FormLabel>Price ($)</FormLabel>
+                    <FormLabel>Price (Kes)</FormLabel>
                     <FormControl>
                       <Input
                         type="number"
                         step="0.01"
-                        min="0.01"
+                        min="10.00"
                         placeholder="15.99"
                         {...field}
                         onChange={(e) => {

@@ -19,12 +19,7 @@ interface UserSessionStore {
   session: UserSession | null;
   setSession: (session: UserSession) => void;
   clearSession: () => void;
-  getCurrentUser: () => {
-    id: string;
-    email: string;
-    role: string;
-    name: string;
-  } | null;
+  getCurrentUser: () => (Omit<JwtPayload, "sub"> & { id: string }) | null;
 }
 
 export const useUserSessionStore = create<UserSessionStore>()(

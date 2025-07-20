@@ -14,6 +14,7 @@ interface BaseUserDto {
 interface BaseProfileDto {
   fullName: string;
   licenseNumber: string;
+  phoneNumber?: string;
 }
 
 type ProfileData = {
@@ -47,7 +48,10 @@ interface PatientResponseDto extends CreatePatientDto {
   dateOfBirth: Date;
   medicalHistory: Record<string, any>;
   user: UserResponseDto;
-  appointment: AppointmentResponseDto;
+  appointments: AppointmentResponseDto[];
+  orders: OrderResponseDto[];
+  prescriptions: PrescriptionResponseDto[];
+  consultations: ConsultationResponseDto[];
 }
 interface UpdatePatientDto extends Partial<CreatePatientDto> {}
 
@@ -95,7 +99,6 @@ interface AdminPaginatedDto {
 // ================== Pharmacist Types ==================
 interface CreatePharmacistDto extends BaseProfileDto {
   userId: string;
-  pharmacyId: string;
 }
 interface PharmacistResponseDto extends CreatePharmacistDto {
   id: string;
@@ -103,7 +106,6 @@ interface PharmacistResponseDto extends CreatePharmacistDto {
   updatedAt: string;
   status: "active" | "inactive";
   user: UserResponseDto;
-  pharmacy: PharmacyResponseDto;
 }
 interface UpdatePharmacistDto extends Partial<CreatePharmacistDto> {}
 
@@ -162,6 +164,7 @@ interface CreateMedicineDto {
   price: number;
   manufacturer: string;
   barcode?: string;
+  type?: "otc" | "prescribed";
 }
 interface MedicineResponseDto extends Required<CreateMedicineDto> {
   id: string;
@@ -179,7 +182,6 @@ interface MedicinePaginatedDto {
 // ================== Inventory Types ==================
 interface CreateInventoryItemDto {
   medicineId: string;
-  pharmacyId: string;
   quantity: number;
   reorderThreshold: number;
 }
@@ -187,7 +189,6 @@ interface InventoryItemResponseDto extends CreateInventoryItemDto {
   id: string;
   lastRestocked: Date;
   medicine: MedicineResponseDto;
-  pharmacy: PharmacyResponseDto;
 }
 interface UpdateInventoryItemDto extends Partial<CreateInventoryItemDto> {}
 interface InventoryItemPaginatedDto {
@@ -197,23 +198,6 @@ interface InventoryItemPaginatedDto {
   limit: number;
 }
 
-// ================== Pharmacy Types ==================
-interface CreatePharmacyDto {
-  name: string;
-  address: string;
-  contactPhone: string;
-  licenseNumber: string;
-}
-interface PharmacyResponseDto extends CreatePharmacyDto {
-  id: string;
-  inventoryIds: string[];
-  orderIds: string[];
-  pharmacistIds: string[];
-  createdAt: string;
-  updatedAt: string;
-}
-interface UpdatePharmacyDto extends Partial<CreatePharmacyDto> {}
-
 // ================== Order Types ==================
 interface CreateOrderItemDto {
   medicineId: string;
@@ -222,24 +206,21 @@ interface CreateOrderItemDto {
 }
 interface CreateOrderDto {
   patientId: string;
-  pharmacyId: string;
   items: CreateOrderItemDto[];
-  status?: OrderStatus;
+  status: OrderStatus;
   totalAmount: number;
 }
 interface OrderItemResponseDto extends CreateOrderItemDto {
   id: string;
   medicine: MedicineResponseDto;
 }
-interface OrderResponseDto
-  extends Omit<CreateOrderDto, "items" | "patientId" | "pharmacyId"> {
+interface OrderResponseDto extends Omit<CreateOrderDto, "items" | "patientId"> {
   id: string;
   orderDate: string;
   stripePaymentId: string;
   paystackReference: string;
   paymentStatus: string;
   patient: PatientResponseDto;
-  pharmacy: PharmacyResponseDto;
   items: OrderItemResponseDto[];
   createdAt: string;
   updatedAt: string;
@@ -279,13 +260,22 @@ interface VerifyEmailDto {
 }
 
 // ================== Prescription Types ==================
+
+interface PrescriptionItemDto {
+  medicineId: string;
+  dosage: string;
+  frequency: string;
+  note?: string;
+}
+
 interface BasePrescriptionDto {
-  medicationDetails: string;
+  items: PrescriptionItemDto[];
   issueDate: string;
   expiryDate: string;
   patientId: string;
   doctorId: string;
-  pharmacyId?: string;
+  pharmacistId?: string;
+  isFulfilled?: boolean;
 }
 
 interface CreatePrescriptionDto extends BasePrescriptionDto {}
@@ -294,6 +284,9 @@ interface PrescriptionResponseDto
   extends Omit<BasePrescriptionDto, "patientId" | "doctorId"> {
   id: string;
   isFulfilled: boolean;
+  fulfillmentDate: string;
+  updatedAt: string;
+  createdAt: string;
   patient: PatientResponseDto;
   prescribedBy: DoctorResponseDto;
 }

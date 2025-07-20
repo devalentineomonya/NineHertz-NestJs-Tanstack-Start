@@ -1,13 +1,17 @@
 import { useQuery } from "@tanstack/react-query";
-import { DataServices } from "../data/data-service";
+import { dataServices } from "../data/data-service";
 
-export const useGetMedicines = () => {
-  const dataService = new DataServices();
+export const useGetMedicines = (
+  query?: { [key: string]: string | number | Date }[]
+) => {
   return useQuery({
     queryFn: async () => {
-      const response = await dataService.api.medicines.get.call();
+      const response = await dataServices.api.medicines.get.call({
+        params: query,
+      });
       return response.data;
     },
-    queryKey: ["medicines"],
+    queryKey: ["medicines", query],
+    staleTime: 5 * 60 * 1000,
   });
 };

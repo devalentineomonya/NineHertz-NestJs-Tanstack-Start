@@ -59,14 +59,15 @@ export function MedicinesTable() {
   }
   return (
     <div className="data-table-container">
-      {currentUser?.role === "super" && (
-        <div className="w-fit min-w-56 mb-4">
-          <Button variant={"primary"} onClick={onOpen}>
-            <PlusSquare className="mr-2 h-5 w-5" />
-            Add Medicine
-          </Button>
-        </div>
-      )}
+      {/* {currentUser?.role === "admin" ||
+        (currentUser?.role === "pharmacist" && ( */}
+          <div className="w-fit min-w-56 mb-4">
+            <Button variant={"primary"} onClick={onOpen}>
+              <PlusSquare className="mr-2 h-5 w-5" />
+              Add Medicine
+            </Button>
+          </div>
+        {/* ))} */}
       <DataTable table={table}>
         <DataTableToolbar table={table} />
       </DataTable>

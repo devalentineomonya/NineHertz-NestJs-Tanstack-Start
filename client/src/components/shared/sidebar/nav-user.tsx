@@ -19,18 +19,11 @@ import {
 import { useUserSessionStore } from "@/stores/user-session-store";
 import { Link } from "@tanstack/react-router";
 
-export function NavUser({
-  user,
-}: {
-  user: {
-    name: string;
-    email: string;
-    role: string;
-  } | null;
-}) {
+export function NavUser() {
   const { isMobile } = useSidebar();
-  const { clearSession } = useUserSessionStore();
-
+  const { clearSession, getCurrentUser } = useUserSessionStore();
+  const user = getCurrentUser();
+  if (!user) return;
   return (
     <SidebarMenu>
       <SidebarMenuItem>
@@ -42,7 +35,7 @@ export function NavUser({
             >
               <Avatar className="h-8 w-8 rounded-lg">
                 <AvatarFallback className="rounded-lg">
-                  {user?.name.substring(0, 2)}
+                  {user?.name?.substring(0, 2)}
                 </AvatarFallback>
               </Avatar>
               <div className="grid flex-1 text-left text-sm leading-tight">
@@ -62,7 +55,7 @@ export function NavUser({
               <div className="flex items-center gap-2 px-1 py-1.5 text-left text-sm">
                 <Avatar className="h-8 w-8 rounded-lg">
                   <AvatarFallback className="rounded-lg">
-                    {user?.name.substring(0, 2)}
+                    {user?.name?.substring(0, 2)}
                   </AvatarFallback>
                 </Avatar>
                 <div className="grid flex-1 text-left text-sm leading-tight">
@@ -74,7 +67,7 @@ export function NavUser({
             <DropdownMenuSeparator />
 
             <DropdownMenuGroup>
-              <Link to={`${user?.role}/profile`}>
+              <Link to={`/${user.role}/settings`}>
                 <DropdownMenuItem>
                   <BadgeCheck />
                   Account

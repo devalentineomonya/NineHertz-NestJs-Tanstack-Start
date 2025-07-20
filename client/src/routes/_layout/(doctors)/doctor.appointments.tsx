@@ -1,9 +1,10 @@
-import { createFileRoute } from '@tanstack/react-router'
+import { AppointmentsTable } from "@/screens/appointments/appointments-table";
+import { createFileRoute } from "@tanstack/react-router";
 
-export const Route = createFileRoute('/_layout/(doctors)/doctor/appointments')({
+export const Route = createFileRoute("/_layout/(doctors)/doctor/appointments")({
   component: RouteComponent,
-})
+});
 
 function RouteComponent() {
-  return <div>Hello "/_layout/(doctors)/doctor/appointments"!</div>
+  return <AppointmentsTable />;
 }

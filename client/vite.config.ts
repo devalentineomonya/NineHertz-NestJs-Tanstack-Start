@@ -3,26 +3,35 @@ import { tanstackStart } from "@tanstack/react-start/plugin/vite";
 import tsConfigPaths from "vite-tsconfig-paths";
 import tailwindcss from "@tailwindcss/vite";
 import { VitePWA } from "vite-plugin-pwa";
+import react from "@vitejs/plugin-react";
 
 export default defineConfig({
-  // server: {
-  //   port: 5173,
-  //   host: "react.dev.lo",
-  // },
+  server: {
+    port: 5173,
+    host: "react.dev.lo",
+  },
   plugins: [
     tsConfigPaths({
       projects: ["./tsconfig.json"],
     }),
-    tanstackStart(),
+    tanstackStart({
+      target: "vercel",
+      tsr: {
+        autoCodeSplitting: true,
+      },
+      customViteReactPlugin: true,
+    }),
+    react(),
     tailwindcss(),
     VitePWA({
       registerType: "autoUpdate",
-      strategies: "generateSW",
+      injectRegister: false,
+
       manifest: {
-        name: "NineHertz Admin Dashboard",
-        short_name: "NineAdmin",
+        name: "NineHertz  Dashboard",
+        short_name: "NineHertzDashboard",
         description:
-          "Secure admin portal for managing NineHertz Medical System",
+          "Secure portal for interacting with NineHertz Medical System",
         theme_color: "#22c55e",
         background_color: "#ffffff",
         display: "standalone",
@@ -47,85 +56,13 @@ export default defineConfig({
           },
         ],
       },
-      workbox: {
-        globPatterns: ["**/*.{js,css,html,png,jpg,svg,woff2}"],
-        globDirectory: "dist",
-        skipWaiting: true,
-        clientsClaim: true,
-        offlineGoogleAnalytics: true,
-        runtimeCaching: [
-          {
-            urlPattern: /^https:\/\/(cdn|fonts|api)\./,
-            handler: "CacheFirst",
-            options: {
-              cacheName: "external-assets",
-              expiration: {
-                maxEntries: 30,
-                maxAgeSeconds: 60 * 60 * 24 * 30,
-              },
-            },
-          },
-          {
-            urlPattern: /\.(?:js|css|html)$/,
-            handler: "StaleWhileRevalidate",
-            options: {
-              cacheName: "static-assets",
-            },
-          },
-          {
-            urlPattern: /\.(?:png|jpg|jpeg|svg|gif)$/,
-            handler: "CacheFirst",
-            options: {
-              cacheName: "image-assets",
-              expiration: {
-                maxEntries: 60,
-                maxAgeSeconds: 60 * 60 * 24 * 30,
-              },
-            },
-          },
 
-          // Offline fallback route
-          {
-            urlPattern: ({ request }) => request.mode === "navigate",
-            handler: "NetworkFirst",
-            options: {
-              cacheName: "offline-fallback",
-              networkTimeoutSeconds: 3,
-              expiration: {
-                maxEntries: 10,
-              },
-              plugins: [
-                {
-                  cacheWillUpdate: async ({ response }) => {
-                    if (response.status >= 400) {
-                      return null;
-                    }
-                    return response;
-                  },
-                },
-              ],
-            },
-          },
-          {
-            urlPattern: /^https:\/\/fonts\.googleapis\.com/,
-            handler: "StaleWhileRevalidate",
-            options: {
-              cacheName: "google-fonts-stylesheets",
-            },
-          },
-          {
-            urlPattern: /^https:\/\/fonts\.gstatic\.com/,
-            handler: "CacheFirst",
-            options: {
-              cacheName: "google-fonts-webfonts",
-              expiration: {
-                maxEntries: 30,
-                maxAgeSeconds: 60 * 60 * 24 * 365,
-              },
-            },
-          },
-        ],
+      workbox: {
+        globPatterns: ["**/*.{js,css,html,svg,png,ico}"],
+        cleanupOutdatedCaches: true,
+        clientsClaim: true,
       },
+
       devOptions: {
         enabled: true,
         type: "module",

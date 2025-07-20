@@ -33,33 +33,64 @@ import {
 import { Textarea } from "@/components/ui/textarea";
 import { cn } from "@/lib/utils";
 import { useGetDoctors } from "@/services/doctors/use-get-doctors";
+import { useGetMedicines } from "@/services/medicines/use-get-medicines";
 import { useGetPatients } from "@/services/patients/use-get-patients";
-import { useGetPharmacies } from "@/services/pharmacies/use-get-pharmacies";
+import { useGetPharmacists } from "@/services/pharmacists/use-get-pharmacists";
 import { useEditPrescriptionService } from "@/services/prescriptions/use-edit-prescription";
 import { useGetPrescription } from "@/services/prescriptions/use-get-prescription";
 import { useEditPrescriptionStore } from "@/stores/use-edit-prescription-store";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { format } from "date-fns";
-import { Check, ChevronsUpDown, Loader } from "lucide-react";
+import { Check, ChevronsUpDown, Loader, Plus, X } from "lucide-react";
 import { useEffect } from "react";
-import { useForm } from "react-hook-form";
+import { useFieldArray, useForm } from "react-hook-form";
 import { toast } from "sonner";
 import { z } from "zod";
+import { Input } from "@/components/ui/input";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
+import { frequencyOptions } from "./add-prescriptions-drawer";
 
 const prescriptionFormSchema = z
   .object({
-    medicationDetails: z.string().min(1, "Medication details are required"),
     issueDate: z.date(),
     expiryDate: z.date(),
-    isFulfilled: z.boolean().default(false),
+    isFulfilled: z.boolean().default(false).optional(),
     patientId: z.string().min(1, "Patient selection is required"),
     doctorId: z.string().min(1, "Doctor selection is required"),
-    pharmacyId: z.string().optional(),
+    pharmacistId: z.string().optional(),
+    items: z
+      .array(
+        z.object({
+          medicineId: z.string().uuid("Invalid medicine selection"),
+          dosage: z.string().min(1, "Dosage is required"),
+          frequency: z.string().min(1, "Frequency is required"),
+          note: z.string().optional(),
+        })
+      )
+      .min(1, "At least one medicine is required"),
   })
   .refine((data) => data.expiryDate > data.issueDate, {
     message: "Expiry date must be after issue date",
     path: ["expiryDate"],
-  });
+  })
+  .refine(
+    (data) => {
+      if (data.isFulfilled && !data.pharmacistId) {
+        return false;
+      }
+      return true;
+    },
+    {
+      message: "Pharmacist is required when prescription is fulfilled",
+      path: ["pharmacistId"],
+    }
+  );
 
 type PrescriptionFormValues = z.infer<typeof prescriptionFormSchema>;
 
@@ -70,34 +101,65 @@ export const EditPrescriptionDrawer = () => {
     useGetPrescription(prescriptionId || "");
   const { data: patients = [], isLoading: loadingPatients } = useGetPatients();
   const { data: doctors, isLoading: loadingDoctors } = useGetDoctors();
-  const { data: pharmacies, isLoading: loadingPharmacies } = useGetPharmacies();
+  const { data: pharmacists, isLoading: loadingPharmacists } =
+    useGetPharmacists();
+  const { data: medicines, isLoading: loadingMedicines } = useGetMedicines();
+  const prescriptionMedicines = medicines?.data.filter(
+    (medicine) => medicine.type === "prescribed"
+  );
 
   const form = useForm<PrescriptionFormValues>({
     resolver: zodResolver(prescriptionFormSchema),
     defaultValues: {
-      medicationDetails: "",
+      items: [],
       issueDate: new Date(),
       expiryDate: new Date(),
       isFulfilled: false,
       patientId: "",
       doctorId: "",
-      pharmacyId: "",
+      pharmacistId: "",
     },
   });
 
   const isFulfilled = form.watch("isFulfilled");
 
-  // Set form values when prescription data is loaded
+  const { fields, append, remove } = useFieldArray({
+    control: form.control,
+    name: "items",
+  });
+
+  // Handle medicine change with duplicate check
+  const handleMedicineChange = (index: number, medicineId: string) => {
+    const selectedMedicines = form
+      .getValues("items")
+      .map((item) => item.medicineId)
+      .filter((id, i) => i !== index && id !== "");
+
+    if (selectedMedicines.includes(medicineId)) {
+      toast.warning(
+        "This medicine is already added. Please update the existing entry instead.",
+        { duration: 3000 }
+      );
+      form.setValue(`items.${index}.medicineId`, "");
+      return;
+    }
+  };
+
   useEffect(() => {
     if (prescription) {
       form.reset({
-        medicationDetails: prescription.medicationDetails,
         issueDate: new Date(prescription.issueDate),
         expiryDate: new Date(prescription.expiryDate),
         isFulfilled: prescription.isFulfilled,
         patientId: prescription.patient.id,
         doctorId: prescription.prescribedBy.id,
-        pharmacyId: prescription.pharmacyId || "",
+        pharmacistId: prescription.pharmacistId || "",
+        items: prescription.items.map((item) => ({
+          medicineId: item.medicineId,
+          dosage: item.dosage,
+          frequency: item.frequency,
+          note: item.note || "",
+        })),
       });
     }
   }, [prescription, form]);
@@ -109,13 +171,13 @@ export const EditPrescriptionDrawer = () => {
       await editPrescriptionMutation.mutateAsync({
         id: prescriptionId,
         data: {
-          medicationDetails: data.medicationDetails,
-          issueDate: data.issueDate,
-          expiryDate: data.expiryDate,
+          issueDate: data.issueDate.toISOString(),
+          expiryDate: data.expiryDate.toISOString(),
           isFulfilled: data.isFulfilled,
           patientId: data.patientId,
           doctorId: data.doctorId,
-          pharmacyId: data.isFulfilled ? data.pharmacyId : undefined,
+          pharmacistId: data.isFulfilled ? data.pharmacistId : undefined,
+          items: data.items,
         },
       });
 
@@ -150,202 +212,6 @@ export const EditPrescriptionDrawer = () => {
         <div className="px-6 py-4 overflow-y-auto">
           <Form {...form}>
             <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
-              {/* Medication Details */}
-              <FormField
-                control={form.control}
-                name="medicationDetails"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>Medication Details</FormLabel>
-                    <FormControl>
-                      <Textarea
-                        placeholder="Drug name, dosage, frequency..."
-                        className="resize-none min-h-[120px]"
-                        {...field}
-                      />
-                    </FormControl>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
-
-              {/* Dates Section */}
-              <div className="grid grid-cols-2 gap-4">
-                {/* Issue Date */}
-                <FormField
-                  control={form.control}
-                  name="issueDate"
-                  render={({ field }) => (
-                    <FormItem className="flex flex-col">
-                      <FormLabel>Issue Date</FormLabel>
-                      <Popover>
-                        <PopoverTrigger asChild>
-                          <FormControl>
-                            <Button
-                              variant={"outline"}
-                              className={cn(
-                                "pl-3 text-left font-normal",
-                                !field.value && "text-muted-foreground"
-                              )}
-                            >
-                              {field.value ? (
-                                format(field.value, "PPP")
-                              ) : (
-                                <span>Pick a date</span>
-                              )}
-                            </Button>
-                          </FormControl>
-                        </PopoverTrigger>
-                        <PopoverContent className="w-auto p-0" align="start">
-                          <Calendar
-                            mode="single"
-                            selected={field.value}
-                            onSelect={field.onChange}
-                            disabled={(date) => date > new Date()}
-                            autoFocus
-                          />
-                        </PopoverContent>
-                      </Popover>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
-
-                {/* Expiry Date */}
-                <FormField
-                  control={form.control}
-                  name="expiryDate"
-                  render={({ field }) => (
-                    <FormItem className="flex flex-col">
-                      <FormLabel>Expiry Date</FormLabel>
-                      <Popover>
-                        <PopoverTrigger asChild>
-                          <FormControl>
-                            <Button
-                              variant={"outline"}
-                              className={cn(
-                                "pl-3 text-left font-normal",
-                                !field.value && "text-muted-foreground"
-                              )}
-                            >
-                              {field.value ? (
-                                format(field.value, "PPP")
-                              ) : (
-                                <span>Pick a date</span>
-                              )}
-                            </Button>
-                          </FormControl>
-                        </PopoverTrigger>
-                        <PopoverContent className="w-auto p-0" align="start">
-                          <Calendar
-                            mode="single"
-                            selected={field.value}
-                            onSelect={field.onChange}
-                            disabled={(date) =>
-                              date < form.getValues("issueDate")
-                            }
-                            autoFocus
-                          />
-                        </PopoverContent>
-                      </Popover>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
-              </div>
-
-              {/* Fulfillment Section */}
-              <div className="space-y-4">
-                <FormField
-                  control={form.control}
-                  name="isFulfilled"
-                  render={({ field }) => (
-                    <FormItem className="flex flex-row items-start space-x-3 space-y-0">
-                      <FormControl>
-                        <Checkbox
-                          checked={field.value}
-                          onCheckedChange={field.onChange}
-                        />
-                      </FormControl>
-                      <div className="space-y-1 leading-none">
-                        <FormLabel>Prescription fulfilled?</FormLabel>
-                      </div>
-                    </FormItem>
-                  )}
-                />
-
-                {isFulfilled && (
-                  <FormField
-                    control={form.control}
-                    name="pharmacyId"
-                    render={({ field }) => (
-                      <FormItem className="flex flex-col">
-                        <FormLabel>Fulfilled By Pharmacy</FormLabel>
-                        <Popover>
-                          <PopoverTrigger asChild>
-                            <FormControl>
-                              <Button
-                                variant="outline"
-                                role="combobox"
-                                className={cn(
-                                  "w-full justify-between",
-                                  !field.value && "text-muted-foreground"
-                                )}
-                              >
-                                {field.value
-                                  ? pharmacies?.find(
-                                      (pharmacy) => pharmacy.id === field.value
-                                    )?.name
-                                  : "Select pharmacy"}
-                                <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
-                              </Button>
-                            </FormControl>
-                          </PopoverTrigger>
-                          <PopoverContent className="w-full p-0">
-                            <Command>
-                              <CommandInput placeholder="Search pharmacies..." />
-                              <CommandList>
-                                <CommandEmpty>
-                                  {loadingPharmacies
-                                    ? "Loading..."
-                                    : "No pharmacies found"}
-                                </CommandEmpty>
-                                <CommandGroup>
-                                  {pharmacies?.map((pharmacy) => (
-                                    <CommandItem
-                                      value={pharmacy.name}
-                                      key={pharmacy.id}
-                                      onSelect={() => {
-                                        form.setValue(
-                                          "pharmacyId",
-                                          pharmacy.id
-                                        );
-                                      }}
-                                    >
-                                      <Check
-                                        className={cn(
-                                          "mr-2 h-4 w-4",
-                                          pharmacy.id === field.value
-                                            ? "opacity-100"
-                                            : "opacity-0"
-                                        )}
-                                      />
-                                      {pharmacy.name}
-                                    </CommandItem>
-                                  ))}
-                                </CommandGroup>
-                              </CommandList>
-                            </Command>
-                          </PopoverContent>
-                        </Popover>
-                        <FormMessage />
-                      </FormItem>
-                    )}
-                  />
-                )}
-              </div>
-
-              {/* Patient Selection */}
               <FormField
                 control={form.control}
                 name="patientId"
@@ -476,6 +342,331 @@ export const EditPrescriptionDrawer = () => {
                   </FormItem>
                 )}
               />
+              <div className="space-y-4">
+                <FormLabel>Prescribed Medicines</FormLabel>
+                {fields.map((field, index) => (
+                  <div
+                    key={field.id}
+                    className="border rounded-lg p-4 space-y-3 relative"
+                  >
+                    {index > 0 && (
+                      <Button
+                        type="button"
+                        variant="ghost"
+                        size="icon"
+                        className="absolute top-2 right-2"
+                        onClick={() => remove(index)}
+                      >
+                        <X className="h-4 w-4" />
+                      </Button>
+                    )}
+
+                    {/* Medicine Selection */}
+                    <FormField
+                      control={form.control}
+                      name={`items.${index}.medicineId`}
+                      render={({ field }) => (
+                        <FormItem>
+                          <FormLabel>Medicine</FormLabel>
+                          <Select
+                            onValueChange={(value) => {
+                              field.onChange(value);
+                              handleMedicineChange(index, value);
+                            }}
+                            value={field.value}
+                          >
+                            <FormControl>
+                              <SelectTrigger className="w-full">
+                                <SelectValue placeholder="Select medicine" />
+                              </SelectTrigger>
+                            </FormControl>
+                            <SelectContent>
+                              {loadingMedicines ? (
+                                <div className="flex justify-center py-4">
+                                  <Loader className="animate-spin" />
+                                </div>
+                              ) : (
+                                prescriptionMedicines?.map((medicine) => (
+                                  <SelectItem
+                                    key={medicine.id}
+                                    value={medicine.id}
+                                  >
+                                    {medicine.name} ({medicine.type})
+                                  </SelectItem>
+                                ))
+                              )}
+                            </SelectContent>
+                          </Select>
+                          <FormMessage />
+                        </FormItem>
+                      )}
+                    />
+
+                    <div className="grid grid-cols-2 gap-4">
+                      {/* Dosage */}
+                      <FormField
+                        control={form.control}
+                        name={`items.${index}.dosage`}
+                        render={({ field }) => (
+                          <FormItem className="w-full">
+                            <FormLabel>Dosage</FormLabel>
+                            <FormControl className="w-full">
+                              <Input placeholder="e.g., 500mg" {...field} />
+                            </FormControl>
+                            <FormMessage />
+                          </FormItem>
+                        )}
+                      />
+
+                      {/* Frequency */}
+                      <FormField
+                        control={form.control}
+                        name={`items.${index}.frequency`}
+                        render={({ field }) => (
+                          <FormItem className="w-full">
+                            <FormLabel>Frequency</FormLabel>
+                            <Select
+                              onValueChange={field.onChange}
+                              value={field.value}
+                            >
+                              <FormControl className="w-full">
+                                <SelectTrigger className="w-full">
+                                  <SelectValue placeholder="Select frequency" />
+                                </SelectTrigger>
+                              </FormControl>
+                              <SelectContent>
+                                {frequencyOptions.map((option) => (
+                                  <SelectItem
+                                    key={option.value}
+                                    value={option.value}
+                                  >
+                                    {option.label}
+                                  </SelectItem>
+                                ))}
+                              </SelectContent>
+                            </Select>
+                            <FormMessage />
+                          </FormItem>
+                        )}
+                      />
+                    </div>
+
+                    {/* Note */}
+                    <FormField
+                      control={form.control}
+                      name={`items.${index}.note`}
+                      render={({ field }) => (
+                        <FormItem>
+                          <FormLabel>Note (Optional)</FormLabel>
+                          <FormControl>
+                            <Textarea
+                              placeholder="Special instructions"
+                              {...field}
+                            />
+                          </FormControl>
+                          <FormMessage />
+                        </FormItem>
+                      )}
+                    />
+                  </div>
+                ))}
+
+                <Button
+                  type="button"
+                  variant="outline"
+                  className="mt-2"
+                  onClick={() =>
+                    append({
+                      medicineId: "",
+                      dosage: "",
+                      frequency: "",
+                      note: "",
+                    })
+                  }
+                >
+                  <Plus className="mr-2 h-4 w-4" />
+                  Add Another Medicine
+                </Button>
+              </div>
+
+              {/* Dates Section */}
+              <div className="grid grid-cols-2 gap-4">
+                {/* Issue Date */}
+                <FormField
+                  control={form.control}
+                  name="issueDate"
+                  render={({ field }) => (
+                    <FormItem className="flex flex-col">
+                      <FormLabel>Issue Date</FormLabel>
+                      <Popover>
+                        <PopoverTrigger asChild>
+                          <FormControl>
+                            <Button
+                              variant={"outline"}
+                              className={cn(
+                                "pl-3 text-left font-normal",
+                                !field.value && "text-muted-foreground"
+                              )}
+                            >
+                              {field.value ? (
+                                format(field.value, "PPP")
+                              ) : (
+                                <span>Pick a date</span>
+                              )}
+                            </Button>
+                          </FormControl>
+                        </PopoverTrigger>
+                        <PopoverContent className="w-auto p-0" align="start">
+                          <Calendar
+                            mode="single"
+                            selected={field.value}
+                            onSelect={field.onChange}
+                            disabled={(date) => date > new Date()}
+                            autoFocus
+                          />
+                        </PopoverContent>
+                      </Popover>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+
+                {/* Expiry Date */}
+                <FormField
+                  control={form.control}
+                  name="expiryDate"
+                  render={({ field }) => (
+                    <FormItem className="flex flex-col">
+                      <FormLabel>Expiry Date</FormLabel>
+                      <Popover>
+                        <PopoverTrigger asChild>
+                          <FormControl>
+                            <Button
+                              variant={"outline"}
+                              className={cn(
+                                "pl-3 text-left font-normal",
+                                !field.value && "text-muted-foreground"
+                              )}
+                            >
+                              {field.value ? (
+                                format(field.value, "PPP")
+                              ) : (
+                                <span>Pick a date</span>
+                              )}
+                            </Button>
+                          </FormControl>
+                        </PopoverTrigger>
+                        <PopoverContent className="w-auto p-0" align="start">
+                          <Calendar
+                            mode="single"
+                            selected={field.value}
+                            onSelect={field.onChange}
+                            disabled={(date) =>
+                              date < form.getValues("issueDate")
+                            }
+                            autoFocus
+                          />
+                        </PopoverContent>
+                      </Popover>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+              </div>
+
+              {/* Fulfillment Section */}
+              <div className="space-y-4">
+                <FormField
+                  control={form.control}
+                  name="isFulfilled"
+                  render={({ field }) => (
+                    <FormItem className="flex flex-row items-start space-x-3 space-y-0">
+                      <FormControl>
+                        <Checkbox
+                          checked={field.value}
+                          onCheckedChange={field.onChange}
+                        />
+                      </FormControl>
+                      <div className="space-y-1 leading-none">
+                        <FormLabel>Prescription fulfilled?</FormLabel>
+                      </div>
+                    </FormItem>
+                  )}
+                />
+
+                {isFulfilled && (
+                  <FormField
+                    control={form.control}
+                    name="pharmacistId"
+                    render={({ field }) => (
+                      <FormItem className="flex flex-col">
+                        <FormLabel>Fulfilled By pharmacist</FormLabel>
+                        <Popover>
+                          <PopoverTrigger asChild>
+                            <FormControl>
+                              <Button
+                                variant="outline"
+                                role="combobox"
+                                className={cn(
+                                  "w-full justify-between",
+                                  !field.value && "text-muted-foreground"
+                                )}
+                              >
+                                {field.value
+                                  ? pharmacists?.find(
+                                      (pharmacist) =>
+                                        pharmacist.id === field.value
+                                    )?.fullName
+                                  : "Select pharmacist"}
+                                <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
+                              </Button>
+                            </FormControl>
+                          </PopoverTrigger>
+                          <PopoverContent className="w-full p-0">
+                            <Command>
+                              <CommandInput placeholder="Search pharmacists..." />
+                              <CommandList>
+                                <CommandEmpty>
+                                  {loadingPharmacists
+                                    ? "Loading..."
+                                    : "No pharmacists found"}
+                                </CommandEmpty>
+                                <CommandGroup>
+                                  {pharmacists?.map((pharmacist) => (
+                                    <CommandItem
+                                      value={pharmacist.fullName}
+                                      key={pharmacist.id}
+                                      onSelect={() => {
+                                        form.setValue(
+                                          "pharmacistId",
+                                          pharmacist.id
+                                        );
+                                      }}
+                                    >
+                                      <Check
+                                        className={cn(
+                                          "mr-2 h-4 w-4",
+                                          pharmacist.id === field.value
+                                            ? "opacity-100"
+                                            : "opacity-0"
+                                        )}
+                                      />
+                                      {pharmacist.fullName}
+                                    </CommandItem>
+                                  ))}
+                                </CommandGroup>
+                              </CommandList>
+                            </Command>
+                          </PopoverContent>
+                        </Popover>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+                )}
+              </div>
+
+              {/* Patient Selection */}
             </form>
           </Form>
         </div>

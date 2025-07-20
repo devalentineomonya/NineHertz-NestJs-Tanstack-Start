@@ -126,22 +126,19 @@ export const prescriptionColumns: ColumnDef<PrescriptionResponseDto>[] = [
     cell: ({ row }) => {
       const { issueDate, expiryDate } = row.original;
       const today = new Date();
-      const isExpired =
-        Math.max(
-          0,
-          differenceInDays(today, new Date(Date.parse(expiryDate)))
-        ) === 0;
+      const daysRemaining = differenceInDays(new Date(expiryDate), today);
+      const isExpired = daysRemaining <= 0;
 
       return (
         <div className="flex flex-col gap-1">
           <div className="flex items-center gap-2">
             <Calendar className="size-4 text-gray-500" />
             <span className="font-medium">
-              {format(issueDate, "do MMM yyyy")}
+              {format(new Date(issueDate), "do MMM yyyy")}
             </span>
             <span className="text-gray-400">to</span>
             <span className={isExpired ? "text-red-500 font-medium" : ""}>
-              {format(issueDate, "do MMM yyyy")}
+              {format(new Date(expiryDate), "do MMM yyyy")}
             </span>
             {isExpired && (
               <Badge variant="destructive" className="text-xs">
@@ -150,16 +147,17 @@ export const prescriptionColumns: ColumnDef<PrescriptionResponseDto>[] = [
             )}
           </div>
           <div className="text-sm text-gray-500">
-            {Math.max(
-              0,
-              differenceInDays(today, new Date(Date.parse(expiryDate)))
-            )}{" "}
-            days remaining
+            {isExpired
+              ? "Expired"
+              : `${daysRemaining} day${
+                  daysRemaining === 1 ? "" : "s"
+                } remaining`}
           </div>
         </div>
       );
     },
   },
+
   {
     id: "status",
     accessorKey: "isFulfilled",

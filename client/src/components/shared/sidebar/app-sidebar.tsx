@@ -15,6 +15,7 @@ import {
   ClipboardList,
   Home,
   Hospital,
+  MessageCircle,
   Package,
   Pill,
   Settings,
@@ -39,7 +40,12 @@ const ALL_NAV_ITEMS = [
     roles: ["admin", "doctor"],
   },
   { title: "Doctors", url: "doctors", icon: Stethoscope, roles: ["admin"] },
-  { title: "Pharmacist", url: "pharmacist", icon: BriefcaseMedical, roles: ["admin"] },
+  {
+    title: "Pharmacist",
+    url: "pharmacist",
+    icon: BriefcaseMedical,
+    roles: ["admin"],
+  },
   {
     title: "Appointments",
     url: "appointments",
@@ -60,16 +66,10 @@ const ALL_NAV_ITEMS = [
   },
 
   {
-    title: "Pharmacy",
-    url: "pharmacy",
-    icon: Hospital,
-    roles: ["admin", "pharmacist"],
-  },
-  {
     title: "Medicines",
     url: "medicine",
     icon: Pill,
-    roles: ["admin", "pharmacist", 'patient'],
+    roles: ["admin", "pharmacist", "patient", "doctor"],
   },
   {
     title: "Inventory",
@@ -81,10 +81,22 @@ const ALL_NAV_ITEMS = [
     title: "Orders",
     url: "orders",
     icon: ShoppingCart,
-    roles: ["admin", "pharmacist",'patient'],
+    roles: ["admin", "pharmacist", "patient"],
   },
   { title: "Admin", url: "admins", icon: Users, roles: ["admin"] },
   { title: "Users", url: "users", icon: Users, roles: ["admin"] },
+  {
+    title: "Calendar",
+    url: "calendar",
+    icon: Calendar,
+    roles: ["admin", "patient", "doctor"],
+  },
+  {
+    title: "Chat",
+    url: "chat",
+    icon: MessageCircle,
+    roles: ["admin", "doctor", "patient", "pharmacist"],
+  },
   {
     title: "Settings",
     url: "settings",
@@ -132,7 +144,7 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
         <NavMain items={navItems} />
       </SidebarContent>
       <SidebarFooter>
-        <NavUser user={user} />
+        <NavUser />
       </SidebarFooter>
     </Sidebar>
   );

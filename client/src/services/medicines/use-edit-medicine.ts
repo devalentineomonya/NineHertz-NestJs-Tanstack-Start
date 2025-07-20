@@ -4,6 +4,7 @@ import { DataServices } from "../data/data-service";
 export const useEditMedicineService = () => {
   const dataService = new DataServices();
   const queryClient = useQueryClient();
+  let patientId: string;
   return useMutation({
     mutationFn: async ({
       id,
@@ -12,6 +13,7 @@ export const useEditMedicineService = () => {
       id: string;
       data: CreateMedicineDto;
     }) => {
+      patientId = id;
       const response = await dataService.api.medicines._id(id).patch.call({
         json: data,
       });
@@ -19,6 +21,9 @@ export const useEditMedicineService = () => {
     },
     onSuccess: async () => {
       await queryClient.invalidateQueries({ queryKey: ["medicines"] });
+      await queryClient.invalidateQueries({
+        queryKey: ["medicine", patientId],
+      });
     },
   });
 };

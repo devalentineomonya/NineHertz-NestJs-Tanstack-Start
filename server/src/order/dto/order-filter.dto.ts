@@ -27,14 +27,6 @@ export class OrderFilterDto {
   patientId?: string;
 
   @ApiPropertyOptional({
-    description: 'Filter by pharmacy ID',
-    example: '123e4567-e89b-12d3-a456-426614174000',
-  })
-  @IsOptional()
-  @IsUUID('4', { message: 'Invalid pharmacy ID format' })
-  pharmacyId?: string;
-
-  @ApiPropertyOptional({
     description: 'Filter orders from this date (ISO format)',
     example: '2023-01-01T00:00:00.000Z',
   })

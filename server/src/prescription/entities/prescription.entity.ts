@@ -5,18 +5,25 @@ import {
   ManyToOne,
   Index,
   JoinColumn,
+  BeforeUpdate,
 } from 'typeorm';
 import { Patient } from 'src/patient/entities/patient.entity';
 import { Doctor } from 'src/doctor/entities/doctor.entity';
-import { Pharmacy } from 'src/pharmacy/entity/pharmacy.entity';
+import { Pharmacist } from 'src/pharmacist/entities/pharmacist.entity';
+
 @Entity()
 @Index(['issueDate', 'expiryDate', 'isFulfilled'])
 export class Prescription {
   @PrimaryGeneratedColumn('uuid')
   id: string;
 
-  @Column({ type: 'text' })
-  medicationDetails: string;
+  @Column({ type: 'jsonb' })
+  items: {
+    medicineId: string;
+    dosage: string;
+    frequency: string;
+    note?: string;
+  }[];
 
   @Column({ type: 'date' })
   issueDate: Date;
@@ -37,6 +44,9 @@ export class Prescription {
   })
   updatedAt: Date;
 
+  @Column({ type: 'timestamp', nullable: true })
+  fulfillmentDate?: Date;
+
   @ManyToOne(() => Patient, (patient) => patient.prescriptions)
   patient: Patient;
 
@@ -46,6 +56,13 @@ export class Prescription {
   @JoinColumn({ name: 'doctorId' })
   prescribedBy: Doctor;
 
-  @ManyToOne(() => Pharmacy, { nullable: true })
-  fulfilledBy?: Pharmacy;
+  @ManyToOne(() => Pharmacist, { nullable: true })
+  fulfilledBy?: Pharmacist;
+
+  @BeforeUpdate()
+  updateFulfillmentDate() {
+    if (this.fulfilledBy) {
+      this.fulfillmentDate = new Date();
+    }
+  }
 }

@@ -32,7 +32,7 @@ class CreateOrderItemDto {
     description: 'Price per unit at the time of order',
   })
   @IsNumber()
-  @Min(0.01)
+  @Min(10.0)
   pricePerUnit: number;
 }
 
@@ -43,13 +43,6 @@ export class CreateOrderDto {
   })
   @IsUUID()
   patientId: string;
-
-  @ApiProperty({
-    example: 'f47ac10b-58cc-4372-a567-0e02b2c3d479',
-    description: 'Pharmacy ID',
-  })
-  @IsUUID()
-  pharmacyId: string;
 
   @ApiProperty({
     type: [CreateOrderItemDto],
@@ -75,6 +68,6 @@ export class CreateOrderDto {
     description: 'Total amount of the order',
   })
   @IsNumber()
-  @Min(0.01)
+  @Min(10.0)
   totalAmount: number;
 }

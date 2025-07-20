@@ -27,13 +27,13 @@ export class AppointmentResponseDto {
     type: PatientResponseDto,
     description: 'Patient details',
   })
-  patient: PatientResponseDto;
+  patient?: PatientResponseDto;
 
   @ApiProperty({
     type: DoctorResponseDto,
     description: 'Doctor details',
   })
-  doctor: DoctorResponseDto;
+  doctor?: DoctorResponseDto;
 
   @ApiProperty({
     example: '2023-11-01T08:00:00Z',

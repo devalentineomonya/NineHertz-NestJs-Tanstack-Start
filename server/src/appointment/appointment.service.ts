@@ -15,6 +15,7 @@ import { Doctor } from '../doctor/entities/doctor.entity';
 import { AppointmentStatus } from 'src/enums/appointment.enum';
 import { PaginationDto } from 'src/shared/dto/pagination.dto';
 import { AppointmentFilter } from './dto/appointment-filter.dto';
+import { StreamService } from 'src/stream/stream.service';
 
 @Injectable()
 export class AppointmentService {
@@ -25,6 +26,7 @@ export class AppointmentService {
     private patientRepository: Repository<Patient>,
     @InjectRepository(Doctor)
     private doctorRepository: Repository<Doctor>,
+    private streamService: StreamService,
   ) {}
 
   async create(
@@ -46,7 +48,6 @@ export class AppointmentService {
       throw new NotFoundException(`Doctor with ID ${doctorId} not found`);
     }
 
-    // Check for conflicting appointments
     const conflict = await this.appointmentRepository.findOne({
       where: {
         doctor: { id: doctorId },
@@ -60,6 +61,17 @@ export class AppointmentService {
         'Doctor already has an appointment at this time',
       );
     }
+
+    await Promise.all([
+      this.streamService.upsertUser(patient),
+      this.streamService.upsertUser(doctor),
+    ]);
+    // const session = await this.streamService.createVideoSession({
+    //   patientId,
+    //   doctorId,
+    //   scheduledTime: appointment.startTime,
+    // });
+    // conso
 
     const appointment = this.appointmentRepository.create({
       ...appointmentData,

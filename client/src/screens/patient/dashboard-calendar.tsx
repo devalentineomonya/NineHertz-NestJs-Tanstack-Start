@@ -13,13 +13,6 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { Input } from "@/components/ui/input";
-import {
-  Dialog,
-  DialogContent,
-  DialogHeader,
-  DialogTitle,
-} from "@/components/ui/dialog";
 import { useAddAppointmentStore } from "@/stores/use-add-appointment-store";
 
 const locales = { "en-US": enUS };
@@ -105,13 +98,14 @@ export function PatientScheduler() {
       </div>
 
       <Calendar
+
         localizer={localizer}
         events={events}
         startAccessor="start"
         endAccessor="end"
         style={{ height: "100%" }}
-        view={view}
-        onView={(view) => setView(view)}
+        views={{ month: true, week: true, day: true, agenda: true }}
+        onView={(view) => setView(view.toUpperCase() as keyof typeof Views)}
         date={date}
         onNavigate={setDate}
         selectable

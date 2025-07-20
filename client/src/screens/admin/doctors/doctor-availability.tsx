@@ -35,11 +35,11 @@ export const DoctorAvailabilityDrawer = () => {
       grouped[day] = [];
     });
 
-    data?.availableSlots?.forEach((slot) => {
+    data?.availableSlots?.forEach((slot: { day: string | number; }) => {
       grouped[slot.day]?.push({ ...slot, type: "available" });
     });
 
-    data?.busySlots?.forEach((slot) => {
+    data?.busySlots?.forEach((slot: { day: string | number; }) => {
       grouped[slot.day]?.push({ ...slot, type: "busy" });
     });
 

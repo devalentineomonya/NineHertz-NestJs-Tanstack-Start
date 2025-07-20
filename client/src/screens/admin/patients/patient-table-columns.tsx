@@ -12,6 +12,7 @@ import {
 import { useDeletePatientStore } from "@/stores/use-delete-patient";
 import { useEditPatientStore } from "@/stores/use-edit-patient-store";
 import { useViewPatientStore } from "@/stores/use-view-patient-store";
+import { useUserSessionStore } from "@/stores/user-session-store";
 import type { ColumnDef } from "@tanstack/react-table";
 import {
   Calendar,
@@ -195,7 +196,8 @@ export const patientColumns: ColumnDef<PatientResponseDto>[] = [
       const { onOpen: onViewPatientOpen } = useViewPatientStore();
       const { onOpen: onEditPatientOpen } = useEditPatientStore();
       const { openModal: onDeletePatientModalOpen } = useDeletePatientStore();
-
+      const { getCurrentUser } = useUserSessionStore();
+      const currentUser = getCurrentUser();
       return (
         <DropdownMenu>
           <DropdownMenuTrigger asChild>
@@ -212,19 +214,23 @@ export const patientColumns: ColumnDef<PatientResponseDto>[] = [
             >
               View Details
             </DropdownMenuItem>
-            <DropdownMenuItem
-              onClick={() =>
-                onEditPatientOpen(cell.row.original.id, cell.row.original)
-              }
-            >
-              Edit Patient
-            </DropdownMenuItem>
-            <DropdownMenuItem
-              onClick={() => onDeletePatientModalOpen(cell.row.original.id)}
-              variant="destructive"
-            >
-              Delete
-            </DropdownMenuItem>
+            {currentUser?.role === "admin" && (
+              <>
+                <DropdownMenuItem
+                  onClick={() =>
+                    onEditPatientOpen(cell.row.original.id, cell.row.original)
+                  }
+                >
+                  Edit Patient
+                </DropdownMenuItem>
+                <DropdownMenuItem
+                  onClick={() => onDeletePatientModalOpen(cell.row.original.id)}
+                  variant="destructive"
+                >
+                  Delete
+                </DropdownMenuItem>
+              </>
+            )}
           </DropdownMenuContent>
         </DropdownMenu>
       );

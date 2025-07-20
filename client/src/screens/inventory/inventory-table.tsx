@@ -13,16 +13,15 @@ import {
 } from "@/components/ui/dropdown-menu";
 import { useDataTable } from "@/hooks/use-data-table";
 
-import type { Column, ColumnDef } from "@tanstack/react-table";
+import type { ColumnDef } from "@tanstack/react-table";
 import {
-  Pill,
-  Calendar,
-  Box,
   AlertTriangle,
+  Calendar,
   CheckCircle,
-  PlusCircle,
   MoreHorizontal,
   Package,
+  Pill,
+  PlusCircle,
 } from "lucide-react";
 import { parseAsArrayOf, parseAsString, useQueryState } from "nuqs";
 import * as React from "react";
@@ -111,7 +110,7 @@ const data: InventoryItem[] = [
   },
 ];
 
-export function AdminInventoryTable() {
+export function InventoryTable() {
   const [medicineName] = useQueryState(
     "medicineName",
     parseAsString.withDefault("")
@@ -129,8 +128,11 @@ export function AdminInventoryTable() {
 
       const matchesStatus =
         status.length === 0 ||
-        (status.includes("in-stock") && item.quantity > item.reorderThreshold) ||
-        (status.includes("low-stock") && item.quantity <= item.reorderThreshold && item.quantity > 0) ||
+        (status.includes("in-stock") &&
+          item.quantity > item.reorderThreshold) ||
+        (status.includes("low-stock") &&
+          item.quantity <= item.reorderThreshold &&
+          item.quantity > 0) ||
         (status.includes("out-of-stock") && item.quantity === 0);
 
       return matchesMedicine && matchesStatus;
@@ -337,13 +339,7 @@ export function AdminInventoryTable() {
   return (
     <div className="data-table-container">
       <DataTable table={table}>
-        <DataTableToolbar
-          table={table}
-          filters={[
-            "medicine",
-            "status"
-          ]}
-        />
+        <DataTableToolbar table={table} filters={["medicine", "status"]} />
       </DataTable>
     </div>
   );

@@ -1,6 +1,5 @@
 import { Module } from '@nestjs/common';
 import { UserModule } from './user/user.module';
-import { StreamModule } from './stream/stream.module';
 import { OrderModule } from './order/order.module';
 import { InventoryItemModule } from './inventory-item/inventory-item.module';
 import { MedicineModule } from './medicine/medicine.module';
@@ -18,7 +17,6 @@ import { CacheableMemory } from 'cacheable';
 import { ThrottlerGuard, ThrottlerModule } from '@nestjs/throttler';
 import { APP_INTERCEPTOR, APP_GUARD } from '@nestjs/core';
 import { AuthModule } from './auth/auth.module';
-import { PharmacyModule } from './pharmacy/pharmacy.module';
 import { PharmacistModule } from './pharmacist/pharmacist.module';
 import { ChatModule } from './chat/chat.module';
 import { AccessTokenGuard } from './auth/guards/access-token.guard';
@@ -37,9 +35,7 @@ import { ContactHelper } from './shared/helpers/contact.helper';
     PrescriptionModule,
     MedicineModule,
     InventoryItemModule,
-    PharmacyModule,
     OrderModule,
-    StreamModule,
     DatabaseModule,
     AuthModule,
     ChatModule,

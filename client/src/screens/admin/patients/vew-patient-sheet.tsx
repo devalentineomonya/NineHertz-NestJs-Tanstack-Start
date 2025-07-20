@@ -324,7 +324,7 @@ const OverviewTab = ({
                     </TableCell>
                     <TableCell>
                       {item.activityType === "appointment"
-                        ? `Physical: ${item.type}`
+                        ? `Physical: ${item.activityType}`
                         : "Consultation"}
                     </TableCell>
                     <TableCell>
@@ -364,7 +364,6 @@ const AppointmentsTab = ({
           <TableHeader>
             <TableRow>
               <TableHead>Date & Time</TableHead>
-              <TableHead>Type</TableHead>
               <TableHead>Created At</TableHead>
               <TableHead>Status</TableHead>
             </TableRow>
@@ -378,7 +377,7 @@ const AppointmentsTab = ({
                     "MMM dd, yyyy hh:mm a"
                   )}
                 </TableCell>
-                <TableCell className="capitalize">{appointment.type}</TableCell>
+
                 <TableCell>
                   {format(new Date(appointment.createdAt), "MMM dd, yyyy")}
                 </TableCell>
@@ -543,22 +542,20 @@ const PrescriptionsTab = ({
               <div className="flex justify-between items-start">
                 <div>
                   <h4 className="font-medium">
-                    {prescription.medication?.name}
+                    {prescription.medicationDetails.length}
                   </h4>
-                  <p className="text-sm text-gray-600">
-                    {prescription.medication?.dosage}
-                  </p>
+
                 </div>
                 <Badge
                   variant={
-                    prescription.status === "active"
-                      ? "success"
-                      : prescription.status === "expired"
-                      ? "destructive"
-                      : "secondary"
+                  new Date(prescription.expiryDate) > new Date()
+                    ? "success"
+                    : "destructive"
                   }
                 >
-                  {prescription.status}
+                  {new Date(prescription.expiryDate) > new Date()
+                  ? "Active"
+                  : "Expired"}
                 </Badge>
               </div>
 
@@ -579,14 +576,14 @@ const PrescriptionsTab = ({
                 </div>
                 <div>
                   <p className="text-gray-500">Frequency</p>
-                  <p>{prescription?.frequency}</p>
+                  <p>{prescription?.id}</p>
                 </div>
               </div>
 
-              {prescription.notes && (
+              {prescription.id && (
                 <div className="mt-3">
                   <p className="text-gray-500">Doctor's Notes</p>
-                  <p className="text-sm">{prescription?.notes}</p>
+                  <p className="text-sm">{prescription?.id}</p>
                 </div>
               )}
             </div>
@@ -638,7 +635,7 @@ const OrdersTab = ({
                 <TableCell>
                   {order.items
                     .slice(0, 2)
-                    .map((item) => item.name)
+                    .map((item) => item.medicine.name)
                     .join(", ")}
                   {order.items.length > 2 && ` +${order.items.length - 2} more`}
                 </TableCell>
@@ -656,7 +653,7 @@ const OrdersTab = ({
                     {order.status}
                   </Badge>
                 </TableCell>
-                <TableCell>{order.trackingNumber || "N/A"}</TableCell>
+                <TableCell>{order.id || "N/A"}</TableCell>
               </TableRow>
             ))}
           </TableBody>

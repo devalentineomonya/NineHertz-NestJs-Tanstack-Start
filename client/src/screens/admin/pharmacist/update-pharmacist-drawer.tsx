@@ -9,18 +9,13 @@ import {
 } from "@/components/ui/drawer";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import {
-  Popover,
-  PopoverContent,
-  PopoverTrigger,
-} from "@/components/ui/popover";
+
 import { useEditPharmacistStore } from "@/stores/use-edit-pharmacist-store";
 import { zodResolver } from "@hookform/resolvers/zod";
-import { Check, ChevronsUpDown, Loader, X } from "lucide-react";
+import { Check, Loader, X } from "lucide-react";
 import { useForm } from "react-hook-form";
 import { toast } from "sonner";
 import { z } from "zod";
-import { cn } from "@/lib/utils";
 import { useEffect } from "react";
 import {
   Form,
@@ -30,39 +25,32 @@ import {
   FormLabel,
   FormMessage,
 } from "@/components/ui/form";
-import { useGetPharmacies } from "@/services/pharmacies/use-get-pharmacies";
 import { useUpdatePharmacistService } from "@/services/pharmacists/use-update-pharmacist";
-import {
-  Command,
-  CommandEmpty,
-  CommandGroup,
-  CommandItem,
-  CommandList,
-  CommandInput,
-} from "@/components/ui/command";
+import { PhoneInput } from "@/components/ui/phone-input";
 
 const pharmacistFormSchema = z.object({
   fullName: z.string().min(2, "Full name must be at least 2 characters"),
   licenseNumber: z
     .string()
     .min(2, "License number must be at least 2 characters"),
-  pharmacyId: z.string().min(1, "Pharmacy selection is required"),
+  userId: z.string().min(1, "User selection is required"),
+  phoneNumber: z
+    .string()
+    .min(10, "Phone number must be at least 10 digits")
+    .regex(/^\+?[1-9]\d{1,14}$/, "Phone number must be a valid E.164 format"),
 });
-
 type PharmacistFormValues = z.infer<typeof pharmacistFormSchema>;
 
 export const UpdatePharmacistDrawer = () => {
   const { isOpen, pharmacist, onClose, id } = useEditPharmacistStore();
   const updatePharmacistMutation = useUpdatePharmacistService();
-  const { data: pharmacies = [], isLoading: loadingPharmacies } =
-    useGetPharmacies();
 
   const form = useForm<PharmacistFormValues>({
     resolver: zodResolver(pharmacistFormSchema),
     defaultValues: {
       fullName: "",
       licenseNumber: "",
-      pharmacyId: "",
+      phoneNumber: "",
     },
   });
 
@@ -72,7 +60,7 @@ export const UpdatePharmacistDrawer = () => {
       form.reset({
         fullName: pharmacist.fullName,
         licenseNumber: pharmacist.licenseNumber,
-        pharmacyId: pharmacist.pharmacy.id,
+        phoneNumber: pharmacist.phoneNumber,
       });
     }
   }, [pharmacist, form]);
@@ -87,7 +75,6 @@ export const UpdatePharmacistDrawer = () => {
           userId: pharmacist.userId,
           fullName: data.fullName,
           licenseNumber: data.licenseNumber,
-          pharmacyId: data.pharmacyId,
         },
       });
 
@@ -136,6 +123,22 @@ export const UpdatePharmacistDrawer = () => {
                   </FormItem>
                 )}
               />
+              <FormField
+                control={form.control}
+                name="phoneNumber"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Phone Number</FormLabel>
+                    <FormControl>
+                      <PhoneInput
+                        placeholder="Enter your phone number"
+                        {...field}
+                      />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
 
               {/* License Number */}
               <FormField
@@ -147,73 +150,6 @@ export const UpdatePharmacistDrawer = () => {
                     <FormControl>
                       <Input placeholder="PH123456" {...field} />
                     </FormControl>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
-
-              {/* Pharmacy Selection */}
-              <FormField
-                control={form.control}
-                name="pharmacyId"
-                render={({ field }) => (
-                  <FormItem className="flex flex-col">
-                    <FormLabel>Pharmacy</FormLabel>
-                    <Popover>
-                      <PopoverTrigger asChild>
-                        <FormControl>
-                          <Button
-                            variant="outline"
-                            role="combobox"
-                            className={cn(
-                              "w-full justify-between",
-                              !field.value && "text-muted-foreground"
-                            )}
-                            disabled={loadingPharmacies}
-                          >
-                            {field.value
-                              ? pharmacies.find(
-                                  (pharmacy) => pharmacy.id === field.value
-                                )?.name
-                              : "Select pharmacy"}
-                            <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
-                          </Button>
-                        </FormControl>
-                      </PopoverTrigger>
-                      <PopoverContent align="start" className="w-full p-0">
-                        <Command>
-                          <CommandInput placeholder="Search pharmacies..." />
-                          <CommandList>
-                            <CommandEmpty>
-                              {loadingPharmacies
-                                ? "Loading..."
-                                : "No pharmacies found"}
-                            </CommandEmpty>
-                            <CommandGroup>
-                              {pharmacies.map((pharmacy) => (
-                                <CommandItem
-                                  value={pharmacy.name}
-                                  key={pharmacy.id}
-                                  onSelect={() => {
-                                    form.setValue("pharmacyId", pharmacy.id);
-                                  }}
-                                >
-                                  <Check
-                                    className={cn(
-                                      "mr-2 h-4 w-4",
-                                      pharmacy.id === field.value
-                                        ? "opacity-100"
-                                        : "opacity-0"
-                                    )}
-                                  />
-                                  {pharmacy.name}
-                                </CommandItem>
-                              ))}
-                            </CommandGroup>
-                          </CommandList>
-                        </Command>
-                      </PopoverContent>
-                    </Popover>
                     <FormMessage />
                   </FormItem>
                 )}

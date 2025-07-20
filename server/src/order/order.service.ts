@@ -5,7 +5,13 @@ import {
 } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Order } from './entities/order.entity';
-import { Between, LessThanOrEqual, MoreThanOrEqual, Repository } from 'typeorm';
+import {
+  Between,
+  In,
+  LessThanOrEqual,
+  MoreThanOrEqual,
+  Repository,
+} from 'typeorm';
 import { UpdateOrderDto } from './dto/update-order.dto';
 import { OrderResponseDto } from './dto/order-response.dto';
 
@@ -19,7 +25,6 @@ import { OrderItemResponseDto } from './dto/order-item-response.dto';
 import { StripeService } from 'src/payment/stripe.service';
 import { PaystackService } from 'src/payment/paystack.service';
 import { CreateOrderDto } from './dto/create-order.dto';
-import { Pharmacy } from 'src/pharmacy/entity/pharmacy.entity';
 import { OrderFilterDto } from './dto/order-filter.dto';
 import { OrderPaginatedDto } from './dto/order-paginated.dto';
 import { PaginationDto } from 'src/shared/dto/pagination.dto';
@@ -33,8 +38,6 @@ export class OrderService {
     private patientRepository: Repository<Patient>,
     @InjectRepository(OrderItem)
     private orderItemRepository: Repository<OrderItem>,
-    @InjectRepository(OrderItem)
-    private pharmacyRepository: Repository<Pharmacy>,
     @InjectRepository(Medicine)
     private medicineRepository: Repository<Medicine>,
     private stripeService: StripeService,
@@ -51,20 +54,12 @@ export class OrderService {
         `Patient with ID ${createDto.patientId} not found`,
       );
     }
+    const medicineIds = createDto.items.map((item) => item.medicineId).flat();
 
-    const pharmacy = await this.pharmacyRepository.findOne({
-      where: { id: createDto.pharmacyId },
+    const medicines = await this.medicineRepository.findBy({
+      id: In(medicineIds),
     });
 
-    if (!pharmacy) {
-      throw new NotFoundException(
-        `Pharmacy with ID ${createDto.pharmacyId} not found`,
-      );
-    }
-
-    // Verify all medicines exist
-    const medicineIds = createDto.items.map((item) => item.medicineId);
-    const medicines = await this.medicineRepository.findByIds(medicineIds);
     if (medicines.length !== medicineIds.length) {
       const foundIds = medicines.map((m) => m.id);
       const missingIds = medicineIds.filter((id) => !foundIds.includes(id));
@@ -78,7 +73,6 @@ export class OrderService {
       status: createDto.status || OrderStatus.PENDING,
       totalAmount: createDto.totalAmount,
       patient,
-      pharmacy,
     });
 
     // Create order items
@@ -106,7 +100,6 @@ export class OrderService {
     const where: {
       status?: OrderStatus;
       patient?: { id: string };
-      pharmacy?: { id: string };
       orderDate?: any;
     } = {};
 
@@ -116,10 +109,6 @@ export class OrderService {
 
     if (filters.patientId) {
       where.patient = { id: filters.patientId };
-    }
-
-    if (filters.pharmacyId) {
-      where.pharmacy = { id: filters.pharmacyId };
     }
 
     if (filters.fromDate && filters.toDate) {
@@ -135,13 +124,7 @@ export class OrderService {
 
     const [orders, total] = await this.orderRepository.findAndCount({
       where,
-      relations: [
-        'patient',
-        'patient.user',
-        'pharmacy',
-        'items',
-        'items.medicine',
-      ],
+      relations: ['patient', 'patient.user', 'items', 'items.medicine'],
       take: limit,
       skip,
       order: { orderDate: 'DESC' },
@@ -158,13 +141,7 @@ export class OrderService {
   async findOne(id: string): Promise<OrderResponseDto> {
     const order = await this.orderRepository.findOne({
       where: { id },
-      relations: [
-        'patient',
-        'patient.user',
-        'pharmacy',
-        'items',
-        'items.medicine',
-      ],
+      relations: ['patient', 'patient.user', 'items', 'items.medicine'],
     });
 
     if (!order) {
@@ -180,13 +157,7 @@ export class OrderService {
   ): Promise<OrderResponseDto> {
     const order = await this.orderRepository.findOne({
       where: { id },
-      relations: [
-        'patient',
-        'patient.user',
-        'pharmacy',
-        'items',
-        'items.medicine',
-      ],
+      relations: ['patient', 'patient.user', 'items', 'items.medicine'],
     });
 
     if (!order) {
@@ -335,7 +306,7 @@ export class OrderService {
   private async updateInventory(orderId: string) {
     const order = await this.orderRepository.findOne({
       where: { id: orderId },
-      relations: ['items', 'items.medicine', 'pharmacy'],
+      relations: ['items', 'items.medicine'],
     });
 
     if (!order) return;
@@ -373,21 +344,6 @@ export class OrderService {
           createdAt: order.patient.user.createdAt,
         },
       },
-      pharmacy: {
-        id: order.pharmacy.id,
-        name: order.pharmacy.name,
-        address: order.pharmacy.address,
-        contactPhone: order.pharmacy.contactPhone,
-        licenseNumber: order.pharmacy.licenseNumber,
-        createdAt: order.pharmacy.createdAt,
-        updatedAt: order.pharmacy.updatedAt,
-        inventoryIds:
-          order.pharmacy.inventory?.map((inventory) => inventory.id) || [],
-        orderIds: order.pharmacy.orders?.map((order) => order.id) || [],
-        pharmacistIds:
-          order.pharmacy.pharmacists?.map((pharmacist) => pharmacist.id) || [],
-      },
-
       items: order.items.map((item) => this.mapItemToResponseDto(item)),
       createdAt: order.createdAt,
       updatedAt: order.updatedAt,
@@ -401,6 +357,7 @@ export class OrderService {
       pricePerUnit: item.pricePerUnit,
       medicine: {
         id: item.medicine.id,
+        type: item.medicine.type,
         name: item.medicine.name,
         genericName: item.medicine.genericName,
         description: item.medicine.description,

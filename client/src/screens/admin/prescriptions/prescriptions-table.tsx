@@ -11,8 +11,11 @@ import * as React from "react";
 import { DeletePrescriptionModal } from "./delete-prescription-modal";
 import { FulfillPrescriptionModal } from "./fulfill-prescription-modal";
 import { prescriptionColumns } from "./prescriptions-table-columns";
+import { useUserSessionStore } from "@/stores/user-session-store";
 
 export function PrescriptionsTable() {
+  const { getCurrentUser } = useUserSessionStore();
+  const currentUser = getCurrentUser();
   const { onOpen } = useAddPrescriptionStore();
   const { data, isLoading } = useGetPrescriptions();
   const [patientName] = useQueryState(
@@ -108,12 +111,14 @@ export function PrescriptionsTable() {
   }
   return (
     <div className="data-table-container">
-      <div className="w-fit min-w-56 mb-2">
-        <Button variant={"primary"} onClick={onOpen}>
-          <PlusSquare />
-          Add Prescription
-        </Button>
-      </div>
+      {currentUser?.role !== "patient" && (
+        <div className="w-fit min-w-56 mb-2">
+          <Button variant={"primary"} onClick={onOpen}>
+            <PlusSquare />
+            Add Prescription
+          </Button>
+        </div>
+      )}
       <DataTable table={table}>
         <DataTableToolbar table={table} />
       </DataTable>

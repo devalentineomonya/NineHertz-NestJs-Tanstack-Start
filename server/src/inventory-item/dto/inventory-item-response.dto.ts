@@ -1,6 +1,5 @@
 import { ApiProperty } from '@nestjs/swagger';
 import { MedicineResponseDto } from '../../medicine/dto/medicine-response.dto';
-import { PharmacyResponseDto } from 'src/pharmacy/dto/pharmacy-response.dto';
 export class InventoryItemResponseDto {
   @ApiProperty({
     example: 'f47ac10b-58cc-4372-a567-0e02b2c3d479',
@@ -31,10 +30,4 @@ export class InventoryItemResponseDto {
     description: 'Medicine details',
   })
   medicine: MedicineResponseDto;
-
-  @ApiProperty({
-    type: PharmacyResponseDto,
-    description: 'Pharmacy details',
-  })
-  pharmacy: PharmacyResponseDto;
 }

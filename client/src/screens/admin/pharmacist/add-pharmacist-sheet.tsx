@@ -39,7 +39,7 @@ import {
   FormMessage,
 } from "@/components/ui/form";
 import { useGetUsers } from "@/services/users/use-get-users";
-import { useGetPharmacies } from "@/services/pharmacies/use-get-pharmacies";
+import { PhoneInput } from "@/components/ui/phone-input";
 
 const pharmacistFormSchema = z.object({
   fullName: z.string().min(2, "Full name must be at least 2 characters"),
@@ -47,7 +47,10 @@ const pharmacistFormSchema = z.object({
     .string()
     .min(2, "License number must be at least 2 characters"),
   userId: z.string().min(1, "User selection is required"),
-  pharmacyId: z.string().min(1, "Pharmacy selection is required"),
+  phoneNumber: z
+    .string()
+    .min(10, "Phone number must be at least 10 digits")
+    .regex(/^\+?[1-9]\d{1,14}$/, "Phone number must be a valid E.164 format"),
 });
 
 type PharmacistFormValues = z.infer<typeof pharmacistFormSchema>;
@@ -56,8 +59,6 @@ export const AddPharmacistDrawer = () => {
   const { isOpen, onClose } = useAddPharmacistStore();
   const addPharmacistMutation = useAddPharmacistService();
   const { data: availableUsers = [], isLoading: loadingUsers } = useGetUsers();
-  const { data: pharmacies = [], isLoading: loadingPharmacies } =
-    useGetPharmacies();
 
   const form = useForm<PharmacistFormValues>({
     resolver: zodResolver(pharmacistFormSchema),
@@ -65,7 +66,7 @@ export const AddPharmacistDrawer = () => {
       fullName: "",
       licenseNumber: "",
       userId: "",
-      pharmacyId: "",
+      phoneNumber: "",
     },
   });
 
@@ -75,7 +76,7 @@ export const AddPharmacistDrawer = () => {
         fullName: data.fullName,
         licenseNumber: data.licenseNumber,
         userId: data.userId,
-        pharmacyId: data.pharmacyId,
+        phoneNumber: data.phoneNumber,
       });
 
       toast.success("Pharmacist profile created successfully");
@@ -167,74 +168,6 @@ export const AddPharmacistDrawer = () => {
                 )}
               />
 
-              {/* Pharmacy Selection */}
-              <FormField
-                control={form.control}
-                name="pharmacyId"
-                render={({ field }) => (
-                  <FormItem className="flex flex-col">
-                    <FormLabel>Select Pharmacy</FormLabel>
-                    <Popover>
-                      <PopoverTrigger asChild>
-                        <FormControl>
-                          <Button
-                            variant="outline"
-                            role="combobox"
-                            className={cn(
-                              "w-full justify-between",
-                              !field.value && "text-muted-foreground"
-                            )}
-                            disabled={loadingPharmacies}
-                          >
-                            {field.value
-                              ? pharmacies.find(
-                                  (pharmacy) => pharmacy.id === field.value
-                                )?.name
-                              : "Select pharmacy"}
-                            <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
-                          </Button>
-                        </FormControl>
-                      </PopoverTrigger>
-                      <PopoverContent align="start" className="w-full p-0">
-                        <Command>
-                          <CommandInput placeholder="Search pharmacies..." />
-                          <CommandList>
-                            <CommandEmpty>
-                              {loadingPharmacies
-                                ? "Loading..."
-                                : "No pharmacies found"}
-                            </CommandEmpty>
-                            <CommandGroup>
-                              {pharmacies.map((pharmacy) => (
-                                <CommandItem
-                                  value={pharmacy.name}
-                                  key={pharmacy.id}
-                                  onSelect={() => {
-                                    form.setValue("pharmacyId", pharmacy.id);
-                                  }}
-                                >
-                                  <Check
-                                    className={cn(
-                                      "mr-2 h-4 w-4",
-                                      pharmacy.id === field.value
-                                        ? "opacity-100"
-                                        : "opacity-0"
-                                    )}
-                                  />
-                                  {pharmacy.name}
-                                </CommandItem>
-                              ))}
-                            </CommandGroup>
-                          </CommandList>
-                        </Command>
-                      </PopoverContent>
-                    </Popover>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
-
-              {/* Full Name */}
               <FormField
                 control={form.control}
                 name="fullName"
@@ -243,6 +176,23 @@ export const AddPharmacistDrawer = () => {
                     <FormLabel>Full Name</FormLabel>
                     <FormControl>
                       <Input placeholder="John Smith" {...field} />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+
+              <FormField
+                control={form.control}
+                name="phoneNumber"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Phone Number</FormLabel>
+                    <FormControl>
+                      <PhoneInput
+                        placeholder="Enter your phone number"
+                        {...field}
+                      />
                     </FormControl>
                     <FormMessage />
                   </FormItem>
