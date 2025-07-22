@@ -249,12 +249,7 @@ const OverviewTab = ({
               </p>
               <p className="text-sm text-gray-600">Appointments</p>
             </div>
-            <div className="text-center p-4 bg-green-50 rounded-lg">
-              <p className="text-2xl font-bold">
-                {patient?.consultations?.length || 0}
-              </p>
-              <p className="text-sm text-gray-600">Consultations</p>
-            </div>
+
             <div className="text-center p-4 bg-yellow-50 rounded-lg">
               <p className="text-2xl font-bold">
                 {patient?.prescriptions?.length || 0}
@@ -300,10 +295,6 @@ const OverviewTab = ({
                 ...(patient?.appointments?.map((a) => ({
                   ...a,
                   activityType: "appointment",
-                })) || []),
-                ...(patient?.consultations?.map((c) => ({
-                  ...c,
-                  activityType: "consultation",
                 })) || []),
               ]
                 .sort(
@@ -359,7 +350,7 @@ const AppointmentsTab = ({
             <Skeleton key={i} className="h-12 w-full" />
           ))}
         </div>
-      ) : patient?.appointments && patient.appointments.length > 0 ? (
+      ) : patient?.appointments && patient.appointments?.length > 0 ? (
         <Table>
           <TableHeader>
             <TableRow>
@@ -535,27 +526,24 @@ const PrescriptionsTab = ({
             <Skeleton key={i} className="h-16 w-full" />
           ))}
         </div>
-      ) : patient?.prescriptions && patient.prescriptions.length > 0 ? (
+      ) : patient?.prescriptions && patient.prescriptions?.length > 0 ? (
         <div className="space-y-4">
           {patient.prescriptions.map((prescription) => (
             <div key={prescription.id} className="border rounded-lg p-4">
               <div className="flex justify-between items-start">
                 <div>
-                  <h4 className="font-medium">
-                    {prescription.medicationDetails.length}
-                  </h4>
-
+                  <h4 className="font-medium">{prescription.items?.length}</h4>
                 </div>
                 <Badge
                   variant={
-                  new Date(prescription.expiryDate) > new Date()
-                    ? "success"
-                    : "destructive"
+                    new Date(prescription.expiryDate) > new Date()
+                      ? "success"
+                      : "destructive"
                   }
                 >
                   {new Date(prescription.expiryDate) > new Date()
-                  ? "Active"
-                  : "Expired"}
+                    ? "Active"
+                    : "Expired"}
                 </Badge>
               </div>
 
@@ -615,7 +603,7 @@ const OrdersTab = ({
             <Skeleton key={i} className="h-16 w-full" />
           ))}
         </div>
-      ) : patient?.orders && patient.orders.length > 0 ? (
+      ) : patient?.orders && patient.orders?.length > 0 ? (
         <Table>
           <TableHeader>
             <TableRow>
@@ -634,12 +622,12 @@ const OrdersTab = ({
                 </TableCell>
                 <TableCell>
                   {order.items
-                    .slice(0, 2)
+                    ?.slice(0, 2)
                     .map((item) => item.medicine.name)
                     .join(", ")}
-                  {order.items.length > 2 && ` +${order.items.length - 2} more`}
+                  {order.items?.length > 2 && ` +${order.items?.length - 2} more`}
                 </TableCell>
-                <TableCell>${order.totalAmount.toFixed(2)}</TableCell>
+                <TableCell>Kes {order.totalAmount}</TableCell>
                 <TableCell>
                   <Badge
                     variant={

@@ -20,7 +20,6 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import { Check, Loader, X } from "lucide-react";
 import { useForm } from "react-hook-form";
 import { toast } from "sonner";
-import { z } from "zod";
 import { cn } from "@/lib/utils";
 import { useState, useEffect } from "react";
 import { format } from "date-fns";
@@ -36,20 +35,7 @@ import {
 import { useGetUsers } from "@/services/users/use-get-users";
 import { useUpdatePatientService } from "@/services/patients/use-update-patient";
 import { PhoneInput } from "@/components/ui/phone-input";
-
-const patientFormSchema = z.object({
-  userId: z.string().min(1, "User selection is required"),
-  fullName: z.string().min(2, "Full name must be at least 2 characters"),
-  phone: z
-    .string()
-    .min(10, "Phone number must be at least 10 digits")
-    .regex(/^\+?[1-9]\d{1,14}$/, "Phone number must be a valid E.164 format"),
-  dateOfBirth: z.date().optional(),
-  allergies: z.array(z.string()).optional(),
-  conditions: z.array(z.string()).optional(),
-});
-
-type PatientFormValues = z.infer<typeof patientFormSchema>;
+import { patientFormSchema, PatientFormValues } from "./patient-data";
 
 export const UpdatePatientDrawer = () => {
   const { isOpen, patient, onClose, id } = useEditPatientStore();

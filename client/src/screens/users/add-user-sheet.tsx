@@ -23,6 +23,10 @@ import { Loader } from "lucide-react";
 import { useForm } from "react-hook-form";
 import { toast } from "sonner";
 import { z } from "zod";
+import { useAddAdminStore } from "@/stores/use-add-admin-store";
+import { useAddPatientStore } from "@/stores/use-add-patient-store";
+import { useAddDoctorStore } from "@/stores/use-add-doctor-store";
+import { useAddPharmacistStore } from "@/stores/use-add-pharmacist-store";
 
 enum UserRole {
   PATIENT = "patient",
@@ -44,6 +48,11 @@ type UserFormValues = z.infer<typeof userFormSchema>;
 
 export const AddUserDrawer = () => {
   const { isOpen, onClose } = useAddUserStore();
+  const { onOpen: onAddAdminOpen } = useAddAdminStore();
+  const { onOpen: onAddPatient } = useAddPatientStore();
+  const { onOpen: onAddPharmacist } = useAddPharmacistStore();
+  const { onOpen: onAddDoctor } = useAddDoctorStore();
+
   const handler = useAddUserService();
 
   const form = useForm<UserFormValues>({
@@ -59,7 +68,23 @@ export const AddUserDrawer = () => {
     try {
       await handler.mutateAsync(data);
       toast.success("New user account has been created successfully");
+
+      switch (data.role) {
+        case UserRole.ADMIN:
+          onAddAdminOpen();
+          break;
+        case UserRole.PATIENT:
+          onAddPatient();
+          break;
+        case UserRole.DOCTOR:
+          onAddDoctor();
+          break;
+        case UserRole.PHARMACIST:
+          onAddPharmacist();
+          break;
+      }
       onClose();
+      form.reset();
     } catch (error) {
       toast.error("Could not create user");
     }
@@ -74,8 +99,8 @@ export const AddUserDrawer = () => {
           </DrawerTitle>
         </DrawerHeader>
 
-        <div className="px-6 py-4 overflow-y-auto">
-          <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
+        <div className="py-4 overflow-y-auto">
+          <form onSubmit={form.handleSubmit(onSubmit)}>
             {/* Email Field */}
             <div className="space-y-2">
               <Label htmlFor="email">Email Address</Label>

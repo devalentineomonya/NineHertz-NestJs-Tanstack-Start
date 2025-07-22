@@ -3,7 +3,6 @@ import {
   PrimaryGeneratedColumn,
   Column,
   OneToOne,
-  JoinColumn,
   BeforeInsert,
   BeforeUpdate,
   Index,
@@ -45,6 +44,9 @@ export class User {
   @Column({ default: false })
   isEmailVerified: boolean;
 
+  @Column({ nullable: true })
+  profilePicture?: string;
+
   @Column({
     type: 'enum',
     enum: ['patient', 'doctor', 'admin', 'pharmacist'],
@@ -61,26 +63,20 @@ export class User {
   })
   updatedAt: Date;
 
-  @OneToOne(() => Patient, (patient) => patient.user, {
-    cascade: true,
-  })
-  @JoinColumn()
+  @OneToOne(() => Patient, (patient) => patient.user, { cascade: true })
   patientProfile?: Patient;
 
   @OneToOne(() => Doctor, (doctor) => doctor.user, {
     onDelete: 'CASCADE',
   })
-  @JoinColumn()
   doctorProfile?: Doctor;
 
   @OneToOne(() => Admin, (admin) => admin.user, { cascade: true })
-  @JoinColumn()
   adminProfile?: Admin;
 
   @OneToOne(() => Pharmacist, (pharmacist) => pharmacist.user, {
     cascade: true,
   })
-  @JoinColumn()
   pharmacistProfile?: Pharmacist;
 
   @BeforeInsert()

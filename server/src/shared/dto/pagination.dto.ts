@@ -1,6 +1,6 @@
-// common/dto/pagination.dto.ts
 import { IsOptional, IsNumber, Min } from 'class-validator';
 import { ApiPropertyOptional } from '@nestjs/swagger';
+import { Type } from 'class-transformer';
 
 export class PaginationDto {
   @ApiPropertyOptional({
@@ -10,6 +10,7 @@ export class PaginationDto {
     example: 1,
   })
   @IsOptional()
+  @Type(() => Number)
   @IsNumber()
   @Min(1)
   page?: number = 1;
@@ -17,11 +18,12 @@ export class PaginationDto {
   @ApiPropertyOptional({
     description: 'Items per page',
     minimum: 1,
-    default: 10,
-    example: 10,
+    default: 50,
+    example: 50,
   })
   @IsOptional()
+  @Type(() => Number)
   @IsNumber()
   @Min(1)
-  limit?: number = 10;
+  limit?: number = 50;
 }

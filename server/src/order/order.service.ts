@@ -1,10 +1,9 @@
 import {
+  BadRequestException,
   Injectable,
   NotFoundException,
-  BadRequestException,
 } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
-import { Order } from './entities/order.entity';
 import {
   Between,
   In,
@@ -12,22 +11,23 @@ import {
   MoreThanOrEqual,
   Repository,
 } from 'typeorm';
-import { UpdateOrderDto } from './dto/update-order.dto';
 import { OrderResponseDto } from './dto/order-response.dto';
+import { UpdateOrderDto } from './dto/update-order.dto';
+import { Order } from './entities/order.entity';
 
 import { Patient } from '../patient/entities/patient.entity';
 
-import { OrderItem } from './entities/order-item.entity';
 import { Medicine } from '../medicine/entities/medicine.entity';
+import { OrderItem } from './entities/order-item.entity';
 
 import { OrderStatus } from 'src/enums/order.enum';
-import { OrderItemResponseDto } from './dto/order-item-response.dto';
-import { StripeService } from 'src/payment/stripe.service';
 import { PaystackService } from 'src/payment/paystack.service';
+import { StripeService } from 'src/payment/stripe.service';
+import { PaginationDto } from 'src/shared/dto/pagination.dto';
 import { CreateOrderDto } from './dto/create-order.dto';
 import { OrderFilterDto } from './dto/order-filter.dto';
+import { OrderItemResponseDto } from './dto/order-item-response.dto';
 import { OrderPaginatedDto } from './dto/order-paginated.dto';
-import { PaginationDto } from 'src/shared/dto/pagination.dto';
 
 @Injectable()
 export class OrderService {
@@ -94,7 +94,7 @@ export class OrderService {
     pagination: PaginationDto,
     filters: OrderFilterDto,
   ): Promise<OrderPaginatedDto> {
-    const { page = 1, limit = 10 } = pagination;
+    const { page = 1, limit = 50 } = pagination;
     const skip = (page - 1) * limit;
 
     const where: {
@@ -341,6 +341,7 @@ export class OrderService {
           email: order.patient.user.email,
           role: order.patient.user.role,
           isEmailVerified: order.patient.user.isEmailVerified,
+          profilePicture: order.patient.user?.profilePicture || '',
           createdAt: order.patient.user.createdAt,
         },
       },

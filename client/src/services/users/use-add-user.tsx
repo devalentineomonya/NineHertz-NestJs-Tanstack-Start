@@ -11,9 +11,21 @@ export const useAddUserService = () => {
       });
       return response.data;
     },
-    onSuccess: async () => {
-      await queryClient.invalidateQueries({
-        queryKey: ["users", "admins", "doctors", "pharmacists"],
+    onSuccess: () => {
+      queryClient.invalidateQueries({
+        queryKey: ["users"],
+      });
+      queryClient.invalidateQueries({
+        queryKey: ["patients"],
+      });
+      queryClient.invalidateQueries({
+        queryKey: ["admins"],
+      });
+      queryClient.invalidateQueries({
+        queryKey: ["doctors"],
+      });
+      queryClient.invalidateQueries({
+        queryKey: ["pharmacists"],
       });
     },
   });

@@ -1,6 +1,7 @@
 import { Link } from "@tanstack/react-router";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
+import { useUserSessionStore } from "@/stores/user-session-store";
 
 interface PermissionCardProps {
   title: string;
@@ -8,9 +9,11 @@ interface PermissionCardProps {
 }
 
 const Alert = ({ title, iconUrl }: PermissionCardProps) => {
+  const { getCurrentUser } = useUserSessionStore();
+  const currentUser = getCurrentUser();
   return (
-    <section className="flex-center h-screen w-full">
-      <Card className="w-full max-w-[520px] border-none bg-dark-1 p-6 py-9 text-white">
+    <section className="flex justify-center items-center h-screen w-full">
+      <Card className="w-full max-w-[520px] border-none p-6 py-9 Get">
         <CardContent>
           <div className="flex flex-col gap-9">
             <div className="flex flex-col gap-3.5">
@@ -22,8 +25,18 @@ const Alert = ({ title, iconUrl }: PermissionCardProps) => {
               <p className="text-center text-xl font-semibold">{title}</p>
             </div>
 
-            <Button asChild className="bg-blue-1">
-              <Link to="/">Back to Home</Link>
+            <Button asChild variant={"primary"}>
+              <Link
+                to={`/${
+                  currentUser?.role as
+                    | "patient"
+                    | "admin"
+                    | "doctor"
+                    | "pharmacist"
+                }/dashboard`}
+              >
+                Continue to Dashboard
+              </Link>
             </Button>
           </div>
         </CardContent>

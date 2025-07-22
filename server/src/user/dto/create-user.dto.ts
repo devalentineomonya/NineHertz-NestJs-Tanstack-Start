@@ -7,6 +7,10 @@ export class CreateUserDto {
   @IsEmail()
   email: string;
 
+  @ApiPropertyOptional({ example: 'https://example.com/profile.jpg' })
+  @IsOptional()
+  profilePicture?: string;
+
   @ApiPropertyOptional({ example: 'password123' })
   @IsOptional()
   password?: string;

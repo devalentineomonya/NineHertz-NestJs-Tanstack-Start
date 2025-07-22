@@ -17,9 +17,12 @@ export const useUpdatePharmacistService = () => {
       });
       return response.data;
     },
-    onSuccess: async () => {
-      await queryClient.invalidateQueries({
-        queryKey: ["users", "pharmacists"],
+    onSuccess: () => {
+      queryClient.invalidateQueries({
+        queryKey: ["users"],
+      });
+      queryClient.invalidateQueries({
+        queryKey: ["pharmacists"],
       });
     },
   });

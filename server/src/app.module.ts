@@ -4,7 +4,6 @@ import { OrderModule } from './order/order.module';
 import { InventoryItemModule } from './inventory-item/inventory-item.module';
 import { MedicineModule } from './medicine/medicine.module';
 import { PrescriptionModule } from './prescription/prescription.module';
-import { ConsultationModule } from './consultation/consultation.module';
 import { AppointmentModule } from './appointment/appointment.module';
 import { AdminModule } from './admin/admin.module';
 import { DoctorModule } from './doctor/doctor.module';
@@ -31,7 +30,6 @@ import { ContactHelper } from './shared/helpers/contact.helper';
     AdminModule,
     PharmacistModule,
     AppointmentModule,
-    ConsultationModule,
     PrescriptionModule,
     MedicineModule,
     InventoryItemModule,

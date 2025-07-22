@@ -78,9 +78,9 @@ const adminFormSchema = z.object({
       ),
     })
   ),
-  consultationFee: z
+  appointmentFee: z
     .number()
-    .min(0, "Consultation fee must be a positive number"),
+    .min(0, "Appointment fee must be a positive number"),
   licenseNumber: z
     .string()
     .min(2, "License number must be at least 2 characters"),
@@ -101,7 +101,7 @@ export const AddAdminDrawer = () => {
       userUuid: "",
       specialty: "",
       availability: [],
-      consultationFee: 0,
+      appointmentFee: 0,
       licenseNumber: "",
     },
   });
@@ -325,13 +325,13 @@ export const AddAdminDrawer = () => {
                 )}
               />
 
-              {/* Consultation Fee */}
+              {/* Apppoitment Fee */}
               <FormField
                 control={form.control}
-                name="consultationFee"
+                name="appointmentFee"
                 render={({ field }) => (
                   <FormItem>
-                    <FormLabel>Consultation Fee</FormLabel>
+                    <FormLabel>Appointment Fee</FormLabel>
                     <FormControl>
                       <Input
                         type="number"

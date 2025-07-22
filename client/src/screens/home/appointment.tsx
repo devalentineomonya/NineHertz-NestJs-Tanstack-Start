@@ -53,7 +53,7 @@ const Appointment = () => {
                 </li>
                 <li className="flex items-start">
                   <span className="w-2 h-2 bg-green-500 rounded-full mt-2 mr-3 flex-shrink-0"></span>
-                  Transparent consultation fees and specialties
+                  Transparent appointment fees and specialties
                 </li>
                 <li className="flex items-start">
                   <span className="w-2 h-2 bg-green-500 rounded-full mt-2 mr-3 flex-shrink-0"></span>
@@ -79,7 +79,7 @@ const Appointment = () => {
               <ul className="space-y-2 pl-[52px]">
                 <li className="flex items-start">
                   <span className="w-2 h-2 bg-green-500 rounded-full mt-2 mr-3 flex-shrink-0"></span>
-                  Secure video consultations with healthcare providers
+                  Secure video appointments with healthcare providers
                 </li>
                 <li className="flex items-start">
                   <span className="w-2 h-2 bg-green-500 rounded-full mt-2 mr-3 flex-shrink-0"></span>
@@ -91,7 +91,7 @@ const Appointment = () => {
                 </li>
                 <li className="flex items-start">
                   <span className="w-2 h-2 bg-green-500 rounded-full mt-2 mr-3 flex-shrink-0"></span>
-                  Online payment processing for consultations
+                  Online payment processing for appointments
                 </li>
               </ul>
             </div>
@@ -105,7 +105,7 @@ const Appointment = () => {
             viewport={{ once: true }}
           >
             <motion.button
-              className="w-full sm:w-auto flex items-center justify-center gap-2 px-6 py-3 bg-green-600 text-white font-medium rounded-lg  w-full h-12 bg-gradient-to-b from-green-500 via-green-400 to-green-600 shadow-lg shadow-green-400/25   relative z-10 transition-colors group"
+              className="w-full sm:w-auto flex items-center justify-center gap-2 px-6 py-3 bg-green-600 text-white font-medium rounded-lg h-12 bg-gradient-to-b from-green-500 via-green-400 to-green-600 shadow-lg shadow-green-400/25   relative z-10 transition-colors group"
               whileHover={{ scale: 1.03 }}
               whileTap={{ scale: 0.98 }}
             >

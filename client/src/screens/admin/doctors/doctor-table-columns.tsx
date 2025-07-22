@@ -139,8 +139,8 @@ export const doctorColumns: ColumnDef<DoctorResponseDto>[] = [
     },
   },
   {
-    id: "consultationFee",
-    accessorKey: "consultationFee",
+    id: "appointmentFee",
+    accessorKey: "appointmentFee",
     header: ({ column }) => (
       <DataTableColumnHeader column={column} title="Fee" />
     ),

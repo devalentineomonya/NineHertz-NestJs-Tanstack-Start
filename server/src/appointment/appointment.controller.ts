@@ -114,6 +114,19 @@ export class AppointmentController {
                   DELETE  APPOINTMENT WITH ID
   ========================================================*/
 
+  @Get('video-token/:callId')
+  async getVideoToken(
+    @Param('callId') callId: string,
+    @Req() req: RequestWithUser,
+  ) {
+    const userId = req.user.sub;
+    return this.appointmentService.getVideoUserToken(callId, userId);
+  }
+
+  /*=======================================================
+                  DELETE  APPOINTMENT WITH ID
+  ========================================================*/
+
   @Roles(Role.ADMIN)
   @Delete(':id')
   @ApiOperation({ summary: 'Delete appointment' })

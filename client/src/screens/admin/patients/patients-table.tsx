@@ -11,35 +11,35 @@ import * as React from "react";
 import { DeletePatientConfirmModal } from "./delete-patient-confirm";
 import { patientColumns } from "./patient-table-columns";
 import { useUserSessionStore } from "@/stores/user-session-store";
+import { ColumnFiltersState } from "@tanstack/react-table";
 
 export function PatientsTable() {
-  const { data: patients, isLoading } = useGetPatients();
+  const { data: patients = [], isLoading } = useGetPatients();
   const { getCurrentUser } = useUserSessionStore();
   const currentUser = getCurrentUser();
   const { onOpen: onPatientDrawerOpen } = useAddPatientStore();
-  const [fullName] = useQueryState("fullName", parseAsString.withDefault(""));
-  const [status] = useQueryState(
-    "status",
-    parseAsArrayOf(parseAsString).withDefault([])
-  );
 
-  const filteredData = React.useMemo(() => {
-    return patients?.filter((patient) => {
-      const matchesName =
-        fullName === "" ||
-        patient.fullName.toLowerCase().includes(fullName.toLowerCase());
-      const matchesStatus =
-        status.length === 0 || status.includes(patient.status);
-
-      return matchesName && matchesStatus;
-    });
-  }, [patients, fullName, status]);
+  // Use TanStack Table's built-in filtering instead of manual filtering
+  const [columnFilters, setColumnFilters] = React.useState<ColumnFiltersState>();
 
   const { table } = useDataTable({
-    data: filteredData || [],
+    data: patients,
     columns: patientColumns,
-    pageCount: Math.ceil((filteredData?.length || 0) / 10),
+    // Let TanStack handle pagination
+    pageCount: Math.ceil(patients.length / 10),
+    // Pass filter state to table
+    onColumnFiltersChange: (updaterOrValue) => {
+      const updatedFilters =
+        typeof updaterOrValue === "function"
+          ? updaterOrValue(columnFilters ?? [])
+          : [...updaterOrValue];
+      setColumnFilters(updatedFilters);
+    },
     initialState: {
+      pagination: {
+        pageIndex: 0,
+        pageSize: 10,
+      },
       sorting: [{ id: "fullName", desc: false }],
       columnPinning: { right: ["actions"] },
     },

@@ -16,10 +16,24 @@ export const Stage = ({
   const SelectedComponent = LayoutMap[selectedLayout].Component;
   const props = LayoutMap[selectedLayout]?.props;
 
-  if (selectedLayout === "LegacyGrid" || selectedLayout === "LegacySpeaker") {
+  if (
+    selectedLayout === "LegacyGrid" ||
+    (selectedLayout === "LegacySpeaker" && props)
+  ) {
     return (
       <div className="flex-1 min-h-0 ">
-        <SelectedComponent {...props} />
+        <SelectedComponent
+          {...props}
+          participantsBarPosition={
+            "participantsBarPosition" in props &&
+            (props.participantsBarPosition === "bottom" ||
+              props.participantsBarPosition === "top" ||
+              props.participantsBarPosition === "right" ||
+              props.participantsBarPosition === "left")
+              ? props.participantsBarPosition
+              : undefined
+          }
+        />
       </div>
     );
   }
@@ -27,7 +41,22 @@ export const Stage = ({
   return (
     <SelectedComponent
       {...props}
-      groupSize={!groupSize || groupSize > 16 ? props?.groupSize : groupSize}
+      groupSize={
+        !groupSize || groupSize > 16
+          ? "groupSize" in props
+            ? props.groupSize
+            : groupSize
+          : groupSize
+      }
+      participantsBarPosition={
+        "participantsBarPosition" in props &&
+        (props.participantsBarPosition === "bottom" ||
+          props.participantsBarPosition === "top" ||
+          props.participantsBarPosition === "right" ||
+          props.participantsBarPosition === "left")
+          ? props.participantsBarPosition
+          : undefined
+      }
     />
   );
 };

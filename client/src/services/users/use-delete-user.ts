@@ -13,7 +13,21 @@ export function useDeleteUser() {
     onSuccess: (_, userId) => {
       toast.success("User account has been deactivated");
       closeModal();
-      queryClient.invalidateQueries({ queryKey:  ["users", "admins", "doctors", "pharmacists"] });
+      queryClient.invalidateQueries({
+        queryKey: ["users"],
+      });
+      queryClient.invalidateQueries({
+        queryKey: ["patients"],
+      });
+      queryClient.invalidateQueries({
+        queryKey: ["admins"],
+      });
+      queryClient.invalidateQueries({
+        queryKey: ["doctors"],
+      });
+      queryClient.invalidateQueries({
+        queryKey: ["pharmacists"],
+      });
       queryClient.invalidateQueries({ queryKey: ["user", userId] });
     },
     onError: () => {

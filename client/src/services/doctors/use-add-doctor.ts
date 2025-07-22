@@ -11,8 +11,9 @@ export const useAddDoctorService = () => {
       });
       return response.data;
     },
-    onSuccess: async () => {
-      await queryClient.invalidateQueries({ queryKey: ["doctors", "users"] });
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["doctors"] });
+      queryClient.invalidateQueries({ queryKey: ["users"] });
     },
   });
 };

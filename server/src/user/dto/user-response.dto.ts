@@ -14,6 +14,12 @@ export class UserResponseDto {
   email: string;
 
   @ApiProperty({
+    example: 'https://example.com/profile.jpg',
+    description: 'User profile picture url',
+  })
+  profilePicture: string;
+
+  @ApiProperty({
     example: 'admin',
     description: 'User role',
   })

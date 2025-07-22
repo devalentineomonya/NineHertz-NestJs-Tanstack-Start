@@ -1,5 +1,5 @@
 // src/utils/motion.ts
-import { Variants } from "framer-motion";
+import { AnimationGeneratorType, Variants } from "framer-motion";
 
 export const staggerContainer = (
   staggerChildren: number = 0.1,
@@ -16,7 +16,7 @@ export const staggerContainer = (
 
 export const fadeIn = (
   direction: "up" | "down" | "left" | "right" = "up",
-  type: string = "spring",
+  type: AnimationGeneratorType = "spring",
   delay: number = 0,
   duration: number = 0.5
 ): Variants => {
@@ -42,7 +42,7 @@ export const fadeIn = (
 
 export const slideIn = (
   direction: "up" | "down" | "left" | "right",
-  type: string = "spring",
+  type: AnimationGeneratorType = "spring",
   delay: number = 0,
   duration: number = 0.5
 ): Variants => ({

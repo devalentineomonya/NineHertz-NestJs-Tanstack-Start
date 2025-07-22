@@ -24,13 +24,27 @@ import {
   Stethoscope,
   User,
   XCircle,
+  Video,
+  Monitor,
 } from "lucide-react";
 import { useUserSessionStore } from "@/stores/user-session-store";
+import { useEditAppointmentStore } from "@/stores/use-edit-appointment-store";
 
 enum AppointmentStatus {
   SCHEDULED = "scheduled",
   COMPLETED = "completed",
   CANCELLED = "cancelled",
+}
+
+enum AppointmentMode {
+  VIRTUAL = "virtual",
+  PHYSICAL = "physical",
+}
+
+enum AppointmentType {
+  CONSULTATION = "consultation",
+  CHECKUP = "checkup",
+  FOLLOW_UP = "follow_up",
 }
 
 const statusIcons = {
@@ -81,10 +95,7 @@ export const appointmentColumns: ColumnDef<AppointmentResponseDto>[] = [
         <div className="flex flex-col">
           <div className="flex items-center gap-2">
             <Calendar className="size-4 text-gray-500" />
-            <span className="font-medium">
-              {" "}
-              {format(date, "MMMM dd, yyyy")}
-            </span>
+            <span className="font-medium">{format(date, "MMMM dd, yyyy")}</span>
           </div>
           <div className="flex items-center gap-2 text-sm text-gray-500">
             <Clock className="size-4 text-gray-500" />
@@ -97,6 +108,56 @@ export const appointmentColumns: ColumnDef<AppointmentResponseDto>[] = [
       label: "Date",
       variant: "date",
       icon: Calendar,
+    },
+    enableColumnFilter: true,
+  },
+  {
+    id: "type",
+    accessorKey: "type",
+    header: ({ column }) => (
+      <DataTableColumnHeader column={column} title="Type" />
+    ),
+    cell: ({ cell }) => {
+      const type = cell.getValue<AppointmentType>();
+      return (
+        <Badge variant="secondary" className="capitalize">
+          {type}
+        </Badge>
+      );
+    },
+    meta: {
+      label: "Type",
+      variant: "multiSelect",
+      options: Object.values(AppointmentType).map((value) => ({
+        label: value.replace("_", " "),
+        value,
+      })),
+    },
+    enableColumnFilter: true,
+  },
+  {
+    id: "mode",
+    accessorKey: "mode",
+    header: ({ column }) => (
+      <DataTableColumnHeader column={column} title="Mode" />
+    ),
+    cell: ({ cell }) => {
+      const mode = cell.getValue<AppointmentMode>();
+      const Icon = mode === AppointmentMode.VIRTUAL ? Video : Monitor;
+      return (
+        <Badge variant="outline" className="capitalize gap-1">
+          <Icon className="size-4" />
+          {mode}
+        </Badge>
+      );
+    },
+    meta: {
+      label: "Mode",
+      variant: "multiSelect",
+      options: [
+        { label: "Virtual", value: AppointmentMode.VIRTUAL, icon: Video },
+        { label: "Physical", value: AppointmentMode.PHYSICAL, icon: Monitor },
+      ],
     },
     enableColumnFilter: true,
   },
@@ -245,6 +306,7 @@ export const appointmentColumns: ColumnDef<AppointmentResponseDto>[] = [
       const { onOpen: onCancelAppointment } = useCancelAppointmentStore();
       const { onOpen: onSendReminder } = useSendReminderStore();
       const { onOpen: onMarkAsComplete } = useMarkAsCompleteStore();
+      const { onOpen: onEditAppointment } = useEditAppointmentStore();
       const { getCurrentUser } = useUserSessionStore();
       const currentUser = getCurrentUser();
 
@@ -263,13 +325,17 @@ export const appointmentColumns: ColumnDef<AppointmentResponseDto>[] = [
               View Details
             </DropdownMenuItem>
             <DropdownMenuItem
+              onClick={() => onEditAppointment(row.original.id)}
+            >
+              Edit Appointment
+            </DropdownMenuItem>
+            <DropdownMenuItem
               onClick={() => onRescheduleAppointment(row.original.id)}
             >
               {row.original.status === AppointmentStatus.SCHEDULED
                 ? "Reschedule"
                 : "Reschedule (New)"}
             </DropdownMenuItem>
-
             {row.original.status === AppointmentStatus.SCHEDULED && (
               <DropdownMenuItem
                 variant="destructive"

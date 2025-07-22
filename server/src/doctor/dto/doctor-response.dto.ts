@@ -40,9 +40,9 @@ export class DoctorResponseDto {
 
   @ApiProperty({
     example: 150.0,
-    description: 'Consultation fee',
+    description: 'Appointment fee',
   })
-  consultationFee: number;
+  appointmentFee: number;
 
   @ApiProperty({
     example: 'MD123456',

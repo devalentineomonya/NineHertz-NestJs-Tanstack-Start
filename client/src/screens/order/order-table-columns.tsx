@@ -9,7 +9,9 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import { useEditOrderStore } from "@/stores/use-edit-order-store";
+import { useProceedToCheckoutStore } from "@/stores/use-proceed-to-checkout-store";
 import { useViewOrderStore } from "@/stores/use-view-order-store";
+import { useUserSessionStore } from "@/stores/user-session-store";
 import type { ColumnDef } from "@tanstack/react-table";
 import {
   ArrowLeftRight,
@@ -265,6 +267,13 @@ export const orderColumns: ColumnDef<OrderResponseDto>[] = [
       const order = row.original;
       const { onOpen: onEditOrder } = useEditOrderStore();
       const { onOpen: onViewOrder } = useViewOrderStore();
+      const { getCurrentUser } = useUserSessionStore();
+      const currentUser = getCurrentUser();
+      const { open: onProceedToCheckout } = useProceedToCheckoutStore();
+      const isPatient = currentUser?.role === "patient";
+      const isAdminOrPharmacist =
+        currentUser?.role === "admin" || currentUser?.role === "pharmacist";
+
       return (
         <DropdownMenu>
           <DropdownMenuTrigger asChild>
@@ -284,14 +293,27 @@ export const orderColumns: ColumnDef<OrderResponseDto>[] = [
             {order.status !== OrderStatus.CANCELLED && (
               <>
                 {order.status === OrderStatus.PENDING && (
-                  <DropdownMenuItem>Process Order</DropdownMenuItem>
+                  <>
+                    {isPatient && (
+                      <DropdownMenuItem
+                        onClick={() => onProceedToCheckout(order)}
+                      >
+                        Proceed to Checkout
+                      </DropdownMenuItem>
+                    )}
+                    {isAdminOrPharmacist && (
+                      <DropdownMenuItem>Process Order</DropdownMenuItem>
+                    )}
+                  </>
                 )}
-                {order.status === OrderStatus.PROCESSING && (
-                  <DropdownMenuItem>Mark as Shipped</DropdownMenuItem>
-                )}
-                {order.status === OrderStatus.SHIPPED && (
-                  <DropdownMenuItem>Mark as Delivered</DropdownMenuItem>
-                )}
+                {order.status === OrderStatus.PROCESSING &&
+                  isAdminOrPharmacist && (
+                    <DropdownMenuItem>Mark as Shipped</DropdownMenuItem>
+                  )}
+                {order.status === OrderStatus.SHIPPED &&
+                  isAdminOrPharmacist && (
+                    <DropdownMenuItem>Mark as Delivered</DropdownMenuItem>
+                  )}
                 <DropdownMenuItem variant="destructive">
                   Cancel Order
                 </DropdownMenuItem>
@@ -299,11 +321,12 @@ export const orderColumns: ColumnDef<OrderResponseDto>[] = [
             )}
 
             {order.paymentStatus === "paid" &&
-              order.status !== OrderStatus.CANCELLED && (
+              order.status !== OrderStatus.CANCELLED &&
+              isAdminOrPharmacist && (
                 <DropdownMenuItem>Issue Refund</DropdownMenuItem>
               )}
 
-            {order.status === OrderStatus.DELIVERED && (
+            {order.status === OrderStatus.DELIVERED && isAdminOrPharmacist && (
               <DropdownMenuItem>Process Return</DropdownMenuItem>
             )}
           </DropdownMenuContent>

@@ -6,7 +6,7 @@ import {
 } from "lucide-react";
 import { SummaryCard } from "./summary-card";
 import { SalesChart } from "./sales-chart";
-import { LatestOrders } from "./latest-orders";
+// import {  } from "./latest-orders";
 
 export const Dashboard = () => (
   <div className="grid grid-cols-12 gap-6">
@@ -45,7 +45,7 @@ export const Dashboard = () => (
       <SalesChart />
     </div>
     <div className="col-span-12">
-      <LatestOrders />
+      {/* <LatestOrders /> */}
     </div>
   </div>
 );

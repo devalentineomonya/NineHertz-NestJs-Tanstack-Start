@@ -9,7 +9,6 @@ import {
 } from 'typeorm';
 import { User } from '../../user/entities/user.entity';
 import { Appointment } from '../../appointment/entities/appointment.entity';
-import { Consultation } from '../../consultation/entities/consultation.entity';
 import { Prescription } from '../../prescription/entities/prescription.entity';
 import { Order } from '../../order/entities/order.entity';
 
@@ -34,17 +33,12 @@ export class Patient {
   @Column({ type: 'enum', enum: ['active', 'inactive'], default: 'active' })
   status: 'active' | 'inactive';
 
-  @OneToOne(() => User, (user) => user.patientProfile, {
-    onDelete: 'CASCADE',
-  })
+  @OneToOne(() => User, (user) => user.patientProfile, { onDelete: 'CASCADE' })
   @JoinColumn()
   user: User;
 
   @OneToMany(() => Appointment, (appointment) => appointment.patient, {})
   appointments: Appointment[];
-
-  @OneToMany(() => Consultation, (consultation) => consultation.patient, {})
-  consultations: Consultation[];
 
   @OneToMany(() => Prescription, (prescription) => prescription.patient, {})
   prescriptions: Prescription[];

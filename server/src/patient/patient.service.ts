@@ -1,11 +1,11 @@
 import { Injectable, NotFoundException } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
-import { Patient } from './entities/patient.entity';
-import { CreatePatientDto } from './dto/create-patient.dto';
-import { UpdatePatientDto } from './dto/update-patient.dto';
 import { User } from '../user/entities/user.entity';
+import { CreatePatientDto } from './dto/create-patient.dto';
 import { PatientResponseDto } from './dto/patient-response.dto';
+import { UpdatePatientDto } from './dto/update-patient.dto';
+import { Patient } from './entities/patient.entity';
 
 @Injectable()
 export class PatientService {
@@ -48,6 +48,7 @@ export class PatientService {
         email: savedPatient.user.email,
         role: savedPatient.user.role,
         isEmailVerified: savedPatient.user.isEmailVerified,
+        profilePicture: patient.user?.profilePicture || '',
         createdAt: savedPatient.user.createdAt,
       },
     };
@@ -79,6 +80,7 @@ export class PatientService {
         email: patient.user.email,
         role: patient.user.role,
         isEmailVerified: patient.user.isEmailVerified,
+        profilePicture: patient.user?.profilePicture || '',
         createdAt: patient.user.createdAt,
       },
     }));
@@ -87,13 +89,7 @@ export class PatientService {
   async findOne(id: string): Promise<PatientResponseDto> {
     const patient = await this.patientRepository.findOne({
       where: { id },
-      relations: [
-        'user',
-        'appointments',
-        'consultations',
-        'prescriptions',
-        'orders',
-      ],
+      relations: ['user', 'appointments', 'prescriptions', 'orders'],
     });
 
     if (!patient) {
@@ -111,6 +107,7 @@ export class PatientService {
         email: patient.user.email,
         role: patient.user.role,
         isEmailVerified: patient.user.isEmailVerified,
+        profilePicture: patient.user?.profilePicture || '',
         createdAt: patient.user.createdAt,
       },
       orders: patient.orders.map((order) => ({

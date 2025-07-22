@@ -1,18 +1,18 @@
 import {
+  BadRequestException,
   Injectable,
   NotFoundException,
-  BadRequestException,
 } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
-import { InventoryItem } from './entities/inventory-item.entity';
-import { FindOptionsWhere, LessThan, Repository } from 'typeorm';
-import { CreateInventoryItemDto } from './dto/create-inventory-item.dto';
-import { UpdateInventoryItemDto } from './dto/update-inventory-item.dto';
-import { InventoryItemResponseDto } from './dto/inventory-item-response.dto';
-import { InventoryItemPaginatedDto } from './dto/inventory-item-paginated.dto';
-import { Medicine } from '../medicine/entities/medicine.entity';
 import { PaginationDto } from 'src/shared/dto/pagination.dto';
+import { FindOptionsWhere, LessThan, Repository } from 'typeorm';
+import { Medicine } from '../medicine/entities/medicine.entity';
+import { CreateInventoryItemDto } from './dto/create-inventory-item.dto';
 import { InventoryFilter } from './dto/inventory-filter.dto';
+import { InventoryItemPaginatedDto } from './dto/inventory-item-paginated.dto';
+import { InventoryItemResponseDto } from './dto/inventory-item-response.dto';
+import { UpdateInventoryItemDto } from './dto/update-inventory-item.dto';
+import { InventoryItem } from './entities/inventory-item.entity';
 
 @Injectable()
 export class InventoryItemService {
@@ -63,7 +63,7 @@ export class InventoryItemService {
     pagination: PaginationDto,
     filters: InventoryFilter,
   ): Promise<InventoryItemPaginatedDto> {
-    const { page = 1, limit = 10 } = pagination;
+    const { page = 1, limit = 50 } = pagination;
     const skip = (page - 1) * limit;
 
     const where: FindOptionsWhere<InventoryItem> = {};

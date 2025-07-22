@@ -26,23 +26,26 @@ import { useGetPharmacists } from "@/services/pharmacists/use-get-pharmacists";
 import { Check, ChevronsUpDown, Loader } from "lucide-react";
 import { useState } from "react";
 import { toast } from "sonner";
+import { useFulfillPrescriptionService } from "@/services/prescriptions/use-fulfil-prescription";
+import { useGetPrescription } from "@/services/prescriptions/use-get-prescription";
 
 export function FulfillPrescriptionModal() {
   const { isOpen, onClose, prescriptionId } = useFulfillPrescriptionStore();
   const { data: pharmacies, isLoading: loadingPharmacies } =
     useGetPharmacists();
-  //   const fulfillMutation = useFulfillPrescriptionService();
+  const fulfillMutation = useFulfillPrescriptionService();
   const [open, setOpen] = useState(false);
-  const [pharmacyId, setPharmacyId] = useState("");
+  const [pharmacistId, setPharmacistId] = useState("");
+  const { data: prescription } = useGetPrescription(prescriptionId || "");
 
   const handleFulfill = async () => {
-    if (!prescriptionId || !pharmacyId) return;
+    if (!prescriptionId || !pharmacistId) return;
 
     try {
-      //   await fulfillMutation.mutateAsync({
-      //     id: prescriptionId,
-      //     pharmacyId,
-      //   });
+      await fulfillMutation.mutateAsync({
+        id: prescriptionId,
+        data: { ...prescription, isFulfilled: true, pharmacistId },
+      });
       toast.success("Prescription marked as fulfilled");
       onClose();
     } catch (error) {
@@ -69,9 +72,9 @@ export function FulfillPrescriptionModal() {
                 aria-expanded={open}
                 className="w-full justify-between"
               >
-                {pharmacyId
+                {pharmacistId
                   ? pharmacies?.find(
-                      (pharmacist) => pharmacist.id === pharmacyId
+                      (pharmacist) => pharmacist.id === pharmacistId
                     )?.fullName
                   : "Select pharmacist..."}
                 <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
@@ -90,14 +93,14 @@ export function FulfillPrescriptionModal() {
                         key={pharmacist.id}
                         value={pharmacist.fullName}
                         onSelect={() => {
-                          setPharmacyId(pharmacist.id);
+                          setPharmacistId(pharmacist.id);
                           setOpen(false);
                         }}
                       >
                         <Check
                           className={cn(
                             "mr-2 h-4 w-4",
-                            pharmacyId === pharmacist.id
+                            pharmacistId === pharmacist.id
                               ? "opacity-100"
                               : "opacity-0"
                           )}
@@ -116,15 +119,15 @@ export function FulfillPrescriptionModal() {
           <Button
             variant="outline"
             onClick={onClose}
-            // disabled={fulfillMutation.isPending}
+            disabled={fulfillMutation.isPending}
           >
             Cancel
           </Button>
           <Button
             onClick={handleFulfill}
-            // disabled={!pharmacyId || fulfillMutation.isPending}
+            disabled={!pharmacistId || fulfillMutation.isPending}
           >
-            {true ? (
+            {fulfillMutation.isPending ? (
               <div className="flex items-center gap-2">
                 <Loader className="animate-spin h-4 w-4" />
                 Updating...

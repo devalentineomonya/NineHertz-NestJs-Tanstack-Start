@@ -195,45 +195,23 @@ export class DataServices {
       _id: (id: string) => ({
         get: this.createEndpoint<void, AppointmentResponseDto>(
           "get",
-          "/appointments/{id}",
-          { id }
+          `/appointments/${id}`
         ),
         patch: this.createEndpoint<
           UpdateAppointmentDto,
           AppointmentResponseDto
-        >("patch", "/appointments/{id}", { id }),
+        >("patch", `/appointments/${id}`),
         delete: this.createEndpoint<void, void>(
           "delete",
-          "/appointments/{id}",
-          { id }
+          `/appointments/${id}`
         ),
       }),
-    },
-    consultations: {
-      post: this.createEndpoint<CreateConsultationDto, ConsultationResponseDto>(
-        "post",
-        "/consultations"
-      ),
-      get: this.createEndpoint<void, ConsultationPaginatedDto>(
-        "get",
-        "/consultations"
-      ),
-      _id: (id: string) => ({
-        get: this.createEndpoint<void, ConsultationResponseDto>(
-          "get",
-          "/consultations/{id}",
-          { id }
-        ),
-        patch: this.createEndpoint<
-          UpdateConsultationDto,
-          ConsultationResponseDto
-        >("patch", "/consultations/{id}", { id }),
-        delete: this.createEndpoint<void, void>(
-          "delete",
-          "/consultations/{id}",
-          { id }
-        ),
-      }),
+      videoToken: (callId: string) => ({
+        get: this.createEndpoint<
+          void,
+          { token: string }
+        >("get", `/appointments/video-token/${callId}`)
+      })
     },
     prescriptions: {
       post: this.createEndpoint<CreatePrescriptionDto, PrescriptionResponseDto>(

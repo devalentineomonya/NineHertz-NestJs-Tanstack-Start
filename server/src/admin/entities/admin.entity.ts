@@ -1,4 +1,10 @@
-import { Entity, PrimaryGeneratedColumn, Column, OneToOne } from 'typeorm';
+import {
+  Entity,
+  PrimaryGeneratedColumn,
+  Column,
+  OneToOne,
+  JoinColumn,
+} from 'typeorm';
 import { User } from '../../user/entities/user.entity';
 
 @Entity()
@@ -27,6 +33,7 @@ export class Admin {
   updatedAt: Date;
 
   @OneToOne(() => User, (user) => user.adminProfile)
+  @JoinColumn()
   user: User;
 
   @Column('jsonb')

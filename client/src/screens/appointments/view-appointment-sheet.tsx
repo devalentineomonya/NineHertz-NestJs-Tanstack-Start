@@ -4,9 +4,7 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import {
   Drawer,
-  DrawerClose,
   DrawerContent,
-  DrawerFooter,
   DrawerHeader,
   DrawerTitle,
 } from "@/components/ui/drawer";
@@ -26,6 +24,9 @@ import {
   HeartPulse,
   Mail,
   Shield,
+  Video,
+  Monitor,
+  StickyNote,
 } from "lucide-react";
 
 export const ViewAppointmentDrawer = () => {
@@ -36,6 +37,7 @@ export const ViewAppointmentDrawer = () => {
   const patientDOB = new Date(appointment.patient.dateOfBirth);
   const age = new Date().getFullYear() - patientDOB.getFullYear();
 
+  const isVirtual = appointment.mode === "virtual";
   return (
     <Drawer direction="right" open={isOpen} onOpenChange={onClose}>
       <DrawerContent className="right-2 top-2 bottom-2 fixed flex data-[vaul-drawer-direction=right]:sm:max-w-lg bg-gradient-to-b from-white to-gray-50">
@@ -82,57 +84,115 @@ export const ViewAppointmentDrawer = () => {
                   Appointment Details
                 </CardTitle>
               </CardHeader>
-              <CardContent className="space-y-4">
-                <div className="flex items-start gap-3">
-                  <div className="bg-blue-50 rounded-full p-2 mt-0.5">
-                    <Calendar className="h-5 w-5 text-blue-600" />
+              <CardContent>
+                <div className="gap-4 grid grid-cols-2 ">
+                  <div className="flex items-start gap-3">
+                    <div className="bg-blue-50 rounded-full p-2 mt-0.5">
+                      <Calendar className="h-5 w-5 text-blue-600" />
+                    </div>
+                    <div>
+                      <p className="text-sm text-muted-foreground">Date</p>
+                      <p className="font-medium">
+                        {format(appointmentDate, "MMM d, yyyy")}
+                      </p>
+                    </div>
                   </div>
-                  <div>
-                    <p className="text-sm text-muted-foreground">Date</p>
-                    <p className="font-medium">
-                      {format(appointmentDate, "MMM d, yyyy")}
-                    </p>
-                  </div>
-                </div>
 
-                <div className="flex items-start gap-3">
-                  <div className="bg-purple-50 rounded-full p-2 mt-0.5">
-                    <Clock className="h-5 w-5 text-purple-600" />
+                  <div className="flex items-start gap-3">
+                    <div className="bg-purple-50 rounded-full p-2 mt-0.5">
+                      <Clock className="h-5 w-5 text-purple-600" />
+                    </div>
+                    <div>
+                      <p className="text-sm text-muted-foreground">Time</p>
+                      <p className="font-medium">
+                        {format(appointmentDate, "h:mm a")}
+                      </p>
+                    </div>
                   </div>
-                  <div>
-                    <p className="text-sm text-muted-foreground">Time</p>
-                    <p className="font-medium">
-                      {format(appointmentDate, "h:mm a")}
-                    </p>
-                  </div>
-                </div>
 
-                <div className="flex items-start gap-3">
-                  <div className="bg-green-50 rounded-full p-2 mt-0.5">
-                    <Stethoscope className="h-5 w-5 text-green-600" />
+                  <div className="flex items-start gap-3">
+                    <div className="bg-teal-50 rounded-full p-2 mt-0.5">
+                      {isVirtual ? (
+                        <Video className="h-5 w-5 text-teal-600" />
+                      ) : (
+                        <Monitor className="h-5 w-5 text-teal-600" />
+                      )}
+                    </div>
+                    <div>
+                      <p className="text-sm text-muted-foreground">Mode</p>
+                      <p className="font-medium capitalize">
+                        {appointment.mode}
+                      </p>
+                      {isVirtual && appointment.videoSessionId && (
+                        <Button
+                          size="sm"
+                          variant="link"
+                          className="text-blue-600 mt-1 px-0"
+                          onClick={() =>
+                            window.open(
+                              `/call/join/${appointment.videoSessionId}`,
+                              "_blank"
+                            )
+                          }
+                        >
+                          Join Call
+                        </Button>
+                      )}
+                    </div>
                   </div>
-                  <div>
-                    <p className="text-sm text-muted-foreground">Doctor</p>
-                    <p className="font-medium">
-                      Dr. {appointment.doctor.fullName}
-                    </p>
-                    <Badge variant="secondary" className="mt-1 capitalize">
-                      {appointment.doctor.specialty}
-                    </Badge>
-                  </div>
-                </div>
 
-                <div className="flex items-start gap-3">
-                  <div className="bg-yellow-50 rounded-full p-2 mt-0.5">
-                    <BadgeDollarSign className="h-5 w-5 text-yellow-600" />
+                  <div className="flex items-start gap-3">
+                    <div className="bg-pink-50 rounded-full p-2 mt-0.5">
+                      <ClipboardList className="h-5 w-5 text-pink-600" />
+                    </div>
+                    <div>
+                      <p className="text-sm text-muted-foreground">Type</p>
+                      <p className="font-medium capitalize">
+                        {appointment.type}
+                      </p>
+                    </div>
                   </div>
-                  <div>
-                    <p className="text-sm text-muted-foreground">Fee</p>
-                    <p className="font-medium">
-                      ${appointment.doctor.consultationFee}
-                    </p>
+
+                  <div className="flex items-start gap-3">
+                    <div className="bg-green-50 rounded-full p-2 mt-0.5">
+                      <Stethoscope className="h-5 w-5 text-green-600" />
+                    </div>
+                    <div>
+                      <p className="text-sm text-muted-foreground">Doctor</p>
+                      <p className="font-medium">
+                        Dr. {appointment.doctor.fullName}
+                      </p>
+                      <Badge variant="secondary" className="mt-1 capitalize">
+                        {appointment.doctor.specialty}
+                      </Badge>
+                    </div>
+                  </div>
+
+                  <div className="flex items-start gap-3">
+                    <div className="bg-yellow-50 rounded-full p-2 mt-0.5">
+                      <BadgeDollarSign className="h-5 w-5 text-yellow-600" />
+                    </div>
+                    <div>
+                      <p className="text-sm text-muted-foreground">Fee</p>
+                      <p className="font-medium">
+                        Kes {appointment.doctor.appointmentFee}
+                      </p>
+                    </div>
                   </div>
                 </div>
+                {appointment.notes && (
+                  <div className="flex items-start gap-3 w-full mt-3">
+                    <div className="bg-orange-50 rounded-full p-2 mt-0.5">
+                      <StickyNote className="h-5 w-5 text-orange-600" />
+                    </div>
+                    <div>
+                      <p className="text-sm text-muted-foreground">Notes</p>
+                      <p className="font-medium whitespace-pre-wrap">
+                        {appointment.notes}
+                      </p>
+                    </div>
+                  </div>
+                )}
               </CardContent>
             </Card>
 
@@ -210,9 +270,10 @@ export const ViewAppointmentDrawer = () => {
                   </div>
                   <div>
                     <p className="text-sm text-muted-foreground">Allergies</p>
-                    {appointment.patient.medicalHistory.allergies.length > 0 ? (
+                    {appointment.patient.medicalHistory?.allergies?.length >
+                    0 ? (
                       <div className="flex flex-wrap gap-2 mt-1">
-                        {appointment.patient.medicalHistory.allergies.map(
+                        {appointment.patient.medicalHistory?.allergies?.map(
                           (allergy: string, index: number) => (
                             <Badge
                               key={index}
@@ -240,10 +301,10 @@ export const ViewAppointmentDrawer = () => {
                     <p className="text-sm text-muted-foreground">
                       Medical Conditions
                     </p>
-                    {appointment.patient.medicalHistory.conditions.length >
+                    {appointment.patient.medicalHistory?.conditions?.length >
                     0 ? (
                       <div className="flex flex-wrap gap-2 mt-1">
-                        {appointment.patient.medicalHistory.conditions.map(
+                        {appointment.patient.medicalHistory?.conditions?.map(
                           (condition: string, index: number) => (
                             <Badge
                               key={index}
@@ -273,7 +334,7 @@ export const ViewAppointmentDrawer = () => {
                   Doctor Information
                 </CardTitle>
               </CardHeader>
-              <CardContent className="space-y-4">
+              <CardContent className="gap-4 grid grid-cols-2">
                 <div className="flex items-start gap-3">
                   <div className="bg-blue-50 rounded-full p-2 mt-0.5">
                     <User className="h-5 w-5 text-blue-600" />
@@ -318,10 +379,10 @@ export const ViewAppointmentDrawer = () => {
                   </div>
                   <div>
                     <p className="text-sm text-muted-foreground">
-                      Consultation Fee
+                      Appointment Fee
                     </p>
                     <p className="font-medium">
-                      ${appointment.doctor.consultationFee}
+                      Kes {appointment.doctor.appointmentFee}
                     </p>
                   </div>
                 </div>
@@ -329,14 +390,6 @@ export const ViewAppointmentDrawer = () => {
             </Card>
           </div>
         </ScrollArea>
-
-        <DrawerFooter className="flex flex-row justify-end gap-3 border-t py-4">
-          <Button variant="destructive">Cancel Appointment</Button>
-          <Button variant="secondary">Reschedule</Button>
-          <DrawerClose asChild>
-            <Button>Close</Button>
-          </DrawerClose>
-        </DrawerFooter>
       </DrawerContent>
     </Drawer>
   );

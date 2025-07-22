@@ -9,7 +9,6 @@ import {
 } from 'typeorm';
 import { User } from '../../user/entities/user.entity';
 import { Appointment } from '../../appointment/entities/appointment.entity';
-import { Consultation } from '../../consultation/entities/consultation.entity';
 import { Prescription } from '../../prescription/entities/prescription.entity';
 
 @Entity()
@@ -31,7 +30,7 @@ export class Doctor {
   availability: { days: string[]; hours: string[] };
 
   @Column({ type: 'decimal' })
-  consultationFee: number;
+  appointmentFee: number;
 
   @Column({ nullable: true })
   licenseNumber: string;
@@ -62,11 +61,6 @@ export class Doctor {
     onDelete: 'CASCADE',
   })
   appointments: Appointment[];
-
-  @OneToMany(() => Consultation, (consultation) => consultation.doctor, {
-    cascade: true,
-  })
-  consultations: Consultation[];
 
   @OneToMany(() => Prescription, (prescription) => prescription.prescribedBy, {
     cascade: true,

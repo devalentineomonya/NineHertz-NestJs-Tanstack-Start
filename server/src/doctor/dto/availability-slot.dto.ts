@@ -44,7 +44,7 @@ export class BusySlotDto {
   day: string;
   start: string;
   end: string;
-  type: 'appointment' | 'consultation' | 'busy';
+  type: 'appointment' | 'busy';
 }
 
 export class DoctorAvailabilityQueryDto {

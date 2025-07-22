@@ -1,21 +1,21 @@
 import { Injectable, NotFoundException } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
-import { Doctor } from './entities/doctor.entity';
-import { Repository } from 'typeorm';
-import { CreateDoctorDto } from './dto/create-doctor.dto';
-import { UpdateDoctorDto } from './dto/update-doctor.dto';
-import { DoctorResponseDto } from './dto/doctor-response.dto';
-import { PaginationDto } from 'src/shared/dto/pagination.dto';
-import { DoctorFilterDto } from './dto/doctor-filter.dto';
-import { User } from 'src/user/entities/user.entity';
 import * as moment from 'moment-timezone';
+import { AppointmentStatus } from 'src/enums/appointment.enum';
+import { PaginationDto } from 'src/shared/dto/pagination.dto';
+import { User } from 'src/user/entities/user.entity';
+import { Repository } from 'typeorm';
 import {
   AvailabilitySlotDto,
   BusySlotDto,
   DoctorAvailabilityDto,
   DoctorAvailabilityQueryDto,
 } from './dto/availability-slot.dto';
-import { AppointmentStatus } from 'src/enums/appointment.enum';
+import { CreateDoctorDto } from './dto/create-doctor.dto';
+import { DoctorFilterDto } from './dto/doctor-filter.dto';
+import { DoctorResponseDto } from './dto/doctor-response.dto';
+import { UpdateDoctorDto } from './dto/update-doctor.dto';
+import { Doctor } from './entities/doctor.entity';
 @Injectable()
 export class DoctorService {
   constructor(
@@ -48,7 +48,7 @@ export class DoctorService {
     pagination: PaginationDto,
     filters?: DoctorFilterDto,
   ): Promise<{ data: DoctorResponseDto[]; total: number }> {
-    const { page = 1, limit = 10 } = pagination;
+    const { page = 1, limit = 50 } = pagination;
     const skip = (page - 1) * limit;
 
     const query = this.doctorRepository
@@ -135,7 +135,7 @@ export class DoctorService {
   ): Promise<DoctorAvailabilityDto> {
     const doctor = await this.doctorRepository.findOne({
       where: { id: doctorId },
-      relations: ['appointments', 'consultations'],
+      relations: ['appointments'],
     });
 
     if (!doctor) throw new NotFoundException('Doctor not found');
@@ -174,14 +174,9 @@ export class DoctorService {
       });
     };
 
-    // Process appointments and consultations
     doctor.appointments
       .filter((a) => a.status !== AppointmentStatus.CANCELLED)
       .forEach((a) => addBusyEvent(a.datetime, a.duration, timezone));
-
-    doctor.consultations
-      .filter((c) => !['cancelled', 'completed'].includes(c.status))
-      .forEach((c) => addBusyEvent(c.startTime, c.duration || 30, timezone));
 
     // Filter working hours if specific day is requested
     const relevantWorkingHours = returnSingleDay
@@ -255,7 +250,7 @@ export class DoctorService {
       id: doctor.id,
       fullName: doctor.fullName,
       specialty: doctor.specialty,
-      consultationFee: doctor.consultationFee,
+      appointmentFee: doctor.appointmentFee,
       licenseNumber: doctor.licenseNumber,
       availability: doctor.availability,
       status: doctor.status,
@@ -264,6 +259,7 @@ export class DoctorService {
         email: doctor.user?.email,
         role: doctor.user?.role,
         isEmailVerified: doctor.user?.isEmailVerified,
+        profilePicture: doctor.user?.profilePicture || '',
         createdAt: doctor.user?.createdAt,
       },
     };

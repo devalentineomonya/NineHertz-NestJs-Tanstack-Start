@@ -1,4 +1,4 @@
-import { useUserSessionStore } from "@/services/users/stores/user-session-store";
+import { useUserSessionStore } from "@/stores/user-session-store";
 import { useRouter } from "@tanstack/react-router";
 import { useEffect } from "react";
 

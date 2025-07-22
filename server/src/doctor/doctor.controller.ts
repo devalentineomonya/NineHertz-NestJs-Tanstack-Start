@@ -43,7 +43,7 @@ export class DoctorController {
     type: DoctorResponseDto,
   })
   @ApiResponse({ status: 400, description: 'Bad request' })
-  @ApiResponse({ status: 404, description: 'Institution not found' })
+  @ApiResponse({ status: 404, description: 'User not found' })
   create(@Body() createDoctorDto: CreateDoctorDto) {
     return this.doctorService.create(createDoctorDto);
   }

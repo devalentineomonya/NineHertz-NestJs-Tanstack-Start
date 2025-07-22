@@ -1,21 +1,21 @@
 import {
+  BadRequestException,
   Injectable,
   NotFoundException,
-  BadRequestException,
 } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
-import { Appointment } from './entities/appointment.entity';
-import { Repository, FindOptionsWhere } from 'typeorm';
-import { CreateAppointmentDto } from './dto/create-appointment.dto';
-import { UpdateAppointmentDto } from './dto/update-appointment.dto';
-import { AppointmentResponseDto } from './dto/appointment-response.dto';
-import { AppointmentPaginatedDto } from './dto/appointment-paginated.dto';
-import { Patient } from '../patient/entities/patient.entity';
-import { Doctor } from '../doctor/entities/doctor.entity';
 import { AppointmentStatus } from 'src/enums/appointment.enum';
 import { PaginationDto } from 'src/shared/dto/pagination.dto';
-import { AppointmentFilter } from './dto/appointment-filter.dto';
 import { StreamService } from 'src/stream/stream.service';
+import { FindOptionsWhere, Repository } from 'typeorm';
+import { Doctor } from '../doctor/entities/doctor.entity';
+import { Patient } from '../patient/entities/patient.entity';
+import { AppointmentFilter } from './dto/appointment-filter.dto';
+import { AppointmentPaginatedDto } from './dto/appointment-paginated.dto';
+import { AppointmentResponseDto } from './dto/appointment-response.dto';
+import { CreateAppointmentDto } from './dto/create-appointment.dto';
+import { UpdateAppointmentDto } from './dto/update-appointment.dto';
+import { Appointment, AppointmentMode } from './entities/appointment.entity';
 
 @Injectable()
 export class AppointmentService {
@@ -37,25 +37,22 @@ export class AppointmentService {
     const patient = await this.patientRepository.findOne({
       where: { id: patientId },
     });
-    if (!patient) {
+    if (!patient)
       throw new NotFoundException(`Patient with ID ${patientId} not found`);
-    }
 
     const doctor = await this.doctorRepository.findOne({
       where: { id: doctorId },
     });
-    if (!doctor) {
+    if (!doctor)
       throw new NotFoundException(`Doctor with ID ${doctorId} not found`);
-    }
 
     const conflict = await this.appointmentRepository.findOne({
       where: {
         doctor: { id: doctorId },
         datetime: appointmentData.datetime,
-        status: AppointmentStatus.SCHEDULED as AppointmentStatus,
+        status: AppointmentStatus.SCHEDULED,
       },
     });
-
     if (conflict) {
       throw new BadRequestException(
         'Doctor already has an appointment at this time',
@@ -63,25 +60,29 @@ export class AppointmentService {
     }
 
     await Promise.all([
-      this.streamService.upsertUser(patient),
-      this.streamService.upsertUser(doctor),
+      this.streamService.upsertUser({ id: patientId, name: patient.fullName }),
+      this.streamService.upsertUser({ id: doctorId, name: doctor.fullName }),
     ]);
-    // const session = await this.streamService.createVideoSession({
-    //   patientId,
-    //   doctorId,
-    //   scheduledTime: appointment.startTime,
-    // });
-    // conso
+
+    let videoSessionId: string | null = null;
+    if (appointmentData.mode === AppointmentMode.VIRTUAL) {
+      const session = await this.streamService.createVideoSession({
+        patientId,
+        doctorId,
+        scheduledTime: appointmentData.datetime,
+      });
+      videoSessionId = session.id;
+    }
 
     const appointment = this.appointmentRepository.create({
       ...appointmentData,
       patient,
       doctor,
-      status: appointmentData.status as AppointmentStatus,
+      status: appointmentData.status,
+      videoSessionId,
     });
 
     const savedAppointment = await this.appointmentRepository.save(appointment);
-    console.log(savedAppointment);
     return this.mapToResponseDto(savedAppointment);
   }
 
@@ -91,7 +92,7 @@ export class AppointmentService {
     id?: string,
     role?: string,
   ): Promise<AppointmentPaginatedDto> {
-    const { page = 1, limit = 10 } = pagination;
+    const { page = 1, limit = 50 } = pagination;
     const skip = (page - 1) * limit;
 
     const where: FindOptionsWhere<Appointment> = {};
@@ -100,9 +101,9 @@ export class AppointmentService {
     }
     if (id && role) {
       if (role === 'patient') {
-        where.patient = { id };
+        where.patient = { user: { id } };
       } else if (role === 'doctor') {
-        where.doctor = { id };
+        where.doctor = { user: { id } };
       }
     } else {
       if (filters.patientId) {
@@ -112,7 +113,7 @@ export class AppointmentService {
         where.doctor = { id: filters.doctorId };
       }
     }
-
+    console.log(where);
     const [appointments, total] = await this.appointmentRepository.findAndCount(
       {
         where,
@@ -211,6 +212,60 @@ export class AppointmentService {
       await this.appointmentRepository.save(appointment);
     return this.mapToResponseDto(updatedAppointment);
   }
+  // in your AppointmentService (backend)
+  async getVideoUserToken(
+    callId: string,
+    userId: string,
+  ): Promise<{ token: string }> {
+    const appointment = await this.appointmentRepository.findOne({
+      where: { videoSessionId: callId },
+      relations: ['patient', 'doctor'],
+    });
+
+    if (!appointment) {
+      throw new NotFoundException(`No appointment found with callId ${callId}`);
+    }
+
+    // Check if the appointment is virtual
+    // if (appointment.mode !== AppointmentMode.VIRTUAL) {
+    //   throw new BadRequestException(
+    //     'This appointment is not a virtual meeting',
+    //   );
+    // }
+
+    // if (appointment.status === AppointmentStatus.CANCELLED) {
+    //   throw new BadRequestException('This appointment has been cancelled');
+    // }
+
+    // if (appointment.status === AppointmentStatus.COMPLETED) {
+    //   throw new BadRequestException(
+    //     'This appointment has already been completed',
+    //   );
+    // }
+
+    // // Check if the current time is within the appointment time window
+    // const now = new Date();
+    // const startTime = appointment.startTime;
+    // const endTime = appointment.endTime;
+
+    // if (now < startTime || now > endTime) {
+    //   throw new BadRequestException('The appointment is not currently active');
+    // }
+
+    // Check if user is a participant
+    // const isParticipant = [
+    //   appointment.patient.id,
+    //   appointment.doctor.id,
+    // ].includes(userId);
+    // if (!isParticipant) {
+    //   throw new BadRequestException(
+    //     'User is not a participant of this appointment',
+    //   );
+    // }
+
+    const token = this.streamService.generateUserToken(userId);
+    return { token };
+  }
 
   async remove(id: string): Promise<void> {
     const result = await this.appointmentRepository.delete(id);
@@ -218,12 +273,15 @@ export class AppointmentService {
       throw new NotFoundException(`Appointment with ID ${id} not found`);
     }
   }
-
   private mapToResponseDto(appointment: Appointment): AppointmentResponseDto {
     return {
       id: appointment.id,
       datetime: appointment.datetime,
       status: appointment.status,
+      type: appointment.type,
+      mode: appointment.mode,
+      videoSessionId: appointment.videoSessionId as string | undefined,
+      notes: appointment.notes,
       patient: {
         id: appointment.patient.id,
         fullName: appointment.patient.fullName,
@@ -235,6 +293,7 @@ export class AppointmentService {
           email: appointment.patient.user?.email,
           role: appointment.patient.user?.role,
           isEmailVerified: appointment.patient.user?.isEmailVerified,
+          profilePicture: appointment.patient.user?.profilePicture || '',
           createdAt: appointment.patient.user?.createdAt,
         },
       },
@@ -242,7 +301,7 @@ export class AppointmentService {
         id: appointment.doctor.id,
         fullName: appointment.doctor.fullName,
         specialty: appointment.doctor.specialty,
-        consultationFee: appointment.doctor.consultationFee,
+        appointmentFee: appointment.doctor.appointmentFee,
         licenseNumber: appointment.doctor.licenseNumber,
         availability: appointment.doctor.availability,
         status: appointment.doctor.status,
@@ -251,6 +310,7 @@ export class AppointmentService {
           email: appointment.doctor.user?.email ?? null,
           role: appointment.doctor.user?.role ?? null,
           isEmailVerified: appointment.doctor.user?.isEmailVerified ?? false,
+          profilePicture: appointment.patient.user?.profilePicture || '',
           createdAt: appointment.doctor.user?.createdAt ?? null,
         },
       },

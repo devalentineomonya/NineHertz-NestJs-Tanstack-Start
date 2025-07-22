@@ -12,7 +12,8 @@ export const useAddAdminService = () => {
       return response.data;
     },
     onSuccess: async () => {
-      await queryClient.invalidateQueries({ queryKey: ["admins", "users"] });
+      await queryClient.invalidateQueries({ queryKey: ["admins"] });
+      await queryClient.invalidateQueries({ queryKey: ["users"] });
     },
   });
 };

@@ -76,9 +76,9 @@ export const pharmacistColumns: ColumnDef<any>[] = [
               alt={user.email}
             />
             <AvatarFallback>
-              {user.email
+                {user.email
                 .split(" ")
-                .map((n) => n[0])
+                .map((n: string) => n[0])
                 .join("")
                 .slice(0, 2)
                 .toUpperCase()}

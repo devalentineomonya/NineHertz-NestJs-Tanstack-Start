@@ -16,7 +16,7 @@ export const LayoutMap = {
     Component: CallParticipantsView,
     title: "Default",
     icon: "grid",
-    props:{}
+    props: {},
   },
   PaginatedGrid: {
     Component: PaginatedGridLayout,
@@ -54,17 +54,19 @@ export const LayoutMap = {
     Component: SpeakerLayout,
     title: "Speaker [right]",
     icon: "layout-speaker-right",
+    props: {},
   },
   LegacySpeaker: {
     Component: CallParticipantsScreenView,
     icon: "layout",
     title: "Sidebar",
-    props:{}
+    props: {},
   },
   SpeakerOneOnOne: {
     Component: SpeakerOneOnOne,
     icon: "layout-speaker-one-on-one",
     title: "Speaker 1:1",
+    props: {},
   },
   LivestreamLayout: {
     Component: LivestreamLayout,

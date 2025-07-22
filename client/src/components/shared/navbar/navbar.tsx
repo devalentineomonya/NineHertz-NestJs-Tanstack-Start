@@ -11,14 +11,15 @@ import { ArrowRight, Menu, X } from "lucide-react";
 import { useState, useEffect } from "react";
 import { motion } from "framer-motion";
 import { cn } from "@/lib/utils";
+import { useUserSessionStore } from "@/stores/user-session-store";
 
 const Navbar = () => {
   const [scrolled, setScrolled] = useState(false);
   const location = useLocation();
   const pathname = location.pathname;
   const [isSheetOpen, setIsSheetOpen] = useState(false);
-
-  // Handle scroll effect
+  const { getCurrentUser } = useUserSessionStore();
+  const currentUser = getCurrentUser();
   useEffect(() => {
     const handleScroll = () => {
       setScrolled(window.scrollY > 20);
@@ -161,16 +162,30 @@ const Navbar = () => {
                     </ul>
                   </nav>
 
-                  {/* Get Started button at bottom */}
                   <div className="absolute bottom-0 left-0 right-0 p-6 bg-gradient-to-t from-white via-white/90 to-transparent">
                     <Button
                       asChild
                       className="w-full rounded-full text-white bg-gradient-to-r from-green-500 to-green-700 hover:from-green-600 hover:to-green-800 shadow-lg hover:shadow-green-200 h-12 text-base"
                     >
-                      <Link to="/auth/signin">
-                        <span>Get Started</span>
-                        <ArrowRight className="ml-2 h-4 w-4" />
-                      </Link>
+                      {currentUser ? (
+                        <Link
+                          to={`/${
+                            currentUser.role as
+                              | "patient"
+                              | "admin"
+                              | "doctor"
+                              | "pharmacist"
+                          }/dashboard`}
+                        >
+                          <span>Dashboard</span>
+                          <ArrowRight className="ml-2 h-4 w-4" />
+                        </Link>
+                      ) : (
+                        <Link to="/auth/signin">
+                          <span>Get Started</span>
+                          <ArrowRight className="ml-2 h-4 w-4" />
+                        </Link>
+                      )}
                     </Button>
                   </div>
                 </div>
@@ -188,10 +203,25 @@ const Navbar = () => {
                 asChild
                 className="rounded-full text-white bg-gradient-to-b from-green-500 to-green-700 hover:from-green-600 hover:to-green-800 shadow-lg hover:shadow-green-200"
               >
-                <Link to="/auth/signin">
-                  <span>Get Started</span>
-                  <ArrowRight className="ml-2 h-4 w-4" />
-                </Link>
+                {currentUser ? (
+                  <Link
+                    to={`/${
+                      currentUser.role as
+                        | "patient"
+                        | "admin"
+                        | "doctor"
+                        | "pharmacist"
+                    }/dashboard`}
+                  >
+                    <span>Dashboard</span>
+                    <ArrowRight className="ml-2 h-4 w-4" />
+                  </Link>
+                ) : (
+                  <Link to="/auth/signin">
+                    <span>Get Started</span>
+                    <ArrowRight className="ml-2 h-4 w-4" />
+                  </Link>
+                )}
               </Button>
             </motion.div>
           </div>

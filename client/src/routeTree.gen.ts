@@ -10,7 +10,6 @@
 
 import { Route as rootRouteImport } from './routes/__root'
 import { Route as LayoutRouteRouteImport } from './routes/_layout/route'
-import { Route as callRouteRouteImport } from './routes/(call)/route'
 import { Route as IndexRouteImport } from './routes/index'
 import { Route as AuthSignupRouteImport } from './routes/auth/signup'
 import { Route as AuthSigninRouteImport } from './routes/auth/signin'
@@ -28,7 +27,6 @@ import { Route as LayoutpatientsPatientPrescriptionsRouteImport } from './routes
 import { Route as LayoutpatientsPatientOrdersRouteImport } from './routes/_layout/(patients)/patient.orders'
 import { Route as LayoutpatientsPatientMedicineRouteImport } from './routes/_layout/(patients)/patient.medicine'
 import { Route as LayoutpatientsPatientDashboardRouteImport } from './routes/_layout/(patients)/patient.dashboard'
-import { Route as LayoutpatientsPatientConsultationsRouteImport } from './routes/_layout/(patients)/patient.consultations'
 import { Route as LayoutpatientsPatientChatRouteImport } from './routes/_layout/(patients)/patient.chat'
 import { Route as LayoutpatientsPatientCalendarRouteImport } from './routes/_layout/(patients)/patient.calendar'
 import { Route as LayoutpatientsPatientAppointmentsRouteImport } from './routes/_layout/(patients)/patient.appointments'
@@ -38,7 +36,6 @@ import { Route as LayoutdoctorsDoctorPatientsRouteImport } from './routes/_layou
 import { Route as LayoutdoctorsDoctorMedineRouteImport } from './routes/_layout/(doctors)/doctor.medine'
 import { Route as LayoutdoctorsDoctorMedicineRouteImport } from './routes/_layout/(doctors)/doctor.medicine'
 import { Route as LayoutdoctorsDoctorDashboardRouteImport } from './routes/_layout/(doctors)/doctor.dashboard'
-import { Route as LayoutdoctorsDoctorConsultationsRouteImport } from './routes/_layout/(doctors)/doctor.consultations'
 import { Route as LayoutdoctorsDoctorChatRouteImport } from './routes/_layout/(doctors)/doctor.chat'
 import { Route as LayoutdoctorsDoctorCalendarRouteImport } from './routes/_layout/(doctors)/doctor.calendar'
 import { Route as LayoutdoctorsDoctorAppointmentsRouteImport } from './routes/_layout/(doctors)/doctor.appointments'
@@ -54,7 +51,6 @@ import { Route as LayoutadminAdminMedicineRouteImport } from './routes/_layout/(
 import { Route as LayoutadminAdminInventoryRouteImport } from './routes/_layout/(admin)/admin.inventory'
 import { Route as LayoutadminAdminDoctorsRouteImport } from './routes/_layout/(admin)/admin.doctors'
 import { Route as LayoutadminAdminDashboardRouteImport } from './routes/_layout/(admin)/admin.dashboard'
-import { Route as LayoutadminAdminConsultationsRouteImport } from './routes/_layout/(admin)/admin.consultations'
 import { Route as LayoutadminAdminChatRouteImport } from './routes/_layout/(admin)/admin.chat'
 import { Route as LayoutadminAdminCalendarRouteImport } from './routes/_layout/(admin)/admin.calendar'
 import { Route as LayoutadminAdminAppointmentsRouteImport } from './routes/_layout/(admin)/admin.appointments'
@@ -63,10 +59,6 @@ import { Route as callCallJoinCallIdRouteImport } from './routes/(call)/call.joi
 
 const LayoutRouteRoute = LayoutRouteRouteImport.update({
   id: '/_layout',
-  getParentRoute: () => rootRouteImport,
-} as any)
-const callRouteRoute = callRouteRouteImport.update({
-  id: '/(call)',
   getParentRoute: () => rootRouteImport,
 } as any)
 const IndexRoute = IndexRouteImport.update({
@@ -166,12 +158,6 @@ const LayoutpatientsPatientDashboardRoute =
     path: '/patient/dashboard',
     getParentRoute: () => LayoutRouteRoute,
   } as any)
-const LayoutpatientsPatientConsultationsRoute =
-  LayoutpatientsPatientConsultationsRouteImport.update({
-    id: '/(patients)/patient/consultations',
-    path: '/patient/consultations',
-    getParentRoute: () => LayoutRouteRoute,
-  } as any)
 const LayoutpatientsPatientChatRoute =
   LayoutpatientsPatientChatRouteImport.update({
     id: '/(patients)/patient/chat',
@@ -224,12 +210,6 @@ const LayoutdoctorsDoctorDashboardRoute =
   LayoutdoctorsDoctorDashboardRouteImport.update({
     id: '/(doctors)/doctor/dashboard',
     path: '/doctor/dashboard',
-    getParentRoute: () => LayoutRouteRoute,
-  } as any)
-const LayoutdoctorsDoctorConsultationsRoute =
-  LayoutdoctorsDoctorConsultationsRouteImport.update({
-    id: '/(doctors)/doctor/consultations',
-    path: '/doctor/consultations',
     getParentRoute: () => LayoutRouteRoute,
   } as any)
 const LayoutdoctorsDoctorChatRoute = LayoutdoctorsDoctorChatRouteImport.update({
@@ -317,12 +297,6 @@ const LayoutadminAdminDashboardRoute =
     path: '/admin/dashboard',
     getParentRoute: () => LayoutRouteRoute,
   } as any)
-const LayoutadminAdminConsultationsRoute =
-  LayoutadminAdminConsultationsRouteImport.update({
-    id: '/(admin)/admin/consultations',
-    path: '/admin/consultations',
-    getParentRoute: () => LayoutRouteRoute,
-  } as any)
 const LayoutadminAdminChatRoute = LayoutadminAdminChatRouteImport.update({
   id: '/(admin)/admin/chat',
   path: '/admin/chat',
@@ -346,13 +320,13 @@ const LayoutadminAdminAdminsRoute = LayoutadminAdminAdminsRouteImport.update({
   getParentRoute: () => LayoutRouteRoute,
 } as any)
 const callCallJoinCallIdRoute = callCallJoinCallIdRouteImport.update({
-  id: '/call/join/$callId',
+  id: '/(call)/call/join/$callId',
   path: '/call/join/$callId',
-  getParentRoute: () => callRouteRoute,
+  getParentRoute: () => rootRouteImport,
 } as any)
 
 export interface FileRoutesByFullPath {
-  '/': typeof callRouteRouteWithChildren
+  '/': typeof IndexRoute
   '/auth/callback': typeof AuthCallbackRoute
   '/auth/forget-password': typeof AuthForgetPasswordRoute
   '/auth/signin': typeof AuthSigninRoute
@@ -362,7 +336,6 @@ export interface FileRoutesByFullPath {
   '/admin/appointments': typeof LayoutadminAdminAppointmentsRoute
   '/admin/calendar': typeof LayoutadminAdminCalendarRoute
   '/admin/chat': typeof LayoutadminAdminChatRoute
-  '/admin/consultations': typeof LayoutadminAdminConsultationsRoute
   '/admin/dashboard': typeof LayoutadminAdminDashboardRoute
   '/admin/doctors': typeof LayoutadminAdminDoctorsRoute
   '/admin/inventory': typeof LayoutadminAdminInventoryRoute
@@ -378,7 +351,6 @@ export interface FileRoutesByFullPath {
   '/doctor/appointments': typeof LayoutdoctorsDoctorAppointmentsRoute
   '/doctor/calendar': typeof LayoutdoctorsDoctorCalendarRoute
   '/doctor/chat': typeof LayoutdoctorsDoctorChatRoute
-  '/doctor/consultations': typeof LayoutdoctorsDoctorConsultationsRoute
   '/doctor/dashboard': typeof LayoutdoctorsDoctorDashboardRoute
   '/doctor/medicine': typeof LayoutdoctorsDoctorMedicineRoute
   '/doctor/medine': typeof LayoutdoctorsDoctorMedineRoute
@@ -388,7 +360,6 @@ export interface FileRoutesByFullPath {
   '/patient/appointments': typeof LayoutpatientsPatientAppointmentsRoute
   '/patient/calendar': typeof LayoutpatientsPatientCalendarRoute
   '/patient/chat': typeof LayoutpatientsPatientChatRoute
-  '/patient/consultations': typeof LayoutpatientsPatientConsultationsRoute
   '/patient/dashboard': typeof LayoutpatientsPatientDashboardRoute
   '/patient/medicine': typeof LayoutpatientsPatientMedicineRoute
   '/patient/orders': typeof LayoutpatientsPatientOrdersRoute
@@ -403,7 +374,7 @@ export interface FileRoutesByFullPath {
   '/pharmacist/settings': typeof LayoutpharmacistPharmacistSettingsRoute
 }
 export interface FileRoutesByTo {
-  '/': typeof callRouteRouteWithChildren
+  '/': typeof IndexRoute
   '/auth/callback': typeof AuthCallbackRoute
   '/auth/forget-password': typeof AuthForgetPasswordRoute
   '/auth/signin': typeof AuthSigninRoute
@@ -413,7 +384,6 @@ export interface FileRoutesByTo {
   '/admin/appointments': typeof LayoutadminAdminAppointmentsRoute
   '/admin/calendar': typeof LayoutadminAdminCalendarRoute
   '/admin/chat': typeof LayoutadminAdminChatRoute
-  '/admin/consultations': typeof LayoutadminAdminConsultationsRoute
   '/admin/dashboard': typeof LayoutadminAdminDashboardRoute
   '/admin/doctors': typeof LayoutadminAdminDoctorsRoute
   '/admin/inventory': typeof LayoutadminAdminInventoryRoute
@@ -429,7 +399,6 @@ export interface FileRoutesByTo {
   '/doctor/appointments': typeof LayoutdoctorsDoctorAppointmentsRoute
   '/doctor/calendar': typeof LayoutdoctorsDoctorCalendarRoute
   '/doctor/chat': typeof LayoutdoctorsDoctorChatRoute
-  '/doctor/consultations': typeof LayoutdoctorsDoctorConsultationsRoute
   '/doctor/dashboard': typeof LayoutdoctorsDoctorDashboardRoute
   '/doctor/medicine': typeof LayoutdoctorsDoctorMedicineRoute
   '/doctor/medine': typeof LayoutdoctorsDoctorMedineRoute
@@ -439,7 +408,6 @@ export interface FileRoutesByTo {
   '/patient/appointments': typeof LayoutpatientsPatientAppointmentsRoute
   '/patient/calendar': typeof LayoutpatientsPatientCalendarRoute
   '/patient/chat': typeof LayoutpatientsPatientChatRoute
-  '/patient/consultations': typeof LayoutpatientsPatientConsultationsRoute
   '/patient/dashboard': typeof LayoutpatientsPatientDashboardRoute
   '/patient/medicine': typeof LayoutpatientsPatientMedicineRoute
   '/patient/orders': typeof LayoutpatientsPatientOrdersRoute
@@ -456,7 +424,6 @@ export interface FileRoutesByTo {
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/': typeof IndexRoute
-  '/(call)': typeof callRouteRouteWithChildren
   '/_layout': typeof LayoutRouteRouteWithChildren
   '/auth/callback': typeof AuthCallbackRoute
   '/auth/forget-password': typeof AuthForgetPasswordRoute
@@ -467,7 +434,6 @@ export interface FileRoutesById {
   '/_layout/(admin)/admin/appointments': typeof LayoutadminAdminAppointmentsRoute
   '/_layout/(admin)/admin/calendar': typeof LayoutadminAdminCalendarRoute
   '/_layout/(admin)/admin/chat': typeof LayoutadminAdminChatRoute
-  '/_layout/(admin)/admin/consultations': typeof LayoutadminAdminConsultationsRoute
   '/_layout/(admin)/admin/dashboard': typeof LayoutadminAdminDashboardRoute
   '/_layout/(admin)/admin/doctors': typeof LayoutadminAdminDoctorsRoute
   '/_layout/(admin)/admin/inventory': typeof LayoutadminAdminInventoryRoute
@@ -483,7 +449,6 @@ export interface FileRoutesById {
   '/_layout/(doctors)/doctor/appointments': typeof LayoutdoctorsDoctorAppointmentsRoute
   '/_layout/(doctors)/doctor/calendar': typeof LayoutdoctorsDoctorCalendarRoute
   '/_layout/(doctors)/doctor/chat': typeof LayoutdoctorsDoctorChatRoute
-  '/_layout/(doctors)/doctor/consultations': typeof LayoutdoctorsDoctorConsultationsRoute
   '/_layout/(doctors)/doctor/dashboard': typeof LayoutdoctorsDoctorDashboardRoute
   '/_layout/(doctors)/doctor/medicine': typeof LayoutdoctorsDoctorMedicineRoute
   '/_layout/(doctors)/doctor/medine': typeof LayoutdoctorsDoctorMedineRoute
@@ -493,7 +458,6 @@ export interface FileRoutesById {
   '/_layout/(patients)/patient/appointments': typeof LayoutpatientsPatientAppointmentsRoute
   '/_layout/(patients)/patient/calendar': typeof LayoutpatientsPatientCalendarRoute
   '/_layout/(patients)/patient/chat': typeof LayoutpatientsPatientChatRoute
-  '/_layout/(patients)/patient/consultations': typeof LayoutpatientsPatientConsultationsRoute
   '/_layout/(patients)/patient/dashboard': typeof LayoutpatientsPatientDashboardRoute
   '/_layout/(patients)/patient/medicine': typeof LayoutpatientsPatientMedicineRoute
   '/_layout/(patients)/patient/orders': typeof LayoutpatientsPatientOrdersRoute
@@ -520,7 +484,6 @@ export interface FileRouteTypes {
     | '/admin/appointments'
     | '/admin/calendar'
     | '/admin/chat'
-    | '/admin/consultations'
     | '/admin/dashboard'
     | '/admin/doctors'
     | '/admin/inventory'
@@ -536,7 +499,6 @@ export interface FileRouteTypes {
     | '/doctor/appointments'
     | '/doctor/calendar'
     | '/doctor/chat'
-    | '/doctor/consultations'
     | '/doctor/dashboard'
     | '/doctor/medicine'
     | '/doctor/medine'
@@ -546,7 +508,6 @@ export interface FileRouteTypes {
     | '/patient/appointments'
     | '/patient/calendar'
     | '/patient/chat'
-    | '/patient/consultations'
     | '/patient/dashboard'
     | '/patient/medicine'
     | '/patient/orders'
@@ -571,7 +532,6 @@ export interface FileRouteTypes {
     | '/admin/appointments'
     | '/admin/calendar'
     | '/admin/chat'
-    | '/admin/consultations'
     | '/admin/dashboard'
     | '/admin/doctors'
     | '/admin/inventory'
@@ -587,7 +547,6 @@ export interface FileRouteTypes {
     | '/doctor/appointments'
     | '/doctor/calendar'
     | '/doctor/chat'
-    | '/doctor/consultations'
     | '/doctor/dashboard'
     | '/doctor/medicine'
     | '/doctor/medine'
@@ -597,7 +556,6 @@ export interface FileRouteTypes {
     | '/patient/appointments'
     | '/patient/calendar'
     | '/patient/chat'
-    | '/patient/consultations'
     | '/patient/dashboard'
     | '/patient/medicine'
     | '/patient/orders'
@@ -613,7 +571,6 @@ export interface FileRouteTypes {
   id:
     | '__root__'
     | '/'
-    | '/(call)'
     | '/_layout'
     | '/auth/callback'
     | '/auth/forget-password'
@@ -624,7 +581,6 @@ export interface FileRouteTypes {
     | '/_layout/(admin)/admin/appointments'
     | '/_layout/(admin)/admin/calendar'
     | '/_layout/(admin)/admin/chat'
-    | '/_layout/(admin)/admin/consultations'
     | '/_layout/(admin)/admin/dashboard'
     | '/_layout/(admin)/admin/doctors'
     | '/_layout/(admin)/admin/inventory'
@@ -640,7 +596,6 @@ export interface FileRouteTypes {
     | '/_layout/(doctors)/doctor/appointments'
     | '/_layout/(doctors)/doctor/calendar'
     | '/_layout/(doctors)/doctor/chat'
-    | '/_layout/(doctors)/doctor/consultations'
     | '/_layout/(doctors)/doctor/dashboard'
     | '/_layout/(doctors)/doctor/medicine'
     | '/_layout/(doctors)/doctor/medine'
@@ -650,7 +605,6 @@ export interface FileRouteTypes {
     | '/_layout/(patients)/patient/appointments'
     | '/_layout/(patients)/patient/calendar'
     | '/_layout/(patients)/patient/chat'
-    | '/_layout/(patients)/patient/consultations'
     | '/_layout/(patients)/patient/dashboard'
     | '/_layout/(patients)/patient/medicine'
     | '/_layout/(patients)/patient/orders'
@@ -667,12 +621,12 @@ export interface FileRouteTypes {
 }
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
-  callRouteRoute: typeof callRouteRouteWithChildren
   LayoutRouteRoute: typeof LayoutRouteRouteWithChildren
   AuthCallbackRoute: typeof AuthCallbackRoute
   AuthForgetPasswordRoute: typeof AuthForgetPasswordRoute
   AuthSigninRoute: typeof AuthSigninRoute
   AuthSignupRoute: typeof AuthSignupRoute
+  callCallJoinCallIdRoute: typeof callCallJoinCallIdRoute
 }
 
 declare module '@tanstack/react-router' {
@@ -682,13 +636,6 @@ declare module '@tanstack/react-router' {
       path: ''
       fullPath: ''
       preLoaderRoute: typeof LayoutRouteRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/(call)': {
-      id: '/(call)'
-      path: '/'
-      fullPath: '/'
-      preLoaderRoute: typeof callRouteRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/': {
@@ -810,13 +757,6 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof LayoutpatientsPatientDashboardRouteImport
       parentRoute: typeof LayoutRouteRoute
     }
-    '/_layout/(patients)/patient/consultations': {
-      id: '/_layout/(patients)/patient/consultations'
-      path: '/patient/consultations'
-      fullPath: '/patient/consultations'
-      preLoaderRoute: typeof LayoutpatientsPatientConsultationsRouteImport
-      parentRoute: typeof LayoutRouteRoute
-    }
     '/_layout/(patients)/patient/chat': {
       id: '/_layout/(patients)/patient/chat'
       path: '/patient/chat'
@@ -878,13 +818,6 @@ declare module '@tanstack/react-router' {
       path: '/doctor/dashboard'
       fullPath: '/doctor/dashboard'
       preLoaderRoute: typeof LayoutdoctorsDoctorDashboardRouteImport
-      parentRoute: typeof LayoutRouteRoute
-    }
-    '/_layout/(doctors)/doctor/consultations': {
-      id: '/_layout/(doctors)/doctor/consultations'
-      path: '/doctor/consultations'
-      fullPath: '/doctor/consultations'
-      preLoaderRoute: typeof LayoutdoctorsDoctorConsultationsRouteImport
       parentRoute: typeof LayoutRouteRoute
     }
     '/_layout/(doctors)/doctor/chat': {
@@ -992,13 +925,6 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof LayoutadminAdminDashboardRouteImport
       parentRoute: typeof LayoutRouteRoute
     }
-    '/_layout/(admin)/admin/consultations': {
-      id: '/_layout/(admin)/admin/consultations'
-      path: '/admin/consultations'
-      fullPath: '/admin/consultations'
-      preLoaderRoute: typeof LayoutadminAdminConsultationsRouteImport
-      parentRoute: typeof LayoutRouteRoute
-    }
     '/_layout/(admin)/admin/chat': {
       id: '/_layout/(admin)/admin/chat'
       path: '/admin/chat'
@@ -1032,29 +958,16 @@ declare module '@tanstack/react-router' {
       path: '/call/join/$callId'
       fullPath: '/call/join/$callId'
       preLoaderRoute: typeof callCallJoinCallIdRouteImport
-      parentRoute: typeof callRouteRoute
+      parentRoute: typeof rootRouteImport
     }
   }
 }
-
-interface callRouteRouteChildren {
-  callCallJoinCallIdRoute: typeof callCallJoinCallIdRoute
-}
-
-const callRouteRouteChildren: callRouteRouteChildren = {
-  callCallJoinCallIdRoute: callCallJoinCallIdRoute,
-}
-
-const callRouteRouteWithChildren = callRouteRoute._addFileChildren(
-  callRouteRouteChildren,
-)
 
 interface LayoutRouteRouteChildren {
   LayoutadminAdminAdminsRoute: typeof LayoutadminAdminAdminsRoute
   LayoutadminAdminAppointmentsRoute: typeof LayoutadminAdminAppointmentsRoute
   LayoutadminAdminCalendarRoute: typeof LayoutadminAdminCalendarRoute
   LayoutadminAdminChatRoute: typeof LayoutadminAdminChatRoute
-  LayoutadminAdminConsultationsRoute: typeof LayoutadminAdminConsultationsRoute
   LayoutadminAdminDashboardRoute: typeof LayoutadminAdminDashboardRoute
   LayoutadminAdminDoctorsRoute: typeof LayoutadminAdminDoctorsRoute
   LayoutadminAdminInventoryRoute: typeof LayoutadminAdminInventoryRoute
@@ -1070,7 +983,6 @@ interface LayoutRouteRouteChildren {
   LayoutdoctorsDoctorAppointmentsRoute: typeof LayoutdoctorsDoctorAppointmentsRoute
   LayoutdoctorsDoctorCalendarRoute: typeof LayoutdoctorsDoctorCalendarRoute
   LayoutdoctorsDoctorChatRoute: typeof LayoutdoctorsDoctorChatRoute
-  LayoutdoctorsDoctorConsultationsRoute: typeof LayoutdoctorsDoctorConsultationsRoute
   LayoutdoctorsDoctorDashboardRoute: typeof LayoutdoctorsDoctorDashboardRoute
   LayoutdoctorsDoctorMedicineRoute: typeof LayoutdoctorsDoctorMedicineRoute
   LayoutdoctorsDoctorMedineRoute: typeof LayoutdoctorsDoctorMedineRoute
@@ -1080,7 +992,6 @@ interface LayoutRouteRouteChildren {
   LayoutpatientsPatientAppointmentsRoute: typeof LayoutpatientsPatientAppointmentsRoute
   LayoutpatientsPatientCalendarRoute: typeof LayoutpatientsPatientCalendarRoute
   LayoutpatientsPatientChatRoute: typeof LayoutpatientsPatientChatRoute
-  LayoutpatientsPatientConsultationsRoute: typeof LayoutpatientsPatientConsultationsRoute
   LayoutpatientsPatientDashboardRoute: typeof LayoutpatientsPatientDashboardRoute
   LayoutpatientsPatientMedicineRoute: typeof LayoutpatientsPatientMedicineRoute
   LayoutpatientsPatientOrdersRoute: typeof LayoutpatientsPatientOrdersRoute
@@ -1100,7 +1011,6 @@ const LayoutRouteRouteChildren: LayoutRouteRouteChildren = {
   LayoutadminAdminAppointmentsRoute: LayoutadminAdminAppointmentsRoute,
   LayoutadminAdminCalendarRoute: LayoutadminAdminCalendarRoute,
   LayoutadminAdminChatRoute: LayoutadminAdminChatRoute,
-  LayoutadminAdminConsultationsRoute: LayoutadminAdminConsultationsRoute,
   LayoutadminAdminDashboardRoute: LayoutadminAdminDashboardRoute,
   LayoutadminAdminDoctorsRoute: LayoutadminAdminDoctorsRoute,
   LayoutadminAdminInventoryRoute: LayoutadminAdminInventoryRoute,
@@ -1116,7 +1026,6 @@ const LayoutRouteRouteChildren: LayoutRouteRouteChildren = {
   LayoutdoctorsDoctorAppointmentsRoute: LayoutdoctorsDoctorAppointmentsRoute,
   LayoutdoctorsDoctorCalendarRoute: LayoutdoctorsDoctorCalendarRoute,
   LayoutdoctorsDoctorChatRoute: LayoutdoctorsDoctorChatRoute,
-  LayoutdoctorsDoctorConsultationsRoute: LayoutdoctorsDoctorConsultationsRoute,
   LayoutdoctorsDoctorDashboardRoute: LayoutdoctorsDoctorDashboardRoute,
   LayoutdoctorsDoctorMedicineRoute: LayoutdoctorsDoctorMedicineRoute,
   LayoutdoctorsDoctorMedineRoute: LayoutdoctorsDoctorMedineRoute,
@@ -1127,8 +1036,6 @@ const LayoutRouteRouteChildren: LayoutRouteRouteChildren = {
     LayoutpatientsPatientAppointmentsRoute,
   LayoutpatientsPatientCalendarRoute: LayoutpatientsPatientCalendarRoute,
   LayoutpatientsPatientChatRoute: LayoutpatientsPatientChatRoute,
-  LayoutpatientsPatientConsultationsRoute:
-    LayoutpatientsPatientConsultationsRoute,
   LayoutpatientsPatientDashboardRoute: LayoutpatientsPatientDashboardRoute,
   LayoutpatientsPatientMedicineRoute: LayoutpatientsPatientMedicineRoute,
   LayoutpatientsPatientOrdersRoute: LayoutpatientsPatientOrdersRoute,
@@ -1155,12 +1062,12 @@ const LayoutRouteRouteWithChildren = LayoutRouteRoute._addFileChildren(
 
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
-  callRouteRoute: callRouteRouteWithChildren,
   LayoutRouteRoute: LayoutRouteRouteWithChildren,
   AuthCallbackRoute: AuthCallbackRoute,
   AuthForgetPasswordRoute: AuthForgetPasswordRoute,
   AuthSigninRoute: AuthSigninRoute,
   AuthSignupRoute: AuthSignupRoute,
+  callCallJoinCallIdRoute: callCallJoinCallIdRoute,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)

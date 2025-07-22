@@ -1,5 +1,5 @@
 import SectionLayout from "@/components/shared/layouts/section-layout";
-import { motion } from "framer-motion";
+import { motion, Variant } from "framer-motion";
 import { cn } from "@/lib/utils";
 
 const services = () => {
@@ -19,7 +19,7 @@ dark:focus-visible:ring-offset-green-500`;
         duration: 0.6,
         ease: "easeInOut",
       },
-    },
+    } as Variant,
   };
 
   const staggerContainer = {
@@ -253,7 +253,7 @@ dark:focus-visible:ring-offset-green-500`;
                 </h2>
                 <p>
                   Connect patients and healthcare providers remotely with secure
-                  video consultations, online prescriptions, and medical record
+                  video appointments, online prescriptions, and medical record
                   access from acnwhere.
                 </p>
               </div>

@@ -16,9 +16,6 @@ export default defineConfig({
     }),
     tanstackStart({
       target: "vercel",
-      tsr: {
-        autoCodeSplitting: true,
-      },
       customViteReactPlugin: true,
     }),
     react(),

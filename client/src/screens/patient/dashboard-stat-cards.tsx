@@ -41,7 +41,7 @@ export function PatientDashboardStats() {
       gradient:
         "from-purple-100 to-purple-50 dark:from-purple-900/30 dark:to-purple-800/20",
       buttonClass: "hover:bg-purple-600 hover:text-white",
-      link: "/consultations",
+      link: "/appointmeent?type=consultation",
     },
     {
       title: "Prescriptions",

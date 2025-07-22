@@ -38,10 +38,10 @@ export class CreateDoctorDto {
 
   @ApiProperty({
     example: 150.0,
-    description: 'Consultation fee',
+    description: 'Apppointment fee',
   })
   @IsNumber()
-  consultationFee: number;
+  appointmentFee: number;
 
   @ApiProperty({
     example: 'MD123456',

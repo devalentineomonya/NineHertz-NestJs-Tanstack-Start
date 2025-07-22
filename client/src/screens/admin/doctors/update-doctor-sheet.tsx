@@ -13,8 +13,6 @@ import { Label } from "@/components/ui/label";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { Check, Loader, Plus, Trash2, X } from "lucide-react";
 import { useForm } from "react-hook-form";
-import { toast } from "sonner";
-import { z } from "zod";
 import { useEffect } from "react";
 
 import {
@@ -28,41 +26,15 @@ import {
 import { useGetUsers } from "@/services/users/use-get-users";
 import { useUpdateDoctorService } from "@/services/doctors/use-update-doctor";
 import { useUpdateDoctorStore } from "@/stores/use-update-doctor-store";
-
-const daysOfWeek = [
-  "Monday",
-  "Tuesday",
-  "Wednesday",
-  "Thursday",
-  "Friday",
-  "Saturday",
-  "Sunday",
-] as const;
-
-const doctorFormSchema = z.object({
-  fullName: z.string().min(2, "Full name must be at least 2 characters"),
-  specialty: z.string().min(2, "Specialty must be at least 2 characters"),
-  availability: z.array(
-    z.object({
-      day: z.enum(daysOfWeek),
-      slots: z.array(
-        z.object({
-          start: z.string().regex(/^\d{2}:\d{2}$/, "Invalid time format"),
-          end: z.string().regex(/^\d{2}:\d{2}$/, "Invalid time format"),
-        })
-      ),
-    })
-  ),
-  consultationFee: z
-    .number()
-    .min(0, "Consultation fee must be a positive number"),
-  licenseNumber: z
-    .string()
-    .min(2, "License number must be at least 2 characters"),
-  userId: z.string().min(1, "User selection is required"),
-});
-
-type DoctorFormValues = z.infer<typeof doctorFormSchema>;
+import { DoctorFormValues, daysOfWeek, doctorFormSchema } from "./doctor-date";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
+import { toast } from "sonner";
 
 export const UpdateDoctorDrawer = () => {
   const { isOpen, currentDoctor, onClose } = useUpdateDoctorStore();
@@ -75,7 +47,7 @@ export const UpdateDoctorDrawer = () => {
       fullName: "",
       specialty: "",
       availability: [],
-      consultationFee: 0,
+      appointmentFee: 0,
       licenseNumber: "",
       userId: "",
     },
@@ -225,9 +197,33 @@ export const UpdateDoctorDrawer = () => {
                 render={({ field }) => (
                   <FormItem>
                     <FormLabel>Specialty</FormLabel>
-                    <FormControl>
-                      <Input placeholder="Cardiology" {...field} />
-                    </FormControl>
+                    <Select
+                      onValueChange={field.onChange}
+                      defaultValue={field.value}
+                    >
+                      <FormControl>
+                        <SelectTrigger>
+                          <SelectValue placeholder="Select specialty" />
+                        </SelectTrigger>
+                      </FormControl>
+                      <SelectContent>
+                        <SelectItem value="cardiology">Cardiology</SelectItem>
+                        <SelectItem value="dermatology">Dermatology</SelectItem>
+                        <SelectItem value="endocrinology">
+                          Endocrinology
+                        </SelectItem>
+                        <SelectItem value="gastroenterology">
+                          Gastroenterology
+                        </SelectItem>
+                        <SelectItem value="neurology">Neurology</SelectItem>
+                        <SelectItem value="oncology">Oncology</SelectItem>
+                        <SelectItem value="orthopedics">Orthopedics</SelectItem>
+                        <SelectItem value="pediatrics">Pediatrics</SelectItem>
+                        <SelectItem value="psychiatry">Psychiatry</SelectItem>
+                        <SelectItem value="radiology">Radiology</SelectItem>
+                        <SelectItem value="urology">Urology</SelectItem>
+                      </SelectContent>
+                    </Select>
                     <FormMessage />
                   </FormItem>
                 )}
@@ -248,13 +244,13 @@ export const UpdateDoctorDrawer = () => {
                 )}
               />
 
-              {/* Consultation Fee */}
+              {/* Appointment Fee */}
               <FormField
                 control={form.control}
-                name="consultationFee"
+                name="appointmentFee"
                 render={({ field }) => (
                   <FormItem>
-                    <FormLabel>Consultation Fee</FormLabel>
+                    <FormLabel>Appointment Fee</FormLabel>
                     <FormControl>
                       <Input
                         type="number"

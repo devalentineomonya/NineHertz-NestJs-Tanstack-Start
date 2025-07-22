@@ -11,11 +11,11 @@ import {
   PopoverTrigger,
 } from "@/components/ui/popover";
 import { ScrollArea, ScrollBar } from "@/components/ui/scroll-area";
+
 interface DateTimePicker24hProps {
   value?: Date;
   onChange: (date: Date | undefined) => void;
   disabled?: boolean;
-
 }
 
 export const DateTimePicker24h = ({
@@ -27,13 +27,11 @@ export const DateTimePicker24h = ({
 
   const handleDateSelect = (selectedDate: Date | undefined) => {
     if (selectedDate) {
-      // Preserve existing time when changing date
       const newDate = new Date(selectedDate);
       if (value) {
         newDate.setHours(value.getHours());
         newDate.setMinutes(value.getMinutes());
       } else {
-        // Default to 9:00 AM if no time set
         newDate.setHours(9, 0, 0, 0);
       }
       onChange(newDate);
@@ -50,7 +48,6 @@ export const DateTimePicker24h = ({
       }
       onChange(newDate);
     } else {
-      // Create new date with current date + selected time
       const newDate = new Date();
       if (type === "hour") {
         newDate.setHours(num);
@@ -60,8 +57,6 @@ export const DateTimePicker24h = ({
       onChange(newDate);
     }
   };
-
-  // Generate hours (0-23) and minutes (0, 5, 10, ..., 55)
   const hours = Array.from({ length: 24 }, (_, i) => i);
   const minutes = Array.from({ length: 12 }, (_, i) => i * 5);
 
@@ -74,6 +69,7 @@ export const DateTimePicker24h = ({
             "w-full justify-start text-left font-normal truncate",
             !value && "text-muted-foreground"
           )}
+          disabled={disabled}
         >
           <CalendarIcon className="mr-2 h-4 w-4" />
           {value ? format(value, "PPPPppp") : <span>Pick a date and time</span>}

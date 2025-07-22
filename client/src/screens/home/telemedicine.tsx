@@ -185,7 +185,7 @@ const TelemedicineSection = () => {
             <span className="text-3xl">min</span>
           </div>
           <p className="text-gray-700 dark:text-gray-300">
-            Average wait time for consultation
+            Average wait time for appointment
           </p>
         </div>
       </motion.div>

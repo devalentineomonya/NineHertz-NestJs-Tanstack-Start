@@ -13,19 +13,30 @@ import { Doctor } from '../../doctor/entities/doctor.entity';
 import { AppointmentStatus } from 'src/enums/appointment.enum';
 
 export enum AppointmentType {
-  VIRTUAL = 'virtual',
-  PHYSICAL = 'physical',
+  CONSULTATION = 'consultation',
+  CHECKUP = 'checkup',
+  FOLLOW_UP = 'follow_up',
 }
 
-// APPOINTMENT ENTITY
+export enum AppointmentMode {
+  PHYSICAL = 'physical',
+  VIRTUAL = 'virtual',
+}
+
 @Entity()
 @Index(['datetime', 'status'])
 export class Appointment {
+  @PrimaryGeneratedColumn('uuid')
+  id: string;
+
   @Column({ type: 'timestamptz' })
   datetime: Date;
 
-  @PrimaryGeneratedColumn('uuid')
-  id: string;
+  @Column({ type: 'timestamptz' })
+  startTime: Date;
+
+  @Column({ type: 'timestamptz' })
+  endTime: Date;
 
   @Column({ type: 'int', default: 30 })
   duration: number;
@@ -40,9 +51,22 @@ export class Appointment {
   @Column({
     type: 'enum',
     enum: AppointmentType,
-    default: AppointmentType.PHYSICAL,
+    default: AppointmentType.CONSULTATION,
   })
   type: AppointmentType;
+
+  @Column({
+    type: 'enum',
+    enum: AppointmentMode,
+    default: AppointmentMode.PHYSICAL,
+  })
+  mode: AppointmentMode;
+
+  @Column({ type: 'text', nullable: true })
+  notes?: string;
+
+  @Column({ type: 'varchar', nullable: true })
+  videoSessionId?: string | null;
 
   @ManyToOne(() => Patient, (patient) => patient.appointments)
   patient: Patient;

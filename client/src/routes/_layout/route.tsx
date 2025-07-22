@@ -47,7 +47,7 @@ function RouteComponent() {
         </main>
       </SidebarInset>
       <SheetProvider />
-      <ChatBot position="bottom-right"/>
+      <ChatBot position="bottom-right" />
     </SidebarProvider>
   );
 }

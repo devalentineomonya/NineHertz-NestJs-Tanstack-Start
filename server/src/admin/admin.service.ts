@@ -1,14 +1,14 @@
 import { Injectable, NotFoundException } from '@nestjs/common';
-import { CreateAdminDto } from './dto/create-admin.dto';
-import { UpdateAdminDto } from './dto/update-admin.dto';
 import { InjectRepository } from '@nestjs/typeorm';
-import { Admin } from './entities/admin.entity';
-import { Repository } from 'typeorm';
-import { AdminResponseDto } from './dto/admin-response.dto';
-import { AdminPaginatedDto } from './dto/admin-paginated.dto';
-import { UserService } from '../user/user.service';
 import { AdminType } from 'src/enums/admin.enum';
 import { PaginationDto } from 'src/shared/dto/pagination.dto';
+import { Repository } from 'typeorm';
+import { UserService } from '../user/user.service';
+import { AdminPaginatedDto } from './dto/admin-paginated.dto';
+import { AdminResponseDto } from './dto/admin-response.dto';
+import { CreateAdminDto } from './dto/create-admin.dto';
+import { UpdateAdminDto } from './dto/update-admin.dto';
+import { Admin } from './entities/admin.entity';
 @Injectable()
 export class AdminService {
   constructor(
@@ -43,7 +43,7 @@ export class AdminService {
     pagination: PaginationDto,
     type?: string,
   ): Promise<AdminPaginatedDto> {
-    const { page = 1, limit = 10 } = pagination;
+    const { page = 1, limit = 50 } = pagination;
     const skip = (page - 1) * limit;
 
     const query = this.adminRepository
@@ -69,7 +69,7 @@ export class AdminService {
   async findOne(id: string): Promise<AdminResponseDto> {
     const admin = await this.adminRepository.findOne({
       where: { id },
-      relations: ['institution', 'user'],
+      relations: ['user'],
     });
 
     if (!admin) {
@@ -85,7 +85,7 @@ export class AdminService {
   ): Promise<AdminResponseDto> {
     const admin = await this.adminRepository.findOne({
       where: { id },
-      relations: ['institution', 'user'],
+      relations: ['user'],
     });
 
     if (!admin) {
@@ -115,6 +115,7 @@ export class AdminService {
         email: admin.user?.email,
         role: admin.user?.role,
         isEmailVerified: admin.user?.isEmailVerified,
+        profilePicture: admin.user?.profilePicture || '',
         createdAt: admin.user?.createdAt,
       },
       createdAt: admin.createdAt,

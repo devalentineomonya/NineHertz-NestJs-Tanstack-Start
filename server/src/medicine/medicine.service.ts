@@ -54,7 +54,7 @@ export class MedicineService {
     pagination: PaginationDto,
     filters: MedicineFilter,
   ): Promise<MedicinePaginatedDto> {
-    const { page = 1, limit = 10 } = pagination;
+    const { page = 1, limit = 50 } = pagination;
     const skip = (page - 1) * limit;
 
     const query = this.medicineRepository

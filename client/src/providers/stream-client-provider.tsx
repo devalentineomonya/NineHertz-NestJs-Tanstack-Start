@@ -6,10 +6,14 @@ import {
 } from "@stream-io/video-react-sdk";
 
 import Loader from "@/screens/call/loader";
+import { useUserSessionStore } from "@/stores/user-session-store";
 
 export const StreamVideoProvider = ({ children }: { children: ReactNode }) => {
+  const {getCurrentUser} = useUserSessionStore()
+  const currentUser = getCurrentUser() // Has Id name email and role
+
   const user: User = { id: "Dash_Rendar" };
-  const apiKey = "mmhfdzb5evj2";
+  const apiKey = import.meta.env.VITE_STREAM_API_KEY;
   const token =
     "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJodHRwczovL3Byb250by5nZXRzdHJlYW0uaW8iLCJzdWIiOiJ1c2VyL0Rhc2hfUmVuZGFyIiwidXNlcl9pZCI6IkRhc2hfUmVuZGFyIiwidmFsaWRpdHlfaW5fc2Vjb25kcyI6NjA0ODAwLCJpYXQiOjE3NTIxNzE0NzgsImV4cCI6MTc1Mjc3NjI3OH0.aSQ5agA9RYH13wscAuRCsT18fEXrTYe7gzICMI2v-vA";
 

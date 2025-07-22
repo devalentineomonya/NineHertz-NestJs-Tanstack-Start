@@ -8,6 +8,7 @@ interface BaseUserDto {
   email: string;
   password?: string;
   googleId?: string;
+  profilePicture?: string;
   role: UserRole;
 }
 
@@ -51,7 +52,6 @@ interface PatientResponseDto extends CreatePatientDto {
   appointments: AppointmentResponseDto[];
   orders: OrderResponseDto[];
   prescriptions: PrescriptionResponseDto[];
-  consultations: ConsultationResponseDto[];
 }
 interface UpdatePatientDto extends Partial<CreatePatientDto> {}
 
@@ -60,7 +60,7 @@ interface CreateDoctorDto {
   fullName: string;
   specialty: string;
   availability: Availability;
-  consultationFee: number;
+  appointmentFee: number;
   licenseNumber: string;
   userId: string;
 }
@@ -79,7 +79,7 @@ interface CreateAdminDto {
   userUuid: string;
   specialty: string;
   availability: Availability;
-  consultationFee: number;
+  appointmentFee: number;
   licenseNumber: string;
 }
 interface AdminResponseDto extends CreateAdminDto {
@@ -112,12 +112,20 @@ interface UpdatePharmacistDto extends Partial<CreatePharmacistDto> {}
 // ================== Appointment Types ==================
 interface CreateAppointmentDto {
   datetime: Date;
-  status: string;
+  status: "scheduled" | "completed" | "cancelled";
+  type: "consultation" | "checkup" | "follow-up" | "emergency";
+  mode: "virtual" | "physical";
   patientId: string;
   doctorId: string;
+  videoSessionId?: string;
+  endTime: Date;
+  startTime: Date;
+  duration: number;
+  notes?: string;
 }
 interface AppointmentResponseDto extends CreateAppointmentDto {
   id: string;
+
   status: AppointmentStatus;
   patient: PatientResponseDto;
   doctor: DoctorResponseDto;
@@ -126,35 +134,6 @@ interface AppointmentResponseDto extends CreateAppointmentDto {
 }
 interface UpdateAppointmentDto extends Partial<CreateAppointmentDto> {}
 type AppointmentPaginatedDto = AppointmentResponseDto;
-
-// ================== Consultation Types ==================
-interface CreateConsultationDto {
-  startTime: Date;
-  endTime?: Date;
-  videoSessionId?: string;
-  duration?: number;
-  notes?: string;
-  patientId: string;
-  doctorId: string;
-}
-interface ConsultationResponseDto
-  extends Required<Omit<CreateConsultationDto, "patientId" | "doctorId">> {
-  id: string;
-  status: "ended" | "completed" | "in-progress" | "scheduled";
-  recordingUrl?: string;
-  aiAnalysis?: string;
-  patient: PatientResponseDto;
-  doctor: DoctorResponseDto;
-  createdAt: Date;
-  updatedAt: Date;
-}
-interface UpdateConsultationDto extends Partial<CreateConsultationDto> {}
-interface ConsultationPaginatedDto {
-  data: ConsultationResponseDto[];
-  total: number;
-  page: number;
-  limit: number;
-}
 
 // ================== Medicine Types ==================
 interface CreateMedicineDto {
@@ -171,7 +150,7 @@ interface MedicineResponseDto extends Required<CreateMedicineDto> {
   createdAt: Date;
   updatedAt: Date;
 }
-interface UpdateMedicineDto extends Partial<CreateMedicineDto> {}
+interface UpdateMedicineDto extends Partial<CreateMedicineDto> {  }
 interface MedicinePaginatedDto {
   data: MedicineResponseDto[];
   total: number;

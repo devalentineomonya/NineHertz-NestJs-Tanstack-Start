@@ -53,12 +53,6 @@ const ALL_NAV_ITEMS = [
     roles: ["admin", "doctor", "patient"],
   },
   {
-    title: "Consultations",
-    url: "consultations",
-    icon: ClipboardList,
-    roles: ["admin", "doctor", "patient"],
-  },
-  {
     title: "Prescriptions",
     url: "prescriptions",
     icon: ClipboardCheck,

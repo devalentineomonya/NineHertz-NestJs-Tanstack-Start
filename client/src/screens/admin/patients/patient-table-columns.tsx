@@ -108,7 +108,7 @@ export const patientColumns: ColumnDef<PatientResponseDto>[] = [
       variant: "text",
       icon: User,
     },
-    enableColumnFilter: true,
+    enableColumnFilter: false,
   },
   {
     id: "phone",
@@ -160,11 +160,13 @@ export const patientColumns: ColumnDef<PatientResponseDto>[] = [
   {
     id: "dateOfBirth",
     accessorKey: "dateOfBirth",
+    accessorFn: (row) =>
+      row.dateOfBirth ? new Date(row.dateOfBirth).getTime() : null,
     header: ({ column }) => (
       <DataTableColumnHeader column={column} title="Date of Birth" />
     ),
-    cell: ({ cell }) => {
-      const dob = cell.getValue<Date | null>();
+    cell: ({ row }) => {
+      const dob = row.original.dateOfBirth;
       return (
         <div className="flex items-center gap-2">
           <Calendar className="size-4 text-gray-500" />
@@ -172,16 +174,17 @@ export const patientColumns: ColumnDef<PatientResponseDto>[] = [
         </div>
       );
     },
+    enableColumnFilter: false,
   },
   {
     id: "appointments",
     accessorKey: "appointments",
+    accessorFn: (row) => row.appointments?.length || 0,
     header: ({ column }) => (
       <DataTableColumnHeader column={column} title="Appointments" />
     ),
-    cell: ({ cell }) => {
-      const appointments = cell.getValue<AppointmentResponseDto[]>();
-      const count = appointments?.length || 0;
+    cell: ({ row }) => {
+      const count = row.getValue("appointmentsCount") as number;
       return (
         <div className="flex items-center gap-2">
           <Stethoscope className="size-4 text-gray-500" />
@@ -189,6 +192,7 @@ export const patientColumns: ColumnDef<PatientResponseDto>[] = [
         </div>
       );
     },
+    enableColumnFilter: false,
   },
   {
     id: "actions",

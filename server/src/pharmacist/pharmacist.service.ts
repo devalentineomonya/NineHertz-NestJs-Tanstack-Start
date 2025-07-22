@@ -31,6 +31,7 @@ export class PharmacistService {
             email: pharmacist.user.email,
             role: pharmacist.user.role,
             isEmailVerified: pharmacist.user.isEmailVerified,
+            profilePicture: pharmacist.user?.profilePicture || '',
             createdAt: pharmacist.user.createdAt,
           }
         : null,

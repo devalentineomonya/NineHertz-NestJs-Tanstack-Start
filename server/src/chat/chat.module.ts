@@ -6,9 +6,19 @@ import { ChatService } from './chat.service';
 import { ChatController } from './chat.controller';
 import { ConfigModule, ConfigService } from '@nestjs/config';
 import { CacheableMemory } from 'cacheable';
+import { DoctorService } from 'src/doctor/doctor.service';
+import { TypeOrmModule } from '@nestjs/typeorm';
+import { Doctor } from 'src/doctor/entities/doctor.entity';
+import { User } from 'src/user/entities/user.entity';
+import { AppointmentService } from 'src/appointment/appointment.service';
+import { Appointment } from 'src/appointment/entities/appointment.entity';
+import { Patient } from 'src/patient/entities/patient.entity';
+import { PatientService } from 'src/patient/patient.service';
+import { StreamService } from 'src/stream/stream.service';
 
 @Module({
   imports: [
+    TypeOrmModule.forFeature([Doctor, User, Appointment, Patient]),
     ConfigModule.forRoot(),
     CacheModule.registerAsync({
       imports: [ConfigModule],
@@ -26,7 +36,13 @@ import { CacheableMemory } from 'cacheable';
       }),
     }),
   ],
-  providers: [ChatService],
+  providers: [
+    ChatService,
+    DoctorService,
+    AppointmentService,
+    PatientService,
+    StreamService,
+  ],
   controllers: [ChatController],
 })
 export class ChatModule {}

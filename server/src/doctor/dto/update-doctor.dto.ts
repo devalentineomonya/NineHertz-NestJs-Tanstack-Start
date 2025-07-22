@@ -1,11 +1,5 @@
 import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
-import {
-  IsString,
-  IsNumber,
-  IsUUID,
-  IsObject,
-  IsOptional,
-} from 'class-validator';
+import { IsString, IsNumber, IsObject, IsOptional } from 'class-validator';
 
 export class UpdateDoctorDto {
   @ApiProperty({
@@ -41,12 +35,12 @@ export class UpdateDoctorDto {
 
   @ApiProperty({
     example: 175.0,
-    description: 'Updated consultation fee',
+    description: 'Updated appointment fee',
     required: false,
   })
   @IsNumber()
   @IsOptional()
-  consultationFee?: number;
+  appointmentFee?: number;
 
   @ApiProperty({
     example: 'MD654321',
@@ -56,13 +50,4 @@ export class UpdateDoctorDto {
   @IsString()
   @IsOptional()
   licenseNumber?: string;
-
-  @ApiProperty({
-    example: 'f47ac10b-58cc-4372-a567-0e02b2c3d479',
-    description: 'Updated healthcare institution ID',
-    required: false,
-  })
-  @IsUUID()
-  @IsOptional()
-  institutionId?: string;
 }

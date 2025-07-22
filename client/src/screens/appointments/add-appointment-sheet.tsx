@@ -36,6 +36,8 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
+import { Textarea } from "@/components/ui/textarea";
+import { Input } from "@/components/ui/input";
 import { cn, formatTime } from "@/lib/utils";
 import { useAddAppointmentService } from "@/services/appointments/use-add-appointment";
 import { useGetDoctorAvailability } from "@/services/doctors/use-get-doctor-availability";
@@ -47,23 +49,15 @@ import { Check, ChevronsUpDown, Loader } from "lucide-react";
 import { useEffect, useMemo, useState } from "react";
 import { useForm, UseFormReturn } from "react-hook-form";
 import { toast } from "sonner";
-import { z } from "zod";
-
-const appointmentStatuses = ["scheduled", "completed", "cancelled"] as const;
-const appointmentTypes = ["virtual", "physical"] as const;
-
-const appointmentFormSchema = z.object({
-  datetime: z.date().min(new Date(), "Appointment must be in the future"),
-  status: z.enum(appointmentStatuses).default("scheduled"),
-  type: z.enum(appointmentTypes).default("physical"),
-  patientId: z.string().min(1, "Patient selection is required"),
-  doctorId: z.string().min(1, "Doctor selection is required"),
-});
-
-type AppointmentFormValues = z.infer<typeof appointmentFormSchema>;
+import {
+  appointmentFormSchema,
+  AppointmentFormValues,
+  appointmentModes,
+  appointmentStatuses,
+  appointmentTypes,
+} from "./appointment-data";
 
 export const AddAppointmentDrawer = () => {
-  const [selectedDate, setSelectedDate] = useState<Date | null>(null);
   const { isOpen, onClose } = useAddAppointmentStore();
   const addAppointmentMutation = useAddAppointmentService();
   const { data: patients, isLoading: loadingPatients } = useGetPatients();
@@ -72,29 +66,41 @@ export const AddAppointmentDrawer = () => {
   const [dayOfWeek, setDayOfWeek] = useState<string>("");
   const { data: availability, isLoading: loadingAvailability } =
     useGetDoctorAvailability(selectedDoctorId, dayOfWeek);
+  const [showTimeSlotError, setShowTimeSlotError] = useState(false);
+
+  const durationMinutes = 30;
 
   const form = useForm({
     resolver: zodResolver(appointmentFormSchema),
     defaultValues: {
       datetime: new Date(),
       status: "scheduled",
+      type: "consultation",
+      mode: "physical",
       patientId: "",
       doctorId: "",
+      videoSessionId: "",
+      notes: "",
     },
   }) as UseFormReturn<AppointmentFormValues>;
 
   useEffect(() => {
-    setSelectedDate(null);
-    form.setValue("datetime", new Date(0));
-  }, [selectedDoctorId, form]);
+    if (form.watch("datetime")) {
+      const day = form
+        .watch("datetime")
+        .toLocaleDateString("en-US", { weekday: "long" });
+      setDayOfWeek(day);
+    }
+  }, [form.watch("datetime")]);
 
   const availableTimeSlots = useMemo(() => {
+    const selectedDate = form.watch("datetime");
     if (!selectedDate || !availability) return [];
 
+    const dateStr = selectedDate.toISOString().split("T")[0];
     const dayOfWeek = selectedDate.toLocaleDateString("en-US", {
       weekday: "long",
     });
-    const dateStr = selectedDate.toISOString().split("T")[0];
 
     const dayAvailability = availability.availableSlots.filter(
       (slot: { day: string }) => slot.day === dayOfWeek
@@ -111,21 +117,70 @@ export const AddAppointmentDrawer = () => {
             busySlot.start === availSlot.start && busySlot.end === availSlot.end
         )
     );
-  }, [selectedDate, availability]);
+  }, [form.watch("datetime"), availability]);
+
+  useEffect(() => {
+    setShowTimeSlotError(false);
+  }, [form.watch("datetime")]);
+
+  // Add this validation function
+  const validateSelectedTime = (date: Date): boolean => {
+    if (!availability || !date) return false;
+
+    const timeStr = `${date.getHours().toString().padStart(2, "0")}:${date
+      .getMinutes()
+      .toString()
+      .padStart(2, "0")}`;
+
+    return availableTimeSlots.some(
+      (slot: { start: string }) => slot.start === timeStr
+    );
+  };
 
   const onSubmit = async (data: AppointmentFormValues) => {
     try {
-      await addAppointmentMutation.mutateAsync(data);
+      // Validate selected time slot
+      const isValidTime = validateSelectedTime(data.datetime);
+      if (!isValidTime) {
+        toast.warning(
+          "Selected time is not available. Please choose a time from the available slots.",
+          {
+            duration: 5000, // Show for 5 seconds
+            position: "top-center",
+            action: {
+              label: "OK",
+              onClick: () => {},
+            },
+          }
+        );
+        return;
+      }
+
+      // Calculate end time based on fixed duration
+      const endTime = new Date(data.datetime);
+      endTime.setMinutes(endTime.getMinutes() + durationMinutes);
+
+      await addAppointmentMutation.mutateAsync({
+        ...data,
+        endTime,
+        startTime: data.datetime,
+        duration: durationMinutes,
+      });
+
       toast.success("Appointment created successfully");
       onClose();
       form.reset();
-      setSelectedDate(null);
     } catch (error) {
       toast.error("Failed to create appointment");
     }
   };
-
   const isSubmitting = addAppointmentMutation.isPending;
+  const isVirtual = form.watch("mode") === "virtual";
+
+  // Update datetime picker when time slot is selected
+  const handleTimeSlotSelect = (slotTime: Date) => {
+    form.setValue("datetime", slotTime);
+  };
 
   return (
     <Drawer direction="right" open={isOpen} onOpenChange={onClose}>
@@ -136,7 +191,10 @@ export const AddAppointmentDrawer = () => {
           </DrawerTitle>
         </DrawerHeader>
 
-        <div className="px-6 py-4 overflow-y-auto">
+        <div
+          style={{ scrollbarWidth: "thin" }}
+          className="px-6 py-4 overflow-y-auto"
+        >
           <Form {...form}>
             <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
               {/* Patient Selection */}
@@ -274,16 +332,14 @@ export const AddAppointmentDrawer = () => {
                 )}
               />
 
-              {/* Date Picker */}
+              {/* Date Picker - Now updates when time slot is selected */}
               <FormItem className="flex flex-col">
-                <FormLabel>Select Date</FormLabel>
+                <FormLabel>Select Date & Time</FormLabel>
                 <DateTimePicker24h
-                  value={selectedDate || new Date()}
+                  value={form.watch("datetime")}
                   onChange={(date) => {
-                    const newDate = new Date(date || "");
-                    newDate.setHours(0, 0, 0, 0);
-                    setSelectedDate(newDate);
-                    form.setValue("datetime", new Date(0));
+                    if (!date) return;
+                    form.setValue("datetime", date);
                   }}
                   disabled={
                     !selectedDoctorId || isSubmitting || loadingAvailability
@@ -291,14 +347,14 @@ export const AddAppointmentDrawer = () => {
                 />
               </FormItem>
 
-              {/* Time Slot Selection */}
-              {selectedDate && (
+              {/* Time Slot Selection - Scrollable area */}
+              {selectedDoctorId && (
                 <FormField
                   control={form.control}
                   name="datetime"
                   render={({ field }) => (
                     <FormItem className="flex flex-col">
-                      <FormLabel>Select Time Slot</FormLabel>
+                      <FormLabel>Available Time Slots</FormLabel>
                       {loadingAvailability ? (
                         <div className="flex justify-center py-4">
                           <Loader className="animate-spin" />
@@ -308,27 +364,35 @@ export const AddAppointmentDrawer = () => {
                           No available time slots for selected date
                         </p>
                       ) : (
-                        <div className="grid grid-cols-2 gap-2">
+                        <div className="grid grid-cols-2 sm:grid-cols-3 gap-2">
                           {availableTimeSlots.map(
                             (slot: { start: string; end: string }) => {
-                              const slotTime = new Date(selectedDate);
+                              const slotTime = new Date(form.watch("datetime"));
                               const [hours, minutes] = slot.start
                                 .split(":")
                                 .map(Number);
                               slotTime.setHours(hours, minutes);
 
+                              const isSelected =
+                                form.watch("datetime")?.getTime() ===
+                                slotTime.getTime();
+                              const isInvalid = showTimeSlotError && isSelected;
+
                               return (
                                 <Button
                                   key={`${slot.start}-${slot.end}`}
                                   type="button"
-                                  variant={
-                                    field.value?.getTime() ===
-                                    slotTime.getTime()
-                                      ? "primary"
-                                      : "outline"
-                                  }
-                                  onClick={() => field.onChange(slotTime)}
+                                  variant={isSelected ? "default" : "outline"}
+                                  onClick={() => {
+                                    handleTimeSlotSelect(slotTime);
+                                    setShowTimeSlotError(false);
+                                  }}
                                   disabled={isSubmitting}
+                                  className={cn(
+                                    "h-9 text-xs",
+                                    isInvalid &&
+                                      "ring-2 ring-destructive ring-offset-2"
+                                  )}
                                 >
                                   {formatTime(slot.start)} -{" "}
                                   {formatTime(slot.end)}
@@ -343,6 +407,113 @@ export const AddAppointmentDrawer = () => {
                   )}
                 />
               )}
+
+              {/* Appointment Type */}
+              <FormField
+                control={form.control}
+                name="type"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Appointment Type</FormLabel>
+                    <Select
+                      onValueChange={field.onChange}
+                      defaultValue={field.value}
+                      disabled={isSubmitting}
+                    >
+                      <FormControl>
+                        <SelectTrigger className="w-full">
+                          <SelectValue placeholder="Select type" />
+                        </SelectTrigger>
+                      </FormControl>
+                      <SelectContent>
+                        {appointmentTypes.map((type) => (
+                          <SelectItem key={type} value={type}>
+                            {type.charAt(0).toUpperCase() + type.slice(1)}
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+
+              {/* Appointment Mode */}
+              <FormField
+                control={form.control}
+                name="mode"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Appointment Mode</FormLabel>
+                    <Select
+                      onValueChange={field.onChange}
+                      defaultValue={field.value}
+                      disabled={isSubmitting}
+                    >
+                      <FormControl>
+                        <SelectTrigger className="w-full">
+                          <SelectValue placeholder="Select mode" />
+                        </SelectTrigger>
+                      </FormControl>
+                      <SelectContent>
+                        {appointmentModes.map((mode) => (
+                          <SelectItem key={mode} value={mode}>
+                            {mode.charAt(0).toUpperCase() + mode.slice(1)}
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+
+              {/* Video Session ID (conditional) */}
+              {isVirtual && (
+                <FormField
+                  control={form.control}
+                  name="videoSessionId"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Video Session ID</FormLabel>
+                      <FormControl>
+                        <Input
+                          placeholder="Enter video session ID"
+                          {...field}
+                        />
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+              )}
+
+              {/* Fixed Duration Info */}
+              <FormItem>
+                <FormLabel>Duration</FormLabel>
+                <div className="rounded-md border px-4 py-2 text-sm">
+                  30 minutes (fixed)
+                </div>
+              </FormItem>
+
+              {/* Notes */}
+              <FormField
+                control={form.control}
+                name="notes"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Notes</FormLabel>
+                    <FormControl>
+                      <Textarea
+                        placeholder="Add appointment notes..."
+                        className="resize-none"
+                        {...field}
+                      />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
 
               {/* Status */}
               <FormField
@@ -365,36 +536,6 @@ export const AddAppointmentDrawer = () => {
                         {appointmentStatuses.map((status) => (
                           <SelectItem key={status} value={status}>
                             {status.charAt(0).toUpperCase() + status.slice(1)}
-                          </SelectItem>
-                        ))}
-                      </SelectContent>
-                    </Select>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
-
-              {/* Type */}
-              <FormField
-                control={form.control}
-                name="type"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>Type</FormLabel>
-                    <Select
-                      onValueChange={field.onChange}
-                      defaultValue={field.value}
-                      disabled={isSubmitting}
-                    >
-                      <FormControl>
-                        <SelectTrigger className="w-full">
-                          <SelectValue placeholder="Select Type" />
-                        </SelectTrigger>
-                      </FormControl>
-                      <SelectContent>
-                        {appointmentTypes.map((type) => (
-                          <SelectItem key={type} value={type}>
-                            {type.charAt(0).toUpperCase() + type.slice(1)}
                           </SelectItem>
                         ))}
                       </SelectContent>

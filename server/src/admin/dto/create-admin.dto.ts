@@ -70,11 +70,11 @@ export class CreateAdminDto {
 
   @ApiProperty({
     example: 150,
-    description: 'Consultation fee of the admin',
+    description: 'Appointment fee of the admin',
   })
   @IsNumber()
   @IsNotEmpty()
-  consultationFee: number;
+  appointmentFee: number;
 
   @ApiProperty({
     example: 'MD123456',

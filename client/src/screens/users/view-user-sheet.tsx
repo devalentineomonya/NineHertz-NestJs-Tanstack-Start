@@ -126,7 +126,7 @@ export const ViewUserSheet = () => {
                   <div>
                     <p className="text-sm text-muted-foreground">Phone</p>
                     <p className="font-medium">
-                      {selectedUser.profile?.phone || "Not provided"}
+                      {selectedUser.profile?.adminType || "Not provided"}
                     </p>
                   </div>
                 </div>

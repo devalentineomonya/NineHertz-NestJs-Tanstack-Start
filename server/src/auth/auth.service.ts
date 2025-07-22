@@ -180,11 +180,14 @@ export class AuthService {
     if (!user) return; // Don't reveal if user doesn't exist
 
     const resetToken = this.generateResetToken(user.id, user.email);
+    console.log(resetToken);
 
     // Send email with reset token (implementation omitted)
   }
 
-  async updatePassword(userId: string, email: string) {}
+  updatePassword(userId: string, email: string) {
+    return { userId, email };
+  }
 
   async resetPassword(
     resetPasswordDto: ResetPasswordConfirmDto,

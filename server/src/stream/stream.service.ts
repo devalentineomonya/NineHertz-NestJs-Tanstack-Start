@@ -37,7 +37,7 @@ export class StreamService {
     scheduledTime: Date;
   }): Promise<{ id: string }> {
     const { patientId, doctorId, scheduledTime } = params;
-    const callId = `consultation-${Date.now()}`;
+    const callId = `appointment-${Date.now()}`;
 
     const call = this.streamClient.video.call('default', callId);
 
@@ -82,6 +82,7 @@ export class StreamService {
       throw new Error(`Failed to upsert user: ${errorMessage}`);
     }
   }
+
   async deleteVideoSession(sessionId: string): Promise<void> {
     await this.streamClient.video.deleteCall({
       type: 'default',

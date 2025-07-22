@@ -51,17 +51,20 @@ export const prescriptionColumns: ColumnDef<PrescriptionResponseDto>[] = [
     enableHiding: false,
   },
   {
-    id: "medication",
-    accessorKey: "medicationDetails",
+    id: "items",
+    accessorKey: "items",
     header: ({ column }) => (
-      <DataTableColumnHeader column={column} title="Medication" />
+      <DataTableColumnHeader column={column} title="Items" />
     ),
     cell: ({ cell }) => {
-      const details = cell.getValue<string>();
+      const details = cell.getValue<PrescriptionResponseDto["items"]>();
       return (
         <div className="flex items-center gap-3">
           <Pill className="size-5 text-blue-500" />
-          <div className="max-w-[300px] truncate font-medium">{details}</div>
+          <div className="max-w-[300px] truncate font-medium">
+            {details.length} Item {details.length > 1 && "s"} :
+            {details.map((item) => item.medicineId.split("-")[0]).join(", ")}
+          </div>
         </div>
       );
     },
