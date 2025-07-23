@@ -20,7 +20,7 @@ clientsClaim();
 
 // Handle navigation requests for TanStack SPA
 const navigationHandler = async (params: any) => {
-  try {p
+  try {
     const response = await new NetworkFirst().handle(params);
     if (response) {
       return response;
