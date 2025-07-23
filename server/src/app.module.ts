@@ -21,6 +21,7 @@ import { ChatModule } from './chat/chat.module';
 import { AccessTokenGuard } from './auth/guards/access-token.guard';
 import { RolesGuard } from './auth/guards/roles.guard';
 import { ContactHelper } from './shared/helpers/contact.helper';
+import { AppController } from './app.controller';
 
 @Module({
   imports: [
@@ -65,6 +66,7 @@ import { ContactHelper } from './shared/helpers/contact.helper';
       ],
     }),
   ],
+  controllers: [AppController],
   providers: [
     ContactHelper,
     {
