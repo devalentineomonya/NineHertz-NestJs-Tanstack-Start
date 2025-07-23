@@ -6,48 +6,54 @@ import { VitePWA } from "vite-plugin-pwa";
 import react from "@vitejs/plugin-react";
 
 export default defineConfig({
-  // server: {
-  //   port: 5173,
-  //   host: "react.dev.lo",
-  // },
+  server: {
+    port: 5173,
+    host: "react.dev.lo",
+  },
   plugins: [
-    tsConfigPaths({
-      projects: ["./tsconfig.json"],
-    }),
+    tsConfigPaths(),
     tanstackStart({
       target: "vercel",
       customViteReactPlugin: true,
     }),
     VitePWA({
       registerType: "autoUpdate",
-      strategies: "generateSW",
-
-      workbox: {
-        globPatterns: ["**/*.{js,css,html,svg,png,ico}"],
-        cleanupOutdatedCaches: true,
-        clientsClaim: true,
-        skipWaiting: true,
-      },
+      strategies: "injectManifest", 
+      srcDir: "src",
+      filename: "sw.ts",
       manifest: {
         name: "NineHertz Dashboard",
         short_name: "NineHertzDashboard",
         theme_color: "#22c55e",
+        background_color: "#ffffff",
+        display: "standalone",
+        scope: "/",
+        start_url: "/",
         icons: [
           {
             src: "/pwa-192x192.png",
             sizes: "192x192",
             type: "image/png",
+            purpose: "any maskable",
           },
+          {
+            src: "/pwa-512x512.png",
+            sizes: "512x512",
+            type: "image/png",
+            purpose: "any maskable",
+          }
         ],
+      },
+      workbox: {
+        globPatterns: ["**/*.{js,css,html,svg,png,ico}"],
+        navigateFallback: null,
       },
       devOptions: {
         enabled: true,
-        navigateFallback: "index.html",
-        suppressWarnings: true,
         type: "module",
+        navigateFallback: "/",
       },
     }),
-
     react(),
     tailwindcss(),
   ],

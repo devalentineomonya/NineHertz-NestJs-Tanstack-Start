@@ -172,11 +172,8 @@ export class AuthController {
     description: 'Invalid credentials',
   })
   @ApiBody({ type: UpdatePasswordDto })
-  async updatePassword(
-    @GetUser() user: JWTPayload,
-    @Body() dto: UpdatePasswordDto,
-  ) {
-    await this.authService.updatePassword(user.sub, dto.newPassword);
+  updatePassword(@GetUser() user: JWTPayload, @Body() dto: UpdatePasswordDto) {
+    this.authService.updatePassword(user.sub, dto.newPassword);
     return { message: 'Password updated successfully' };
   }
 

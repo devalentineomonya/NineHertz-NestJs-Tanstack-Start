@@ -33,7 +33,12 @@ export const Route = createRootRoute({
         description: `Streamline healthcare operations with custom app development services. Key modules include doctor appointment solutions, pharmacy app development, and telemedicine.`,
       }),
     ],
-    links: [{ rel: "stylesheet", href: appCss }],
+    links: [
+      { rel: "stylesheet", href: appCss },
+      { rel: "manifest", href: "/manifest.webmanifest" },
+      { rel: "apple-touch-icon", href: "/pwa-192x192.png", sizes: "192x192" },
+      { rel: "icon", href: "/favicon.ico" },
+    ],
   }),
   errorComponent: DefaultCatchBoundary,
   notFoundComponent: () => <NotFound />,
@@ -43,8 +48,22 @@ export const Route = createRootRoute({
 function RootDocument({ children }: { children: React.ReactNode }) {
   const queryClient = new QueryClient();
   const isOffline = useOffline();
+  React.useEffect(() => {
+    if ("serviceWorker" in navigator && import.meta.env.PROD) {
+      navigator.serviceWorker
+        .register("/sw.js")
+        .then((reg) => {
+          console.log("Service Worker registered: ", reg);
+          if (!navigator.serviceWorker.controller) {
+            window.location.reload();
+          }
+        })
+        .catch((error) => {
+          console.log("Service Worker registration failed: ", error);
+        });
+    }
+  }, []);
 
-  // Only show offline alert in production or when actually offline
   const showOfflineAlert =
     isOffline && (import.meta.env.PROD || !navigator.onLine);
 
