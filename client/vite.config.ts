@@ -6,10 +6,10 @@ import { VitePWA } from "vite-plugin-pwa";
 import react from "@vitejs/plugin-react";
 
 export default defineConfig({
-  server: {
-    port: 5173,
-    host: "react.dev.lo",
-  },
+  // server: {
+  //   port: 5173,
+  //   host: "react.dev.lo",
+  // },
   plugins: [
     tsConfigPaths({
       projects: ["./tsconfig.json"],
@@ -18,53 +18,38 @@ export default defineConfig({
       target: "vercel",
       customViteReactPlugin: true,
     }),
-    react(),
-    tailwindcss(),
     VitePWA({
       registerType: "autoUpdate",
-      injectRegister: false,
+      strategies: "generateSW",
 
+      workbox: {
+        globPatterns: ["**/*.{js,css,html,svg,png,ico}"],
+        cleanupOutdatedCaches: true,
+        clientsClaim: true,
+        skipWaiting: true,
+      },
       manifest: {
-        name: "NineHertz  Dashboard",
+        name: "NineHertz Dashboard",
         short_name: "NineHertzDashboard",
-        description:
-          "Secure portal for interacting with NineHertz Medical System",
         theme_color: "#22c55e",
-        background_color: "#ffffff",
-        display: "standalone",
-        start_url: "/auth/signin",
-        scope: "/",
         icons: [
           {
             src: "/pwa-192x192.png",
             sizes: "192x192",
             type: "image/png",
           },
-          {
-            src: "/pwa-512x512.png",
-            sizes: "512x512",
-            type: "image/png",
-          },
-          {
-            src: "/pwa-maskable.png",
-            sizes: "512x512",
-            type: "image/png",
-            purpose: "maskable",
-          },
         ],
       },
-
-      workbox: {
-        globPatterns: ["**/*.{js,css,html,svg,png,ico}"],
-        cleanupOutdatedCaches: true,
-        clientsClaim: true,
-      },
-
       devOptions: {
         enabled: true,
+        navigateFallback: "index.html",
+        suppressWarnings: true,
         type: "module",
       },
     }),
+
+    react(),
+    tailwindcss(),
   ],
   optimizeDeps: {
     include: ["stream-chat", "stream-chat-react"],
