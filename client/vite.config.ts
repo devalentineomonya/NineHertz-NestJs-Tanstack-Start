@@ -18,17 +18,17 @@ export default defineConfig({
     }),
     VitePWA({
       registerType: "autoUpdate",
-      strategies: "injectManifest", 
+      strategies: "injectManifest",
       srcDir: "src",
       filename: "sw.ts",
       manifest: {
         name: "NineHertz Dashboard",
         short_name: "NineHertzDashboard",
-        theme_color: "#22c55e",
+        theme_color: "#ffffff",
         background_color: "#ffffff",
         display: "standalone",
         scope: "/",
-        start_url: "/",
+        start_url: "/auth/signin",
         icons: [
           {
             src: "/pwa-192x192.png",
@@ -41,7 +41,7 @@ export default defineConfig({
             sizes: "512x512",
             type: "image/png",
             purpose: "any maskable",
-          }
+          },
         ],
       },
       workbox: {

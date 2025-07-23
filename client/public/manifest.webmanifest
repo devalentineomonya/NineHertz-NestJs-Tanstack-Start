@@ -1,7 +1,7 @@
 {
-    "name": "NineHertz Dashboard",
-    "short_name": "NineHertzDashboard",
-    "theme_color": "#22c55e",
+    "name": "NineHertz Medic",
+    "short_name": "NineHertz",
+    "theme_color": "#ffffff",
     "background_color": "#ffffff",
     "display": "standalone",
     "scope": "/",
