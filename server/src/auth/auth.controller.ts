@@ -267,7 +267,7 @@ export class AuthController {
     }
 
     res.redirect(
-      `${this.configService.get<string>('FRONTEND_URL')}auth/callback?` +
+      `${this.configService.get<string>('FRONTEND_URL')}/auth/callback?` +
         `accessToken=${tokens.accessToken}&refreshToken=${tokens.refreshToken}`,
     );
   }
