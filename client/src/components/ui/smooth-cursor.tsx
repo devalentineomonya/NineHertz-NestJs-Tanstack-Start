@@ -180,6 +180,7 @@ export function SmoothCursor({
 
   return (
     <motion.div
+    className="max-md:hidden"
       style={{
         position: "fixed",
         left: cursorX,
