@@ -16,6 +16,7 @@ import { InstallPWAButton } from "@/components/common/install-pwa-button";
 import { useOffline } from "@/hooks/use-is-offline";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { WifiOff } from "lucide-react";
+import { Analytics } from "@vercel/analytics/react";
 
 export const Route = createRootRoute({
   head: () => ({
@@ -75,6 +76,7 @@ function RootDocument({ children }: { children: React.ReactNode }) {
             <InstallPWAButton />
             <Toaster richColors position="top-center" />
             <Scripts />
+            <Analytics />
           </NuqsAdapter>
         </QueryClientProvider>
       </body>

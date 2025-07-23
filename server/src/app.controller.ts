@@ -5,12 +5,12 @@ import { Public } from './auth/decorators/public.decorators';
 export class AppController {
   @Public()
   @Head()
-  handleHeadRequest(): boolean {
-    return true;
+  handleHeadRequest(): { success: boolean } {
+    return { success: true };
   }
   @Public()
   @Get()
-  handleGetRequest(): boolean {
-    return true;
+  handleGetRequest(): { success: boolean } {
+    return { success: true };
   }
 }
