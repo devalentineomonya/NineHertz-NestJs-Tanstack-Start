@@ -8,13 +8,12 @@ import helmet from 'helmet';
 import * as basicAuth from 'express-basic-auth';
 import { TimeoutInterceptor } from './timeout-intercepter';
 import * as compression from 'compression';
-// import { ResponseFormatInterceptor } from './response-filter.interceptor';
 
 async function bootstrap() {
   const app = await NestFactory.create(AppModule);
   const configService = app.get(ConfigService);
-
   app.use(helmet());
+
   app.use(
     compression({
       filter: (req, res) => {
@@ -27,11 +26,11 @@ async function bootstrap() {
   );
 
   app.enableCors({
-    origin: ['*'],
     methods: 'GET,HEAD,PUT,PATCH,POST,DELETE,OPTIONS',
     allowedHeaders: 'Content-Type, Accept, Authorization',
     exposedHeaders: 'Content-Type, Content-Length, Content-Encoding',
     credentials: true,
+    origin: true,
   });
 
   app.useGlobalPipes(
@@ -45,7 +44,6 @@ async function bootstrap() {
   const { httpAdapter } = app.get(HttpAdapterHost);
 
   app.useGlobalFilters(new AllExceptionsFilter(httpAdapter));
-  // app.useGlobalInterceptors(new ResponseFormatInterceptor());
   app.useGlobalInterceptors(new TimeoutInterceptor(300000));
 
   // Swagger configuration

@@ -34,6 +34,7 @@ import { Profile } from 'passport-google-oauth20';
 import { VerifyEmailDto } from './dto/verify-email.dto';
 import { Public } from './decorators/public.decorators';
 import { RefreshTokenGuard } from './guards/refresh-token.guard';
+import { ConfigService } from '@nestjs/config';
 
 @ApiTags('Auth')
 @Public()
@@ -42,6 +43,7 @@ export class AuthController {
   constructor(
     private readonly authService: AuthService,
     private readonly permissionHelper: PermissionHelper,
+    private readonly configService: ConfigService,
   ) {}
 
   @Post('signup')
@@ -265,7 +267,7 @@ export class AuthController {
     }
 
     res.redirect(
-      `https://react.dev.lo/auth/callback?` +
+      `${this.configService.get<string>('FRONTEND_URL')}auth/callback?` +
         `accessToken=${tokens.accessToken}&refreshToken=${tokens.refreshToken}`,
     );
   }
