@@ -1,4 +1,12 @@
-import { Controller, Get, Patch, Param, Query, Req } from '@nestjs/common';
+import {
+  Controller,
+  Get,
+  Patch,
+  Param,
+  Query,
+  Req,
+  Delete,
+} from '@nestjs/common';
 import { NotificationService } from './notification.service';
 import { RequestWithUser } from 'src/shared/types/request.types';
 import { Roles } from 'src/auth/decorators/roles.decorators';
@@ -30,5 +38,13 @@ export class NotificationController {
   @Patch('mark-all-read')
   async markAllAsRead(@Req() req: RequestWithUser) {
     return this.notificationService.markAllAsRead(req.user.sub);
+  }
+
+  @Delete(':id')
+  async deleteNotification(
+    @Param('id') id: string,
+    @Req() req: RequestWithUser,
+  ) {
+    return this.notificationService.deleteNotification(id, req.user.sub);
   }
 }

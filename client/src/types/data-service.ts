@@ -90,7 +90,7 @@ interface AdminResponseDto extends CreateAdminDto {
 }
 interface UpdateAdminDto extends Partial<CreateAdminDto> {}
 interface AdminPaginatedDto {
-  data: AdminResponseDto[];
+  readonly data: AdminResponseDto[];
   total: number;
   page: number;
   limit: number;
@@ -152,7 +152,7 @@ interface MedicineResponseDto extends Required<CreateMedicineDto> {
 }
 interface UpdateMedicineDto extends Partial<CreateMedicineDto> {  }
 interface MedicinePaginatedDto {
-  data: MedicineResponseDto[];
+  readonly data: MedicineResponseDto[];
   total: number;
   page: number;
   limit: number;
@@ -171,7 +171,7 @@ interface InventoryItemResponseDto extends CreateInventoryItemDto {
 }
 interface UpdateInventoryItemDto extends Partial<CreateInventoryItemDto> {}
 interface InventoryItemPaginatedDto {
-  data: InventoryItemResponseDto[];
+  readonly data: InventoryItemResponseDto[];
   total: number;
   page: number;
   limit: number;
@@ -206,7 +206,7 @@ interface OrderResponseDto extends Omit<CreateOrderDto, "items" | "patientId"> {
 }
 interface UpdateOrderDto extends Partial<CreateOrderDto> {}
 interface OrderPaginatedDto {
-  data: OrderResponseDto[];
+  readonly data: OrderResponseDto[];
   total: number;
   page: number;
   limit: number;
@@ -284,4 +284,38 @@ interface ChatMessage {
 interface CreateChatDto {
   id: string;
   messages: ChatMessage[];
+}
+
+interface AdminDashboardResponse {
+  stats: {
+    title: string;
+    value: number;
+    change: string;
+    color: string;
+    icon: string;
+  }[];
+  departments: {
+    departments: {
+      specialty: string;
+      count: string;
+    }[];
+  };
+  appointments: AppointmentResponseDto[];
+}
+
+interface Notification {
+  id: string;
+  message: string;
+  eventType: string;
+  eventId: string;
+  read: boolean;
+  readonly data: any | null;
+  createdAt: string;
+}
+
+interface NotificationResponse {
+  readonly data: Notification[];
+  total: number;
+  page: number;
+  limit: number;
 }

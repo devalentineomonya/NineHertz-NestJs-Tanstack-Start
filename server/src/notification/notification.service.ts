@@ -122,4 +122,16 @@ export class NotificationService {
     );
     return { success: true };
   }
+  async deleteNotification(id: string, userId: string) {
+    const notification = await this.notificationRepository.findOne({
+      where: { id, user: { id: userId } },
+    });
+
+    if (!notification) {
+      throw new NotFoundException('Notification not found');
+    }
+
+    await this.notificationRepository.remove(notification);
+    return { success: true };
+  }
 }

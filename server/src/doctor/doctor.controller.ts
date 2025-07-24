@@ -7,6 +7,7 @@ import {
   Param,
   Delete,
   Query,
+  Req,
 } from '@nestjs/common';
 import {
   ApiTags,
@@ -23,6 +24,7 @@ import { DoctorResponseDto } from './dto/doctor-response.dto';
 import { PaginationDto } from 'src/shared/dto/pagination.dto';
 import { DoctorFilterDto } from './dto/doctor-filter.dto';
 import { DoctorAvailabilityDto } from './dto/availability-slot.dto';
+import { RequestWithUser } from 'src/shared/types/request.types';
 
 @ApiTags('Doctor')
 @ApiBearerAuth()
@@ -61,8 +63,14 @@ export class DoctorController {
   async findAll(
     @Query() pagination: PaginationDto,
     @Query() filters: DoctorFilterDto,
+    @Req() req: RequestWithUser,
   ) {
-    return this.doctorService.findAll(pagination, filters);
+    return this.doctorService.findAll(
+      pagination,
+      filters,
+      req.user.sub,
+      req.user.role,
+    );
   }
 
   /*=======================================================

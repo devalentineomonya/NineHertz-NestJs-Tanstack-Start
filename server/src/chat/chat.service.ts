@@ -117,10 +117,14 @@ export class ChatService {
       console.error('Rate limiting error:', error);
       return res.status(500).send('Internal Server Error');
     }
-
     const keepAlive = setInterval(() => {
-      res.write(':keep-alive\n\n');
-      if (typeof res.flush === 'function') res.flush();
+      try {
+        if (!res.headersSent || res.writableEnded) return;
+        res.write(':keep-alive\n\n');
+        if (typeof res.flush === 'function') res.flush();
+      } catch {
+        clearInterval(keepAlive);
+      }
     }, 15000);
 
     try {
@@ -128,24 +132,32 @@ export class ChatService {
       const stream = await this.generateMedicalResponse(messages, userId);
       res.setHeader('X-Accel-Buffering', 'no');
 
-      console.log('Starting stream');
       for await (const chunk of stream) {
         const text = chunk.text;
         if (text) {
+          // Check if response is still writable
+          if (res.writableEnded) break;
           res.write(text);
         }
       }
 
-      res.end();
-      console.log('Stream completed');
+      // End response only if not already ended
+      if (!res.writableEnded) res.end();
     } catch (error) {
       console.error('Generation error:', error);
-      res.status(500).send('Error generating response');
+
+      // Only send error if headers haven't been sent
+      if (!res.headersSent) {
+        res.status(500).send('Error generating response');
+      } else if (!res.writableEnded) {
+        // Send terminal error message if streaming already started
+        res.write('\n\n⚠️ Error: Response generation failed');
+        res.end();
+      }
     } finally {
       clearInterval(keepAlive);
     }
   }
-
   private sendRateLimitResponse(res: Response) {
     return res
       .status(429)

@@ -47,6 +47,8 @@ export class DoctorService {
   async findAll(
     pagination: PaginationDto,
     filters?: DoctorFilterDto,
+    id?: string,
+    role?: string,
   ): Promise<{ data: DoctorResponseDto[]; total: number }> {
     const { page = 1, limit = 50 } = pagination;
     const skip = (page - 1) * limit;
@@ -82,7 +84,10 @@ export class DoctorService {
       }
     }
 
-    // Execute query and get results
+    if (role === 'doctor' && id) {
+      query.andWhere('user.id = :id', { id });
+    }
+
     const [doctors, total] = await query.getManyAndCount();
 
     // Map to response DTOs

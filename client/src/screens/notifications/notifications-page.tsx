@@ -13,7 +13,9 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import { Link, useRouter } from "@tanstack/react-router";
-
+import { useGetNotifications } from "@/services/notifications/use-get-notifications";
+import { useMarkAsRead } from "@/services/notifications/use-mark-as-read";
+import { useMarkAllAsRead } from "@/services/notifications/mark-all-as-read";
 export interface PushNotification {
   id: string;
   message: string;
@@ -24,7 +26,6 @@ export interface PushNotification {
     appointmentId?: string;
     doctorName?: string;
     prescriptionId?: string;
-
   };
 }
 
@@ -61,6 +62,9 @@ export default function NotificationsPage() {
   const [selectedNotifications, setSelectedNotifications] = useState<string[]>(
     []
   );
+  const { data, isLoading: loadingNotifications } = useGetNotifications();
+  const markAsReadHandler = useMarkAsRead();
+  const markAllAsReadHandler = useMarkAllAsRead();
 
   // Fetch notifications
   useEffect(() => {
@@ -69,13 +73,15 @@ export default function NotificationsPage() {
 
       try {
         setIsLoading(true);
-        const response = await axios.get(
-          `${import.meta.env.VITE_API_BASE_URL}/notifications`
-        );
-        setNotifications(response.data);
-        setUnreadCount(
-          response.data.filter((n: PushNotification) => !n.read).length
-        );
+
+        if (data?.data) {
+          const mappedNotifications = data.data.map((notification: Notification) => ({
+            ...notification,
+            type: "info",
+          })) as PushNotification[];
+          setNotifications(mappedNotifications);
+        }
+        setUnreadCount(data?.data ? data.data.filter((n: Notification) => !n.read).length : 0);
       } catch (error) {
         console.error("Error fetching notifications", error);
       } finally {
@@ -84,7 +90,7 @@ export default function NotificationsPage() {
     };
 
     fetchNotifications();
-  }, [user?.id]);
+  }, [user?.id, notifications, loadingNotifications]);
 
   // Setup Pusher real-time updates
   useEffect(() => {
@@ -111,7 +117,7 @@ export default function NotificationsPage() {
 
   const markAsRead = async (id: string) => {
     try {
-      await axios.patch(`${import.meta.env.VITE_API_BASE_URL}/notifications/${id}/read`);
+      await axios.patch(`${import.meta.env.VITE_API_BASE_URL}   `);
 
       setNotifications((prev) =>
         prev.map((n) => (n.id === id ? { ...n, read: true } : n))
@@ -125,8 +131,7 @@ export default function NotificationsPage() {
 
   const markAllAsRead = async () => {
     try {
-      await axios.patch(`${import.meta.env.VITE_API_BASE_URL}/notifications/mark-all-read}`);
-
+      await markAllAsReadHandler.mutateAsync();
       setNotifications((prev) => prev.map((n) => ({ ...n, read: true })));
 
       setUnreadCount(0);
@@ -137,7 +142,9 @@ export default function NotificationsPage() {
 
   const deleteNotification = async (id: string) => {
     try {
-      await axios.delete(`${import.meta.env.VITE_API_BASE_URL}/notifications/${id}`);
+      await axios.delete(
+        `${import.meta.env.VITE_API_BASE_URL}/notifications/${id}`
+      );
 
       setNotifications((prev) => prev.filter((n) => n.id !== id));
 
@@ -155,7 +162,9 @@ export default function NotificationsPage() {
     try {
       await Promise.all(
         selectedNotifications.map((id) =>
-          axios.delete(`${import.meta.env.VITE_API_BASE_URL}/notifications/${id}`)
+          axios.delete(
+            `${import.meta.env.VITE_API_BASE_URL}/notifications/${id}`
+          )
         )
       );
 
@@ -178,9 +187,7 @@ export default function NotificationsPage() {
   const markSelectedAsRead = async () => {
     try {
       await Promise.all(
-        selectedNotifications.map((id) =>
-          axios.patch(`${import.meta.env.VITE_API_BASE_URL}/notifications/${id}/read`)
-        )
+        selectedNotifications.map((id) => markAsReadHandler.mutateAsync(id))
       );
 
       setNotifications((prev) =>
@@ -228,7 +235,7 @@ export default function NotificationsPage() {
   const groupedNotifications = groupNotifications(notifications);
 
   return (
-    <div className="max-w-4xl mx-auto px-4 py-8">
+    <div className="w-full max-w-2xl mx-auto px-4 py-8">
       <div className="flex items-center max-md:flex-col max-md:gap-y-4 justify-between mb-8">
         <div className="flex items-center gap-4">
           <Button

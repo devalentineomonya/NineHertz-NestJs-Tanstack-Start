@@ -56,7 +56,6 @@ import { Route as LayoutadminAdminInventoryRouteImport } from './routes/_layout/
 import { Route as LayoutadminAdminDoctorsRouteImport } from './routes/_layout/(admin)/admin.doctors'
 import { Route as LayoutadminAdminDashboardRouteImport } from './routes/_layout/(admin)/admin.dashboard'
 import { Route as LayoutadminAdminChatRouteImport } from './routes/_layout/(admin)/admin.chat'
-import { Route as LayoutadminAdminCalendarRouteImport } from './routes/_layout/(admin)/admin.calendar'
 import { Route as LayoutadminAdminAppointmentsRouteImport } from './routes/_layout/(admin)/admin.appointments'
 import { Route as LayoutadminAdminAdminsRouteImport } from './routes/_layout/(admin)/admin.admins'
 import { Route as callCallJoinCallIdRouteImport } from './routes/(call)/call.join.$callId'
@@ -330,12 +329,6 @@ const LayoutadminAdminChatRoute = LayoutadminAdminChatRouteImport.update({
   path: '/admin/chat',
   getParentRoute: () => LayoutRouteRoute,
 } as any)
-const LayoutadminAdminCalendarRoute =
-  LayoutadminAdminCalendarRouteImport.update({
-    id: '/(admin)/admin/calendar',
-    path: '/admin/calendar',
-    getParentRoute: () => LayoutRouteRoute,
-  } as any)
 const LayoutadminAdminAppointmentsRoute =
   LayoutadminAdminAppointmentsRouteImport.update({
     id: '/(admin)/admin/appointments',
@@ -362,7 +355,6 @@ export interface FileRoutesByFullPath {
   '/call/join/$callId': typeof callCallJoinCallIdRoute
   '/admin/admins': typeof LayoutadminAdminAdminsRoute
   '/admin/appointments': typeof LayoutadminAdminAppointmentsRoute
-  '/admin/calendar': typeof LayoutadminAdminCalendarRoute
   '/admin/chat': typeof LayoutadminAdminChatRoute
   '/admin/dashboard': typeof LayoutadminAdminDashboardRoute
   '/admin/doctors': typeof LayoutadminAdminDoctorsRoute
@@ -414,7 +406,6 @@ export interface FileRoutesByTo {
   '/call/join/$callId': typeof callCallJoinCallIdRoute
   '/admin/admins': typeof LayoutadminAdminAdminsRoute
   '/admin/appointments': typeof LayoutadminAdminAppointmentsRoute
-  '/admin/calendar': typeof LayoutadminAdminCalendarRoute
   '/admin/chat': typeof LayoutadminAdminChatRoute
   '/admin/dashboard': typeof LayoutadminAdminDashboardRoute
   '/admin/doctors': typeof LayoutadminAdminDoctorsRoute
@@ -468,7 +459,6 @@ export interface FileRoutesById {
   '/(call)/call/join/$callId': typeof callCallJoinCallIdRoute
   '/_layout/(admin)/admin/admins': typeof LayoutadminAdminAdminsRoute
   '/_layout/(admin)/admin/appointments': typeof LayoutadminAdminAppointmentsRoute
-  '/_layout/(admin)/admin/calendar': typeof LayoutadminAdminCalendarRoute
   '/_layout/(admin)/admin/chat': typeof LayoutadminAdminChatRoute
   '/_layout/(admin)/admin/dashboard': typeof LayoutadminAdminDashboardRoute
   '/_layout/(admin)/admin/doctors': typeof LayoutadminAdminDoctorsRoute
@@ -522,7 +512,6 @@ export interface FileRouteTypes {
     | '/call/join/$callId'
     | '/admin/admins'
     | '/admin/appointments'
-    | '/admin/calendar'
     | '/admin/chat'
     | '/admin/dashboard'
     | '/admin/doctors'
@@ -574,7 +563,6 @@ export interface FileRouteTypes {
     | '/call/join/$callId'
     | '/admin/admins'
     | '/admin/appointments'
-    | '/admin/calendar'
     | '/admin/chat'
     | '/admin/dashboard'
     | '/admin/doctors'
@@ -627,7 +615,6 @@ export interface FileRouteTypes {
     | '/(call)/call/join/$callId'
     | '/_layout/(admin)/admin/admins'
     | '/_layout/(admin)/admin/appointments'
-    | '/_layout/(admin)/admin/calendar'
     | '/_layout/(admin)/admin/chat'
     | '/_layout/(admin)/admin/dashboard'
     | '/_layout/(admin)/admin/doctors'
@@ -1012,13 +999,6 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof LayoutadminAdminChatRouteImport
       parentRoute: typeof LayoutRouteRoute
     }
-    '/_layout/(admin)/admin/calendar': {
-      id: '/_layout/(admin)/admin/calendar'
-      path: '/admin/calendar'
-      fullPath: '/admin/calendar'
-      preLoaderRoute: typeof LayoutadminAdminCalendarRouteImport
-      parentRoute: typeof LayoutRouteRoute
-    }
     '/_layout/(admin)/admin/appointments': {
       id: '/_layout/(admin)/admin/appointments'
       path: '/admin/appointments'
@@ -1046,7 +1026,6 @@ declare module '@tanstack/react-router' {
 interface LayoutRouteRouteChildren {
   LayoutadminAdminAdminsRoute: typeof LayoutadminAdminAdminsRoute
   LayoutadminAdminAppointmentsRoute: typeof LayoutadminAdminAppointmentsRoute
-  LayoutadminAdminCalendarRoute: typeof LayoutadminAdminCalendarRoute
   LayoutadminAdminChatRoute: typeof LayoutadminAdminChatRoute
   LayoutadminAdminDashboardRoute: typeof LayoutadminAdminDashboardRoute
   LayoutadminAdminDoctorsRoute: typeof LayoutadminAdminDoctorsRoute
@@ -1093,7 +1072,6 @@ interface LayoutRouteRouteChildren {
 const LayoutRouteRouteChildren: LayoutRouteRouteChildren = {
   LayoutadminAdminAdminsRoute: LayoutadminAdminAdminsRoute,
   LayoutadminAdminAppointmentsRoute: LayoutadminAdminAppointmentsRoute,
-  LayoutadminAdminCalendarRoute: LayoutadminAdminCalendarRoute,
   LayoutadminAdminChatRoute: LayoutadminAdminChatRoute,
   LayoutadminAdminDashboardRoute: LayoutadminAdminDashboardRoute,
   LayoutadminAdminDoctorsRoute: LayoutadminAdminDoctorsRoute,

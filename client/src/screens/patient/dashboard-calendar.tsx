@@ -14,6 +14,7 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { useAddAppointmentStore } from "@/stores/use-add-appointment-store";
+import { useGetDoctorAvailability } from "@/services/doctors/use-get-doctor-availability";
 
 const locales = { "en-US": enUS };
 const localizer = dateFnsLocalizer({

@@ -7,19 +7,19 @@ import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { Bell, X } from "lucide-react";
-import { useEffect, useState } from "react";
-import axios from "axios";
-import { useUserSessionStore } from "@/stores/user-session-store";
+import { useState } from "react";
 import { usePusher } from "@/providers/pusher-provider";
 import { PushNotification } from "@/screens/notifications/notifications-page";
 import { Link } from "@tanstack/react-router";
+import { useMarkAllAsRead } from "@/services/notifications/mark-all-as-read";
+import { useGetNotifications } from "@/services/notifications/use-get-notifications";
+import { useUserSessionStore } from "@/stores/user-session-store";
 
 export default function NotificationDropdown() {
-  const sessionStore = useUserSessionStore();
-  const user = sessionStore.getCurrentUser();
-  const accessToken = sessionStore.session?.accessToken;
-
-  // Use notifications and unreadCount from PusherProvider
+  const markAllAsReadHandler = useMarkAllAsRead();
+  const { data, isLoading: loadingNotifications } = useGetNotifications();
+  const { getCurrentUser } = useUserSessionStore();
+  const user = getCurrentUser();
   const pusherContext = usePusher();
   const { notifications, unreadCount, markAsRead } = pusherContext || {
     notifications: [],
@@ -35,43 +35,9 @@ export default function NotificationDropdown() {
     info: "bg-indigo-100 text-indigo-600 dark:bg-indigo-900/40",
   };
 
-  // Fetch initial notifications
-  useEffect(() => {
-    const fetchNotifications = async () => {
-      if (!user?.id || !accessToken) return;
-
-      try {
-        const response = await axios.get(
-          `${import.meta.env.VITE_API_BASE_URL}/notifications`,
-          {
-            headers: {
-              Authorization: `Bearer ${accessToken}`,
-            },
-          }
-        );
-        // In this setup, notifications are managed by the PusherProvider,
-        // so you may want to initialize them there if needed.
-      } catch (error) {
-        console.error("Error fetching notifications", error);
-      } finally {
-        setIsLoading(false);
-      }
-    };
-
-    fetchNotifications();
-  }, [user?.id, accessToken]);
-
   const markAllAsRead = async () => {
     try {
-      await axios.patch(
-        `${import.meta.env.VITE_API_BASE_URL}/notifications/mark-all-read`,
-        {},
-        {
-          headers: {
-            Authorization: `Bearer ${accessToken}`,
-          },
-        }
-      );
+      await markAllAsReadHandler.mutateAsync();
 
       // Update all as read locally
       notifications.forEach((n) => markAsRead(n.id));

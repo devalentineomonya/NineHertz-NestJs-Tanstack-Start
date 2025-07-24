@@ -23,6 +23,7 @@ import { RolesGuard } from './auth/guards/roles.guard';
 import { ContactHelper } from './shared/helpers/contact.helper';
 import { AppController } from './app.controller';
 import { NotificationModule } from './notification/notification.module';
+import { DashboardModule } from './dashboard/dashboard.module';
 
 @Module({
   imports: [
@@ -67,6 +68,7 @@ import { NotificationModule } from './notification/notification.module';
         },
       ],
     }),
+    DashboardModule,
   ],
   controllers: [AppController],
   providers: [

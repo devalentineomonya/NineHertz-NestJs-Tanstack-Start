@@ -84,7 +84,7 @@ const ALL_NAV_ITEMS = [
     title: "Calendar",
     url: "calendar",
     icon: Calendar,
-    roles: ["admin", "patient", "doctor"],
+    roles: ["patient", "doctor"],
   },
   {
     title: "Notification",

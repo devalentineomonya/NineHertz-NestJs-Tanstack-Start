@@ -207,11 +207,11 @@ export class DataServices {
         ),
       }),
       videoToken: (callId: string) => ({
-        get: this.createEndpoint<
-          void,
-          { token: string }
-        >("get", `/appointments/video-token/${callId}`)
-      })
+        get: this.createEndpoint<void, { token: string }>(
+          "get",
+          `/appointments/video-token/${callId}`
+        ),
+      }),
     },
     prescriptions: {
       post: this.createEndpoint<CreatePrescriptionDto, PrescriptionResponseDto>(
@@ -403,6 +403,33 @@ export class DataServices {
           >("post", "/auth/email/verify"),
         },
       },
+    },
+    dashboard: {
+      admin: {
+        get: this.createEndpoint<void, AdminDashboardResponse>(
+          "get",
+          "/dashboard/admin"
+        ),
+      },
+    },
+    notifications: {
+      get: this.createEndpoint<void, NotificationResponse>(
+        "get",
+        "notifications"
+      ),
+      _id_read: (id: string) => ({
+        patch: this.createEndpoint<void, NotificationResponse>(
+          "patch",
+          "/notifications/{id}/read",
+          { id }
+        ),
+      }),
+      _all_read: () => ({
+        patch: this.createEndpoint<void, { success: boolean }>(
+          "patch",
+          "notifications/mark-all-read"
+        ),
+      }),
     },
   };
   private createEndpoint<Request, Response>(
