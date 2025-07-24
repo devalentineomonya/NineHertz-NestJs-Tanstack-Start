@@ -255,42 +255,42 @@ export class AppointmentService {
       throw new NotFoundException(`No appointment found with callId ${callId}`);
     }
 
-    // Check if the appointment is virtual
-    if (appointment.mode !== AppointmentMode.VIRTUAL) {
-      throw new BadRequestException(
-        'This appointment is not a virtual meeting',
-      );
-    }
+    // // Check if the appointment is virtual
+    // if (appointment.mode !== AppointmentMode.VIRTUAL) {
+    //   throw new BadRequestException(
+    //     'This appointment is not a virtual meeting',
+    //   );
+    // }
 
-    if (appointment.status === AppointmentStatus.CANCELLED) {
-      throw new BadRequestException('This appointment has been cancelled');
-    }
+    // if (appointment.status === AppointmentStatus.CANCELLED) {
+    //   throw new BadRequestException('This appointment has been cancelled');
+    // }
 
-    if (appointment.status === AppointmentStatus.COMPLETED) {
-      throw new BadRequestException(
-        'This appointment has already been completed',
-      );
-    }
+    // if (appointment.status === AppointmentStatus.COMPLETED) {
+    //   throw new BadRequestException(
+    //     'This appointment has already been completed',
+    //   );
+    // }
 
     // Check if the current time is within the appointment time window
-    const now = new Date();
-    const startTime = appointment.startTime;
-    const endTime = appointment.endTime;
+    // const now = new Date();
+    // const startTime = appointment.startTime;
+    // const endTime = appointment.endTime;
 
-    if (now < startTime || now > endTime) {
-      throw new BadRequestException('The appointment is not currently active');
-    }
+    // if (now < startTime || now > endTime) {
+    //   throw new BadRequestException('The appointment is not currently active');
+    // }
 
-    // Check if user is a participant
-    const isParticipant = [
-      appointment.patient.id,
-      appointment.doctor.id,
-    ].includes(userId);
-    if (!isParticipant) {
-      throw new BadRequestException(
-        'User is not a participant of this appointment',
-      );
-    }
+    // // Check if user is a participant
+    // const isParticipant = [
+    //   appointment.patient.id,
+    //   appointment.doctor.id,
+    // ].includes(userId);
+    // if (!isParticipant) {
+    //   throw new BadRequestException(
+    //     'User is not a participant of this appointment',
+    //   );
+    // }
 
     const token = this.streamService.generateUserToken(userId);
     return { token };
