@@ -15,10 +15,19 @@ import { Appointment } from 'src/appointment/entities/appointment.entity';
 import { Patient } from 'src/patient/entities/patient.entity';
 import { PatientService } from 'src/patient/patient.service';
 import { StreamService } from 'src/stream/stream.service';
+import { NotificationService } from 'src/notification/notification.service';
+import { MailModule } from 'src/shared/mail/mail.module';
+import { Notification } from 'src/notification/entities/notification.entity';
 
 @Module({
   imports: [
-    TypeOrmModule.forFeature([Doctor, User, Appointment, Patient]),
+    TypeOrmModule.forFeature([
+      Doctor,
+      User,
+      Appointment,
+      Patient,
+      Notification,
+    ]),
     ConfigModule.forRoot(),
     CacheModule.registerAsync({
       imports: [ConfigModule],
@@ -35,6 +44,7 @@ import { StreamService } from 'src/stream/stream.service';
         ],
       }),
     }),
+    MailModule,
   ],
   providers: [
     ChatService,
@@ -42,7 +52,9 @@ import { StreamService } from 'src/stream/stream.service';
     AppointmentService,
     PatientService,
     StreamService,
+    NotificationService,
   ],
+  exports: [ChatService],
   controllers: [ChatController],
 })
 export class ChatModule {}

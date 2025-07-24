@@ -11,6 +11,7 @@ import { UpdatePrescriptionDto } from './dto/update-prescription.dto';
 import { Patient } from '../patient/entities/patient.entity';
 import { Doctor } from '../doctor/entities/doctor.entity';
 import { Pharmacist } from 'src/pharmacist/entities/pharmacist.entity';
+import { NotificationService } from 'src/notification/notification.service';
 
 @Injectable()
 export class PrescriptionService {
@@ -23,8 +24,8 @@ export class PrescriptionService {
     private readonly doctorRepo: Repository<Doctor>,
     @InjectRepository(Pharmacist)
     private readonly pharmacistRepo: Repository<Pharmacist>,
+    private readonly notificationService: NotificationService,
   ) {}
-
   async create(dto: CreatePrescriptionDto): Promise<Prescription> {
     const patient = await this.patientRepo.findOneBy({ id: dto.patientId });
     if (!patient) throw new NotFoundException('Patient not found');
@@ -50,7 +51,28 @@ export class PrescriptionService {
       isFulfilled: !!dto.pharmacistId,
     });
 
-    return this.prescriptionRepo.save(prescription);
+    const savedPrescription = await this.prescriptionRepo.save(prescription);
+
+    // Send real-time notifications to relevant users
+    const userIds = [
+      patient.id,
+      doctor.id,
+      ...(pharmacist ? [pharmacist.id] : []),
+    ];
+
+    for (const userId of userIds) {
+      await this.notificationService.triggerPusherEvent(
+        [`user-${userId}`],
+        'prescription:created',
+        {
+          id: savedPrescription.id,
+          message: 'New prescription created',
+          type: 'prescription',
+        },
+      );
+    }
+
+    return savedPrescription;
   }
   async findAll(userId: string, role: string): Promise<Prescription[]> {
     const where: FindOptionsWhere<Prescription> = {};
@@ -107,9 +129,13 @@ export class PrescriptionService {
       order: { issueDate: 'DESC' },
     });
   }
-
   async update(id: string, dto: UpdatePrescriptionDto): Promise<Prescription> {
     const prescription = await this.findOne(id);
+    const originalUserIds = [
+      prescription.patient.id,
+      prescription.prescribedBy.id,
+      ...(prescription.fulfilledBy?.id ? [prescription.fulfilledBy.id] : []),
+    ];
 
     // Handle Pharmacist fulfillment
     if (
@@ -153,13 +179,63 @@ export class PrescriptionService {
       prescription.fulfilledBy = undefined;
     }
 
-    return this.prescriptionRepo.save(prescription);
-  }
+    const updatedPrescription = await this.prescriptionRepo.save(prescription);
 
+    // Get updated user IDs
+    const updatedUserIds = [
+      updatedPrescription.patient.id,
+      updatedPrescription.prescribedBy.id,
+      ...(updatedPrescription.fulfilledBy?.id
+        ? [updatedPrescription.fulfilledBy.id]
+        : []),
+    ];
+
+    // Combine old and new user IDs
+    const allUserIds = [...new Set([...originalUserIds, ...updatedUserIds])];
+
+    for (const userId of allUserIds) {
+      await this.notificationService.triggerPusherEvent(
+        [`user-${userId}`],
+        'prescription:updated',
+        {
+          id: updatedPrescription.id,
+          message: 'Prescription updated',
+          type: 'prescription',
+        },
+      );
+    }
+
+    return updatedPrescription;
+  }
   async remove(id: string): Promise<void> {
-    const result = await this.prescriptionRepo.delete(id);
-    if (result.affected === 0) {
+    const prescription = await this.prescriptionRepo.findOne({
+      where: { id },
+      relations: ['patient', 'prescribedBy', 'fulfilledBy'],
+    });
+
+    if (!prescription) {
       throw new NotFoundException('Prescription not found');
+    }
+
+    const userIds = [
+      prescription.patient.id,
+      prescription.prescribedBy.id,
+      ...(prescription.fulfilledBy?.id ? [prescription.fulfilledBy.id] : []),
+    ];
+
+    await this.prescriptionRepo.delete(id);
+
+    // Send deletion notifications
+    for (const userId of userIds) {
+      await this.notificationService.triggerPusherEvent(
+        [`user-${userId}`],
+        'prescription:deleted',
+        {
+          id: prescription.id,
+          message: 'Prescription deleted',
+          type: 'prescription',
+        },
+      );
     }
   }
 }

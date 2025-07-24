@@ -6,11 +6,13 @@ import {
   BeforeInsert,
   BeforeUpdate,
   Index,
+  OneToMany,
 } from 'typeorm';
-import { Patient } from '../../patient/entities/patient.entity';
-import { Doctor } from '../../doctor/entities/doctor.entity';
-import { Admin } from '../../admin/entities/admin.entity';
+import { Patient } from 'src/patient/entities/patient.entity';
+import { Doctor } from 'src/doctor/entities/doctor.entity';
+import { Admin } from 'src/admin/entities/admin.entity';
 import { Pharmacist } from 'src/pharmacist/entities/pharmacist.entity';
+import { Notification } from 'src/notification/entities/notification.entity';
 import * as bcrypt from 'bcrypt';
 
 export enum UserRole {
@@ -78,6 +80,9 @@ export class User {
     cascade: true,
   })
   pharmacistProfile?: Pharmacist;
+
+  @OneToMany(() => Notification, (notification) => notification.user)
+  notifications: Notification[];
 
   @BeforeInsert()
   @BeforeUpdate()

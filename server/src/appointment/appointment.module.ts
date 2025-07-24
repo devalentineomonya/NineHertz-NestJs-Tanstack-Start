@@ -6,10 +6,20 @@ import { TypeOrmModule } from '@nestjs/typeorm';
 import { Patient } from 'src/patient/entities/patient.entity';
 import { Doctor } from 'src/doctor/entities/doctor.entity';
 import { StreamService } from 'src/stream/stream.service';
+import { NotificationService } from 'src/notification/notification.service';
+import { MailModule } from 'src/shared/mail/mail.module';
+import { Notification } from 'src/notification/entities/notification.entity';
+import { NotificationModule } from 'src/notification/notification.module';
+import { ChatModule } from 'src/chat/chat.module';
 
 @Module({
-  imports: [TypeOrmModule.forFeature([Appointment, Doctor, Patient])],
+  imports: [
+    TypeOrmModule.forFeature([Appointment, Doctor, Patient, Notification]),
+    MailModule,
+    NotificationModule,
+    ChatModule,
+  ],
   controllers: [AppointmentController],
-  providers: [AppointmentService, StreamService],
+  providers: [AppointmentService, StreamService, NotificationService],
 })
 export class AppointmentModule {}

@@ -4,7 +4,7 @@
     "**/*.tsx",
     "src/services/patients/use-get-patients.ts",
     "src/screens/call/call-layout/speaker-one-on-one.tsx"
-  ],
+, "src/sw.ts"  ],
   "compilerOptions": {
     "strict": true,
     "esModuleInterop": true,

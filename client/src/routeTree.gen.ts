@@ -18,6 +18,7 @@ import { Route as AuthCallbackRouteImport } from './routes/auth/callback'
 import { Route as LayoutpharmacistPharmacistSettingsRouteImport } from './routes/_layout/(pharmacist)/pharmacist.settings'
 import { Route as LayoutpharmacistPharmacistPrescriptionsRouteImport } from './routes/_layout/(pharmacist)/pharmacist.prescriptions'
 import { Route as LayoutpharmacistPharmacistOrdersRouteImport } from './routes/_layout/(pharmacist)/pharmacist.orders'
+import { Route as LayoutpharmacistPharmacistNotificationRouteImport } from './routes/_layout/(pharmacist)/pharmacist.notification'
 import { Route as LayoutpharmacistPharmacistMedicineRouteImport } from './routes/_layout/(pharmacist)/pharmacist.medicine'
 import { Route as LayoutpharmacistPharmacistInventoryRouteImport } from './routes/_layout/(pharmacist)/pharmacist.inventory'
 import { Route as LayoutpharmacistPharmacistDashboardRouteImport } from './routes/_layout/(pharmacist)/pharmacist.dashboard'
@@ -25,6 +26,7 @@ import { Route as LayoutpharmacistPharmacistChatRouteImport } from './routes/_la
 import { Route as LayoutpatientsPatientSettingsRouteImport } from './routes/_layout/(patients)/patient.settings'
 import { Route as LayoutpatientsPatientPrescriptionsRouteImport } from './routes/_layout/(patients)/patient.prescriptions'
 import { Route as LayoutpatientsPatientOrdersRouteImport } from './routes/_layout/(patients)/patient.orders'
+import { Route as LayoutpatientsPatientNotificationRouteImport } from './routes/_layout/(patients)/patient.notification'
 import { Route as LayoutpatientsPatientMedicineRouteImport } from './routes/_layout/(patients)/patient.medicine'
 import { Route as LayoutpatientsPatientDashboardRouteImport } from './routes/_layout/(patients)/patient.dashboard'
 import { Route as LayoutpatientsPatientChatRouteImport } from './routes/_layout/(patients)/patient.chat'
@@ -33,6 +35,7 @@ import { Route as LayoutpatientsPatientAppointmentsRouteImport } from './routes/
 import { Route as LayoutdoctorsDoctorSettingsRouteImport } from './routes/_layout/(doctors)/doctor.settings'
 import { Route as LayoutdoctorsDoctorPrescriptionsRouteImport } from './routes/_layout/(doctors)/doctor.prescriptions'
 import { Route as LayoutdoctorsDoctorPatientsRouteImport } from './routes/_layout/(doctors)/doctor.patients'
+import { Route as LayoutdoctorsDoctorNotificationRouteImport } from './routes/_layout/(doctors)/doctor.notification'
 import { Route as LayoutdoctorsDoctorMedineRouteImport } from './routes/_layout/(doctors)/doctor.medine'
 import { Route as LayoutdoctorsDoctorMedicineRouteImport } from './routes/_layout/(doctors)/doctor.medicine'
 import { Route as LayoutdoctorsDoctorDashboardRouteImport } from './routes/_layout/(doctors)/doctor.dashboard'
@@ -47,6 +50,7 @@ import { Route as LayoutadminAdminPrescriptionsRouteImport } from './routes/_lay
 import { Route as LayoutadminAdminPharmacistRouteImport } from './routes/_layout/(admin)/admin.pharmacist'
 import { Route as LayoutadminAdminPatientsRouteImport } from './routes/_layout/(admin)/admin.patients'
 import { Route as LayoutadminAdminOrdersRouteImport } from './routes/_layout/(admin)/admin.orders'
+import { Route as LayoutadminAdminNotificationRouteImport } from './routes/_layout/(admin)/admin.notification'
 import { Route as LayoutadminAdminMedicineRouteImport } from './routes/_layout/(admin)/admin.medicine'
 import { Route as LayoutadminAdminInventoryRouteImport } from './routes/_layout/(admin)/admin.inventory'
 import { Route as LayoutadminAdminDoctorsRouteImport } from './routes/_layout/(admin)/admin.doctors'
@@ -104,6 +108,12 @@ const LayoutpharmacistPharmacistOrdersRoute =
     path: '/pharmacist/orders',
     getParentRoute: () => LayoutRouteRoute,
   } as any)
+const LayoutpharmacistPharmacistNotificationRoute =
+  LayoutpharmacistPharmacistNotificationRouteImport.update({
+    id: '/(pharmacist)/pharmacist/notification',
+    path: '/pharmacist/notification',
+    getParentRoute: () => LayoutRouteRoute,
+  } as any)
 const LayoutpharmacistPharmacistMedicineRoute =
   LayoutpharmacistPharmacistMedicineRouteImport.update({
     id: '/(pharmacist)/pharmacist/medicine',
@@ -144,6 +154,12 @@ const LayoutpatientsPatientOrdersRoute =
   LayoutpatientsPatientOrdersRouteImport.update({
     id: '/(patients)/patient/orders',
     path: '/patient/orders',
+    getParentRoute: () => LayoutRouteRoute,
+  } as any)
+const LayoutpatientsPatientNotificationRoute =
+  LayoutpatientsPatientNotificationRouteImport.update({
+    id: '/(patients)/patient/notification',
+    path: '/patient/notification',
     getParentRoute: () => LayoutRouteRoute,
   } as any)
 const LayoutpatientsPatientMedicineRoute =
@@ -192,6 +208,12 @@ const LayoutdoctorsDoctorPatientsRoute =
   LayoutdoctorsDoctorPatientsRouteImport.update({
     id: '/(doctors)/doctor/patients',
     path: '/doctor/patients',
+    getParentRoute: () => LayoutRouteRoute,
+  } as any)
+const LayoutdoctorsDoctorNotificationRoute =
+  LayoutdoctorsDoctorNotificationRouteImport.update({
+    id: '/(doctors)/doctor/notification',
+    path: '/doctor/notification',
     getParentRoute: () => LayoutRouteRoute,
   } as any)
 const LayoutdoctorsDoctorMedineRoute =
@@ -274,6 +296,12 @@ const LayoutadminAdminOrdersRoute = LayoutadminAdminOrdersRouteImport.update({
   path: '/admin/orders',
   getParentRoute: () => LayoutRouteRoute,
 } as any)
+const LayoutadminAdminNotificationRoute =
+  LayoutadminAdminNotificationRouteImport.update({
+    id: '/(admin)/admin/notification',
+    path: '/admin/notification',
+    getParentRoute: () => LayoutRouteRoute,
+  } as any)
 const LayoutadminAdminMedicineRoute =
   LayoutadminAdminMedicineRouteImport.update({
     id: '/(admin)/admin/medicine',
@@ -340,6 +368,7 @@ export interface FileRoutesByFullPath {
   '/admin/doctors': typeof LayoutadminAdminDoctorsRoute
   '/admin/inventory': typeof LayoutadminAdminInventoryRoute
   '/admin/medicine': typeof LayoutadminAdminMedicineRoute
+  '/admin/notification': typeof LayoutadminAdminNotificationRoute
   '/admin/orders': typeof LayoutadminAdminOrdersRoute
   '/admin/patients': typeof LayoutadminAdminPatientsRoute
   '/admin/pharmacist': typeof LayoutadminAdminPharmacistRoute
@@ -354,6 +383,7 @@ export interface FileRoutesByFullPath {
   '/doctor/dashboard': typeof LayoutdoctorsDoctorDashboardRoute
   '/doctor/medicine': typeof LayoutdoctorsDoctorMedicineRoute
   '/doctor/medine': typeof LayoutdoctorsDoctorMedineRoute
+  '/doctor/notification': typeof LayoutdoctorsDoctorNotificationRoute
   '/doctor/patients': typeof LayoutdoctorsDoctorPatientsRoute
   '/doctor/prescriptions': typeof LayoutdoctorsDoctorPrescriptionsRoute
   '/doctor/settings': typeof LayoutdoctorsDoctorSettingsRoute
@@ -362,6 +392,7 @@ export interface FileRoutesByFullPath {
   '/patient/chat': typeof LayoutpatientsPatientChatRoute
   '/patient/dashboard': typeof LayoutpatientsPatientDashboardRoute
   '/patient/medicine': typeof LayoutpatientsPatientMedicineRoute
+  '/patient/notification': typeof LayoutpatientsPatientNotificationRoute
   '/patient/orders': typeof LayoutpatientsPatientOrdersRoute
   '/patient/prescriptions': typeof LayoutpatientsPatientPrescriptionsRoute
   '/patient/settings': typeof LayoutpatientsPatientSettingsRoute
@@ -369,6 +400,7 @@ export interface FileRoutesByFullPath {
   '/pharmacist/dashboard': typeof LayoutpharmacistPharmacistDashboardRoute
   '/pharmacist/inventory': typeof LayoutpharmacistPharmacistInventoryRoute
   '/pharmacist/medicine': typeof LayoutpharmacistPharmacistMedicineRoute
+  '/pharmacist/notification': typeof LayoutpharmacistPharmacistNotificationRoute
   '/pharmacist/orders': typeof LayoutpharmacistPharmacistOrdersRoute
   '/pharmacist/prescriptions': typeof LayoutpharmacistPharmacistPrescriptionsRoute
   '/pharmacist/settings': typeof LayoutpharmacistPharmacistSettingsRoute
@@ -388,6 +420,7 @@ export interface FileRoutesByTo {
   '/admin/doctors': typeof LayoutadminAdminDoctorsRoute
   '/admin/inventory': typeof LayoutadminAdminInventoryRoute
   '/admin/medicine': typeof LayoutadminAdminMedicineRoute
+  '/admin/notification': typeof LayoutadminAdminNotificationRoute
   '/admin/orders': typeof LayoutadminAdminOrdersRoute
   '/admin/patients': typeof LayoutadminAdminPatientsRoute
   '/admin/pharmacist': typeof LayoutadminAdminPharmacistRoute
@@ -402,6 +435,7 @@ export interface FileRoutesByTo {
   '/doctor/dashboard': typeof LayoutdoctorsDoctorDashboardRoute
   '/doctor/medicine': typeof LayoutdoctorsDoctorMedicineRoute
   '/doctor/medine': typeof LayoutdoctorsDoctorMedineRoute
+  '/doctor/notification': typeof LayoutdoctorsDoctorNotificationRoute
   '/doctor/patients': typeof LayoutdoctorsDoctorPatientsRoute
   '/doctor/prescriptions': typeof LayoutdoctorsDoctorPrescriptionsRoute
   '/doctor/settings': typeof LayoutdoctorsDoctorSettingsRoute
@@ -410,6 +444,7 @@ export interface FileRoutesByTo {
   '/patient/chat': typeof LayoutpatientsPatientChatRoute
   '/patient/dashboard': typeof LayoutpatientsPatientDashboardRoute
   '/patient/medicine': typeof LayoutpatientsPatientMedicineRoute
+  '/patient/notification': typeof LayoutpatientsPatientNotificationRoute
   '/patient/orders': typeof LayoutpatientsPatientOrdersRoute
   '/patient/prescriptions': typeof LayoutpatientsPatientPrescriptionsRoute
   '/patient/settings': typeof LayoutpatientsPatientSettingsRoute
@@ -417,6 +452,7 @@ export interface FileRoutesByTo {
   '/pharmacist/dashboard': typeof LayoutpharmacistPharmacistDashboardRoute
   '/pharmacist/inventory': typeof LayoutpharmacistPharmacistInventoryRoute
   '/pharmacist/medicine': typeof LayoutpharmacistPharmacistMedicineRoute
+  '/pharmacist/notification': typeof LayoutpharmacistPharmacistNotificationRoute
   '/pharmacist/orders': typeof LayoutpharmacistPharmacistOrdersRoute
   '/pharmacist/prescriptions': typeof LayoutpharmacistPharmacistPrescriptionsRoute
   '/pharmacist/settings': typeof LayoutpharmacistPharmacistSettingsRoute
@@ -438,6 +474,7 @@ export interface FileRoutesById {
   '/_layout/(admin)/admin/doctors': typeof LayoutadminAdminDoctorsRoute
   '/_layout/(admin)/admin/inventory': typeof LayoutadminAdminInventoryRoute
   '/_layout/(admin)/admin/medicine': typeof LayoutadminAdminMedicineRoute
+  '/_layout/(admin)/admin/notification': typeof LayoutadminAdminNotificationRoute
   '/_layout/(admin)/admin/orders': typeof LayoutadminAdminOrdersRoute
   '/_layout/(admin)/admin/patients': typeof LayoutadminAdminPatientsRoute
   '/_layout/(admin)/admin/pharmacist': typeof LayoutadminAdminPharmacistRoute
@@ -452,6 +489,7 @@ export interface FileRoutesById {
   '/_layout/(doctors)/doctor/dashboard': typeof LayoutdoctorsDoctorDashboardRoute
   '/_layout/(doctors)/doctor/medicine': typeof LayoutdoctorsDoctorMedicineRoute
   '/_layout/(doctors)/doctor/medine': typeof LayoutdoctorsDoctorMedineRoute
+  '/_layout/(doctors)/doctor/notification': typeof LayoutdoctorsDoctorNotificationRoute
   '/_layout/(doctors)/doctor/patients': typeof LayoutdoctorsDoctorPatientsRoute
   '/_layout/(doctors)/doctor/prescriptions': typeof LayoutdoctorsDoctorPrescriptionsRoute
   '/_layout/(doctors)/doctor/settings': typeof LayoutdoctorsDoctorSettingsRoute
@@ -460,6 +498,7 @@ export interface FileRoutesById {
   '/_layout/(patients)/patient/chat': typeof LayoutpatientsPatientChatRoute
   '/_layout/(patients)/patient/dashboard': typeof LayoutpatientsPatientDashboardRoute
   '/_layout/(patients)/patient/medicine': typeof LayoutpatientsPatientMedicineRoute
+  '/_layout/(patients)/patient/notification': typeof LayoutpatientsPatientNotificationRoute
   '/_layout/(patients)/patient/orders': typeof LayoutpatientsPatientOrdersRoute
   '/_layout/(patients)/patient/prescriptions': typeof LayoutpatientsPatientPrescriptionsRoute
   '/_layout/(patients)/patient/settings': typeof LayoutpatientsPatientSettingsRoute
@@ -467,6 +506,7 @@ export interface FileRoutesById {
   '/_layout/(pharmacist)/pharmacist/dashboard': typeof LayoutpharmacistPharmacistDashboardRoute
   '/_layout/(pharmacist)/pharmacist/inventory': typeof LayoutpharmacistPharmacistInventoryRoute
   '/_layout/(pharmacist)/pharmacist/medicine': typeof LayoutpharmacistPharmacistMedicineRoute
+  '/_layout/(pharmacist)/pharmacist/notification': typeof LayoutpharmacistPharmacistNotificationRoute
   '/_layout/(pharmacist)/pharmacist/orders': typeof LayoutpharmacistPharmacistOrdersRoute
   '/_layout/(pharmacist)/pharmacist/prescriptions': typeof LayoutpharmacistPharmacistPrescriptionsRoute
   '/_layout/(pharmacist)/pharmacist/settings': typeof LayoutpharmacistPharmacistSettingsRoute
@@ -488,6 +528,7 @@ export interface FileRouteTypes {
     | '/admin/doctors'
     | '/admin/inventory'
     | '/admin/medicine'
+    | '/admin/notification'
     | '/admin/orders'
     | '/admin/patients'
     | '/admin/pharmacist'
@@ -502,6 +543,7 @@ export interface FileRouteTypes {
     | '/doctor/dashboard'
     | '/doctor/medicine'
     | '/doctor/medine'
+    | '/doctor/notification'
     | '/doctor/patients'
     | '/doctor/prescriptions'
     | '/doctor/settings'
@@ -510,6 +552,7 @@ export interface FileRouteTypes {
     | '/patient/chat'
     | '/patient/dashboard'
     | '/patient/medicine'
+    | '/patient/notification'
     | '/patient/orders'
     | '/patient/prescriptions'
     | '/patient/settings'
@@ -517,6 +560,7 @@ export interface FileRouteTypes {
     | '/pharmacist/dashboard'
     | '/pharmacist/inventory'
     | '/pharmacist/medicine'
+    | '/pharmacist/notification'
     | '/pharmacist/orders'
     | '/pharmacist/prescriptions'
     | '/pharmacist/settings'
@@ -536,6 +580,7 @@ export interface FileRouteTypes {
     | '/admin/doctors'
     | '/admin/inventory'
     | '/admin/medicine'
+    | '/admin/notification'
     | '/admin/orders'
     | '/admin/patients'
     | '/admin/pharmacist'
@@ -550,6 +595,7 @@ export interface FileRouteTypes {
     | '/doctor/dashboard'
     | '/doctor/medicine'
     | '/doctor/medine'
+    | '/doctor/notification'
     | '/doctor/patients'
     | '/doctor/prescriptions'
     | '/doctor/settings'
@@ -558,6 +604,7 @@ export interface FileRouteTypes {
     | '/patient/chat'
     | '/patient/dashboard'
     | '/patient/medicine'
+    | '/patient/notification'
     | '/patient/orders'
     | '/patient/prescriptions'
     | '/patient/settings'
@@ -565,6 +612,7 @@ export interface FileRouteTypes {
     | '/pharmacist/dashboard'
     | '/pharmacist/inventory'
     | '/pharmacist/medicine'
+    | '/pharmacist/notification'
     | '/pharmacist/orders'
     | '/pharmacist/prescriptions'
     | '/pharmacist/settings'
@@ -585,6 +633,7 @@ export interface FileRouteTypes {
     | '/_layout/(admin)/admin/doctors'
     | '/_layout/(admin)/admin/inventory'
     | '/_layout/(admin)/admin/medicine'
+    | '/_layout/(admin)/admin/notification'
     | '/_layout/(admin)/admin/orders'
     | '/_layout/(admin)/admin/patients'
     | '/_layout/(admin)/admin/pharmacist'
@@ -599,6 +648,7 @@ export interface FileRouteTypes {
     | '/_layout/(doctors)/doctor/dashboard'
     | '/_layout/(doctors)/doctor/medicine'
     | '/_layout/(doctors)/doctor/medine'
+    | '/_layout/(doctors)/doctor/notification'
     | '/_layout/(doctors)/doctor/patients'
     | '/_layout/(doctors)/doctor/prescriptions'
     | '/_layout/(doctors)/doctor/settings'
@@ -607,6 +657,7 @@ export interface FileRouteTypes {
     | '/_layout/(patients)/patient/chat'
     | '/_layout/(patients)/patient/dashboard'
     | '/_layout/(patients)/patient/medicine'
+    | '/_layout/(patients)/patient/notification'
     | '/_layout/(patients)/patient/orders'
     | '/_layout/(patients)/patient/prescriptions'
     | '/_layout/(patients)/patient/settings'
@@ -614,6 +665,7 @@ export interface FileRouteTypes {
     | '/_layout/(pharmacist)/pharmacist/dashboard'
     | '/_layout/(pharmacist)/pharmacist/inventory'
     | '/_layout/(pharmacist)/pharmacist/medicine'
+    | '/_layout/(pharmacist)/pharmacist/notification'
     | '/_layout/(pharmacist)/pharmacist/orders'
     | '/_layout/(pharmacist)/pharmacist/prescriptions'
     | '/_layout/(pharmacist)/pharmacist/settings'
@@ -694,6 +746,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof LayoutpharmacistPharmacistOrdersRouteImport
       parentRoute: typeof LayoutRouteRoute
     }
+    '/_layout/(pharmacist)/pharmacist/notification': {
+      id: '/_layout/(pharmacist)/pharmacist/notification'
+      path: '/pharmacist/notification'
+      fullPath: '/pharmacist/notification'
+      preLoaderRoute: typeof LayoutpharmacistPharmacistNotificationRouteImport
+      parentRoute: typeof LayoutRouteRoute
+    }
     '/_layout/(pharmacist)/pharmacist/medicine': {
       id: '/_layout/(pharmacist)/pharmacist/medicine'
       path: '/pharmacist/medicine'
@@ -741,6 +800,13 @@ declare module '@tanstack/react-router' {
       path: '/patient/orders'
       fullPath: '/patient/orders'
       preLoaderRoute: typeof LayoutpatientsPatientOrdersRouteImport
+      parentRoute: typeof LayoutRouteRoute
+    }
+    '/_layout/(patients)/patient/notification': {
+      id: '/_layout/(patients)/patient/notification'
+      path: '/patient/notification'
+      fullPath: '/patient/notification'
+      preLoaderRoute: typeof LayoutpatientsPatientNotificationRouteImport
       parentRoute: typeof LayoutRouteRoute
     }
     '/_layout/(patients)/patient/medicine': {
@@ -797,6 +863,13 @@ declare module '@tanstack/react-router' {
       path: '/doctor/patients'
       fullPath: '/doctor/patients'
       preLoaderRoute: typeof LayoutdoctorsDoctorPatientsRouteImport
+      parentRoute: typeof LayoutRouteRoute
+    }
+    '/_layout/(doctors)/doctor/notification': {
+      id: '/_layout/(doctors)/doctor/notification'
+      path: '/doctor/notification'
+      fullPath: '/doctor/notification'
+      preLoaderRoute: typeof LayoutdoctorsDoctorNotificationRouteImport
       parentRoute: typeof LayoutRouteRoute
     }
     '/_layout/(doctors)/doctor/medine': {
@@ -897,6 +970,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof LayoutadminAdminOrdersRouteImport
       parentRoute: typeof LayoutRouteRoute
     }
+    '/_layout/(admin)/admin/notification': {
+      id: '/_layout/(admin)/admin/notification'
+      path: '/admin/notification'
+      fullPath: '/admin/notification'
+      preLoaderRoute: typeof LayoutadminAdminNotificationRouteImport
+      parentRoute: typeof LayoutRouteRoute
+    }
     '/_layout/(admin)/admin/medicine': {
       id: '/_layout/(admin)/admin/medicine'
       path: '/admin/medicine'
@@ -972,6 +1052,7 @@ interface LayoutRouteRouteChildren {
   LayoutadminAdminDoctorsRoute: typeof LayoutadminAdminDoctorsRoute
   LayoutadminAdminInventoryRoute: typeof LayoutadminAdminInventoryRoute
   LayoutadminAdminMedicineRoute: typeof LayoutadminAdminMedicineRoute
+  LayoutadminAdminNotificationRoute: typeof LayoutadminAdminNotificationRoute
   LayoutadminAdminOrdersRoute: typeof LayoutadminAdminOrdersRoute
   LayoutadminAdminPatientsRoute: typeof LayoutadminAdminPatientsRoute
   LayoutadminAdminPharmacistRoute: typeof LayoutadminAdminPharmacistRoute
@@ -986,6 +1067,7 @@ interface LayoutRouteRouteChildren {
   LayoutdoctorsDoctorDashboardRoute: typeof LayoutdoctorsDoctorDashboardRoute
   LayoutdoctorsDoctorMedicineRoute: typeof LayoutdoctorsDoctorMedicineRoute
   LayoutdoctorsDoctorMedineRoute: typeof LayoutdoctorsDoctorMedineRoute
+  LayoutdoctorsDoctorNotificationRoute: typeof LayoutdoctorsDoctorNotificationRoute
   LayoutdoctorsDoctorPatientsRoute: typeof LayoutdoctorsDoctorPatientsRoute
   LayoutdoctorsDoctorPrescriptionsRoute: typeof LayoutdoctorsDoctorPrescriptionsRoute
   LayoutdoctorsDoctorSettingsRoute: typeof LayoutdoctorsDoctorSettingsRoute
@@ -994,6 +1076,7 @@ interface LayoutRouteRouteChildren {
   LayoutpatientsPatientChatRoute: typeof LayoutpatientsPatientChatRoute
   LayoutpatientsPatientDashboardRoute: typeof LayoutpatientsPatientDashboardRoute
   LayoutpatientsPatientMedicineRoute: typeof LayoutpatientsPatientMedicineRoute
+  LayoutpatientsPatientNotificationRoute: typeof LayoutpatientsPatientNotificationRoute
   LayoutpatientsPatientOrdersRoute: typeof LayoutpatientsPatientOrdersRoute
   LayoutpatientsPatientPrescriptionsRoute: typeof LayoutpatientsPatientPrescriptionsRoute
   LayoutpatientsPatientSettingsRoute: typeof LayoutpatientsPatientSettingsRoute
@@ -1001,6 +1084,7 @@ interface LayoutRouteRouteChildren {
   LayoutpharmacistPharmacistDashboardRoute: typeof LayoutpharmacistPharmacistDashboardRoute
   LayoutpharmacistPharmacistInventoryRoute: typeof LayoutpharmacistPharmacistInventoryRoute
   LayoutpharmacistPharmacistMedicineRoute: typeof LayoutpharmacistPharmacistMedicineRoute
+  LayoutpharmacistPharmacistNotificationRoute: typeof LayoutpharmacistPharmacistNotificationRoute
   LayoutpharmacistPharmacistOrdersRoute: typeof LayoutpharmacistPharmacistOrdersRoute
   LayoutpharmacistPharmacistPrescriptionsRoute: typeof LayoutpharmacistPharmacistPrescriptionsRoute
   LayoutpharmacistPharmacistSettingsRoute: typeof LayoutpharmacistPharmacistSettingsRoute
@@ -1015,6 +1099,7 @@ const LayoutRouteRouteChildren: LayoutRouteRouteChildren = {
   LayoutadminAdminDoctorsRoute: LayoutadminAdminDoctorsRoute,
   LayoutadminAdminInventoryRoute: LayoutadminAdminInventoryRoute,
   LayoutadminAdminMedicineRoute: LayoutadminAdminMedicineRoute,
+  LayoutadminAdminNotificationRoute: LayoutadminAdminNotificationRoute,
   LayoutadminAdminOrdersRoute: LayoutadminAdminOrdersRoute,
   LayoutadminAdminPatientsRoute: LayoutadminAdminPatientsRoute,
   LayoutadminAdminPharmacistRoute: LayoutadminAdminPharmacistRoute,
@@ -1029,6 +1114,7 @@ const LayoutRouteRouteChildren: LayoutRouteRouteChildren = {
   LayoutdoctorsDoctorDashboardRoute: LayoutdoctorsDoctorDashboardRoute,
   LayoutdoctorsDoctorMedicineRoute: LayoutdoctorsDoctorMedicineRoute,
   LayoutdoctorsDoctorMedineRoute: LayoutdoctorsDoctorMedineRoute,
+  LayoutdoctorsDoctorNotificationRoute: LayoutdoctorsDoctorNotificationRoute,
   LayoutdoctorsDoctorPatientsRoute: LayoutdoctorsDoctorPatientsRoute,
   LayoutdoctorsDoctorPrescriptionsRoute: LayoutdoctorsDoctorPrescriptionsRoute,
   LayoutdoctorsDoctorSettingsRoute: LayoutdoctorsDoctorSettingsRoute,
@@ -1038,6 +1124,8 @@ const LayoutRouteRouteChildren: LayoutRouteRouteChildren = {
   LayoutpatientsPatientChatRoute: LayoutpatientsPatientChatRoute,
   LayoutpatientsPatientDashboardRoute: LayoutpatientsPatientDashboardRoute,
   LayoutpatientsPatientMedicineRoute: LayoutpatientsPatientMedicineRoute,
+  LayoutpatientsPatientNotificationRoute:
+    LayoutpatientsPatientNotificationRoute,
   LayoutpatientsPatientOrdersRoute: LayoutpatientsPatientOrdersRoute,
   LayoutpatientsPatientPrescriptionsRoute:
     LayoutpatientsPatientPrescriptionsRoute,
@@ -1049,6 +1137,8 @@ const LayoutRouteRouteChildren: LayoutRouteRouteChildren = {
     LayoutpharmacistPharmacistInventoryRoute,
   LayoutpharmacistPharmacistMedicineRoute:
     LayoutpharmacistPharmacistMedicineRoute,
+  LayoutpharmacistPharmacistNotificationRoute:
+    LayoutpharmacistPharmacistNotificationRoute,
   LayoutpharmacistPharmacistOrdersRoute: LayoutpharmacistPharmacistOrdersRoute,
   LayoutpharmacistPharmacistPrescriptionsRoute:
     LayoutpharmacistPharmacistPrescriptionsRoute,

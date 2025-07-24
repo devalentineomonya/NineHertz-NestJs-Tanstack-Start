@@ -9,6 +9,7 @@ import {
 import { useUserSessionStore } from "@/stores/user-session-store";
 import { useLocation } from "@tanstack/react-router";
 import {
+  Bell,
   BriefcaseMedical,
   Calendar,
   ClipboardCheck,
@@ -84,6 +85,12 @@ const ALL_NAV_ITEMS = [
     url: "calendar",
     icon: Calendar,
     roles: ["admin", "patient", "doctor"],
+  },
+  {
+    title: "Notification",
+    url: "notification",
+    icon: Bell,
+    roles: ["admin", "doctor", "patient", "pharmacist"],
   },
   {
     title: "Chat",

@@ -108,7 +108,7 @@ export const patientColumns: ColumnDef<PatientResponseDto>[] = [
       variant: "text",
       icon: User,
     },
-    enableColumnFilter: false,
+    enableColumnFilter: true,
   },
   {
     id: "phone",
@@ -128,6 +128,7 @@ export const patientColumns: ColumnDef<PatientResponseDto>[] = [
       variant: "text",
       icon: Phone,
     },
+    enableColumnFilter: true,
   },
   {
     id: "status",
@@ -192,7 +193,7 @@ export const patientColumns: ColumnDef<PatientResponseDto>[] = [
         </div>
       );
     },
-    enableColumnFilter: false,
+    enableColumnFilter: true,
   },
   {
     id: "actions",

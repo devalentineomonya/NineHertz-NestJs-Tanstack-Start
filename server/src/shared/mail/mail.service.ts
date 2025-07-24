@@ -6,6 +6,10 @@ import {
   otpEmailProps,
   ResetPasswordEmail,
 } from './templates/mail.templates';
+import {
+  appointmentCreatedEmail,
+  appointmentReminderEmail,
+} from './templates/appointment.templates';
 
 @Injectable()
 export class MailService {
@@ -54,5 +58,30 @@ export class MailService {
       subject,
       html,
     });
+  }
+  async sendAppointmentCreated(
+    to: string,
+    props: {
+      patientName: string;
+      doctorName: string;
+      appointmentTime: string;
+      meetingLink?: string;
+    },
+  ): Promise<nodemailer.SentMessageInfo> {
+    const html = appointmentCreatedEmail(props);
+    return this.sendEmail(to, 'Your Appointment is Confirmed', html);
+  }
+
+  async sendAppointmentReminder(
+    to: string,
+    props: {
+      patientName: string;
+      doctorName: string;
+      appointmentTime: string;
+      meetingLink?: string;
+    },
+  ): Promise<nodemailer.SentMessageInfo> {
+    const html = appointmentReminderEmail(props);
+    return this.sendEmail(to, 'Appointment Reminder', html);
   }
 }

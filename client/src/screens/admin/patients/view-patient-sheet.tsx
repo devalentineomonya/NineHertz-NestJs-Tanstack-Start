@@ -306,7 +306,7 @@ const OverviewTab = ({
                 .map((item) => (
                   <TableRow key={item.id}>
                     <TableCell>
-                      {format(new Date(item.createdAt), "MMM dd, yyyy")}
+                      {format(item.createdAt ?? new Date(), "MMM dd, yyyy")}
                     </TableCell>
                     <TableCell>
                       {item.activityType === "appointment"
@@ -625,7 +625,8 @@ const OrdersTab = ({
                     ?.slice(0, 2)
                     .map((item) => item.medicine.name)
                     .join(", ")}
-                  {order.items?.length > 2 && ` +${order.items?.length - 2} more`}
+                  {order.items?.length > 2 &&
+                    ` +${order.items?.length - 2} more`}
                 </TableCell>
                 <TableCell>Kes {order.totalAmount}</TableCell>
                 <TableCell>

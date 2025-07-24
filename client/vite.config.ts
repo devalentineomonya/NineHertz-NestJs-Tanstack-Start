@@ -58,6 +58,9 @@ export default defineConfig({
     tailwindcss(),
   ],
   optimizeDeps: {
-    include: ["stream-chat", "stream-chat-react"],
+    include: ["react", "react-dom", "stream-chat", "stream-chat-react"],
+  },
+  resolve: {
+    dedupe: ["react", "react-dom"],
   },
 });

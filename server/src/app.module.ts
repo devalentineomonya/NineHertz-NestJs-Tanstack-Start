@@ -22,6 +22,7 @@ import { AccessTokenGuard } from './auth/guards/access-token.guard';
 import { RolesGuard } from './auth/guards/roles.guard';
 import { ContactHelper } from './shared/helpers/contact.helper';
 import { AppController } from './app.controller';
+import { NotificationModule } from './notification/notification.module';
 
 @Module({
   imports: [
@@ -38,6 +39,7 @@ import { AppController } from './app.controller';
     DatabaseModule,
     AuthModule,
     ChatModule,
+    NotificationModule,
 
     CacheModule.registerAsync({
       imports: [ConfigModule],

@@ -7,7 +7,7 @@ import { InjectRepository } from '@nestjs/typeorm';
 import { AppointmentStatus } from 'src/enums/appointment.enum';
 import { PaginationDto } from 'src/shared/dto/pagination.dto';
 import { StreamService } from 'src/stream/stream.service';
-import { FindOptionsWhere, Repository } from 'typeorm';
+import { Between, FindOptionsWhere, Repository } from 'typeorm';
 import { Doctor } from '../doctor/entities/doctor.entity';
 import { Patient } from '../patient/entities/patient.entity';
 import { AppointmentFilter } from './dto/appointment-filter.dto';
@@ -16,6 +16,8 @@ import { AppointmentResponseDto } from './dto/appointment-response.dto';
 import { CreateAppointmentDto } from './dto/create-appointment.dto';
 import { UpdateAppointmentDto } from './dto/update-appointment.dto';
 import { Appointment, AppointmentMode } from './entities/appointment.entity';
+import { NotificationService } from 'src/notification/notification.service';
+import { MailService } from 'src/shared/mail/mail.service';
 
 @Injectable()
 export class AppointmentService {
@@ -27,6 +29,8 @@ export class AppointmentService {
     @InjectRepository(Doctor)
     private doctorRepository: Repository<Doctor>,
     private streamService: StreamService,
+    private notificationService: NotificationService,
+    private mailService: MailService,
   ) {}
 
   async create(
@@ -36,6 +40,7 @@ export class AppointmentService {
 
     const patient = await this.patientRepository.findOne({
       where: { id: patientId },
+      relations: ['user'],
     });
     if (!patient)
       throw new NotFoundException(`Patient with ID ${patientId} not found`);
@@ -83,6 +88,30 @@ export class AppointmentService {
     });
 
     const savedAppointment = await this.appointmentRepository.save(appointment);
+
+    await this.mailService.sendAppointmentCreated(patient.user.email, {
+      patientName: patient.fullName,
+      doctorName: doctor.fullName,
+      appointmentTime: appointment.datetime.toLocaleString(),
+      meetingLink:
+        appointment.mode === AppointmentMode.VIRTUAL
+          ? `https://medic.devalentine.me/call/join/${appointment.videoSessionId}`
+          : undefined,
+    });
+
+    const notification = {
+      message: `New appointment scheduled with Dr. ${doctor.fullName}`,
+      appointmentId: savedAppointment.id,
+      datetime: savedAppointment.datetime,
+    };
+
+    await this.notificationService.triggerNotification(patient.user.id, {
+      ...notification,
+      eventType: 'appointment',
+      eventId: savedAppointment.id,
+      datatime: new Date().toISOString(),
+    });
+
     return this.mapToResponseDto(savedAppointment);
   }
 
@@ -227,44 +256,83 @@ export class AppointmentService {
     }
 
     // Check if the appointment is virtual
-    // if (appointment.mode !== AppointmentMode.VIRTUAL) {
-    //   throw new BadRequestException(
-    //     'This appointment is not a virtual meeting',
-    //   );
-    // }
+    if (appointment.mode !== AppointmentMode.VIRTUAL) {
+      throw new BadRequestException(
+        'This appointment is not a virtual meeting',
+      );
+    }
 
-    // if (appointment.status === AppointmentStatus.CANCELLED) {
-    //   throw new BadRequestException('This appointment has been cancelled');
-    // }
+    if (appointment.status === AppointmentStatus.CANCELLED) {
+      throw new BadRequestException('This appointment has been cancelled');
+    }
 
-    // if (appointment.status === AppointmentStatus.COMPLETED) {
-    //   throw new BadRequestException(
-    //     'This appointment has already been completed',
-    //   );
-    // }
+    if (appointment.status === AppointmentStatus.COMPLETED) {
+      throw new BadRequestException(
+        'This appointment has already been completed',
+      );
+    }
 
-    // // Check if the current time is within the appointment time window
-    // const now = new Date();
-    // const startTime = appointment.startTime;
-    // const endTime = appointment.endTime;
+    // Check if the current time is within the appointment time window
+    const now = new Date();
+    const startTime = appointment.startTime;
+    const endTime = appointment.endTime;
 
-    // if (now < startTime || now > endTime) {
-    //   throw new BadRequestException('The appointment is not currently active');
-    // }
+    if (now < startTime || now > endTime) {
+      throw new BadRequestException('The appointment is not currently active');
+    }
 
     // Check if user is a participant
-    // const isParticipant = [
-    //   appointment.patient.id,
-    //   appointment.doctor.id,
-    // ].includes(userId);
-    // if (!isParticipant) {
-    //   throw new BadRequestException(
-    //     'User is not a participant of this appointment',
-    //   );
-    // }
+    const isParticipant = [
+      appointment.patient.id,
+      appointment.doctor.id,
+    ].includes(userId);
+    if (!isParticipant) {
+      throw new BadRequestException(
+        'User is not a participant of this appointment',
+      );
+    }
 
     const token = this.streamService.generateUserToken(userId);
     return { token };
+  }
+  async sendAppointmentReminders() {
+    const now = new Date();
+    const reminderTime = new Date(now.getTime() + 15 * 60000); // 15 minutes from now
+
+    const appointments = await this.appointmentRepository.find({
+      where: {
+        datetime: Between(now, reminderTime),
+        status: AppointmentStatus.SCHEDULED,
+      },
+      relations: ['patient', 'patient.user', 'doctor'],
+    });
+
+    for (const appointment of appointments) {
+      // Send Pusher notification
+      await this.notificationService.triggerNotification(
+        appointment.patient.user.id,
+        {
+          datatime: new Date().toLocaleDateString(),
+          message: `Your appointment with Dr. ${appointment.doctor.fullName} starts in 15 minutes`,
+          appointmentId: appointment.id,
+          eventType: 'reminder',
+          eventId: appointment.id,
+        },
+      );
+      await this.mailService.sendAppointmentReminder(
+        appointment.patient.user?.email,
+        {
+          patientName: appointment.patient.fullName,
+          doctorName: appointment.doctor.fullName,
+          appointmentTime: appointment.datetime.toLocaleString(),
+          meetingLink:
+            appointment.mode === AppointmentMode.VIRTUAL
+              ? `https://medic.devalentine.me/call/join/${appointment.videoSessionId}`
+              : undefined,
+        },
+      );
+      await this.appointmentRepository.save(appointment);
+    }
   }
 
   async remove(id: string): Promise<void> {
