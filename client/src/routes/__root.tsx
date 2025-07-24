@@ -52,21 +52,21 @@ function RootDocument({ children }: { children: React.ReactNode }) {
   const isOffline = useOffline();
   const { getCurrentUser } = useUserSessionStore();
   const user = getCurrentUser();
-  // React.useEffect(() => {
-  //   if ("serviceWorker" in navigator && import.meta.env.PROD) {
-  //     navigator.serviceWorker
-  //       .register("/sw.js")
-  //       .then((reg) => {
-  //         console.log("Service Worker registered: ", reg);
-  //         if (!navigator.serviceWorker.controller) {
-  //           window.location.reload();
-  //         }
-  //       })
-  //       .catch((error) => {
-  //         console.log("Service Worker registration failed: ", error);
-  //       });
-  //   }
-  // }, []);
+  React.useEffect(() => {
+    if ("serviceWorker" in navigator && import.meta.env.PROD) {
+      navigator.serviceWorker
+        .register("/sw.js")
+        .then((reg) => {
+          console.log("Service Worker registered: ", reg);
+          if (!navigator.serviceWorker.controller) {
+            window.location.reload();
+          }
+        })
+        .catch((error) => {
+          console.log("Service Worker registration failed: ", error);
+        });
+    }
+  }, []);
 
   const showOfflineAlert =
     isOffline && (import.meta.env.PROD || !navigator.onLine);
