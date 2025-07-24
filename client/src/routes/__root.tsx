@@ -1,24 +1,24 @@
 /// <reference types="vite/client" />
+import { HeadContent, Scripts, createRootRoute } from "@tanstack/react-router";
+import * as React from "react";
 import { NotFound } from "@/components/common/not-found";
 import { DefaultCatchBoundary } from "@/components/common/try-catch-boundary";
-import FooterSection from "@/components/shared/footer/footer";
-import Navbar from "@/components/shared/navbar/navbar";
-import { Toaster } from "@/components/ui/sonner";
-import { seo } from "@/utils/seo";
-import "@stream-io/video-react-sdk/dist/css/styles.css";
-import { HeadContent, Scripts, createRootRoute } from "@tanstack/react-router";
-import { NuqsAdapter } from "nuqs/adapters/react";
-import * as React from "react";
 import appCss from "../styles/index.css?url";
+import { seo } from "@/utils/seo";
+import Navbar from "@/components/shared/navbar/navbar";
+import FooterSection from "@/components/shared/footer/footer";
+import { NuqsAdapter } from "nuqs/adapters/react";
+import { Toaster } from "@/components/ui/sonner";
+import "@stream-io/video-react-sdk/dist/css/styles.css";
 // import "react-big-calendar/lib/sass/styles";
+import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { InstallPWAButton } from "@/components/common/install-pwa-button";
-import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { useOffline } from "@/hooks/use-is-offline";
+import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
+import { WifiOff } from "lucide-react";
+import { Analytics } from "@vercel/analytics/react";
 import { PusherProvider } from "@/providers/pusher-provider";
 import { useUserSessionStore } from "@/stores/user-session-store";
-import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
-import { Analytics } from "@vercel/analytics/react";
-import { WifiOff } from "lucide-react";
 
 export const Route = createRootRoute({
   head: () => ({
@@ -52,21 +52,21 @@ function RootDocument({ children }: { children: React.ReactNode }) {
   const isOffline = useOffline();
   const { getCurrentUser } = useUserSessionStore();
   const user = getCurrentUser();
-  // React.useEffect(() => {
-  //   if ("serviceWorker" in navigator && import.meta.env.PROD) {
-  //     navigator.serviceWorker
-  //       .register("/sw.js")
-  //       .then((reg) => {
-  //         console.log("Service Worker registered: ", reg);
-  //         if (!navigator.serviceWorker.controller) {
-  //           window.location.reload();
-  //         }
-  //       })
-  //       .catch((error) => {
-  //         console.log("Service Worker registration failed: ", error);
-  //       });
-  //   }
-  // }, []);
+  React.useEffect(() => {
+    if ("serviceWorker" in navigator && import.meta.env.PROD) {
+      navigator.serviceWorker
+        .register("/sw.js")
+        .then((reg) => {
+          console.log("Service Worker registered: ", reg);
+          if (!navigator.serviceWorker.controller) {
+            window.location.reload();
+          }
+        })
+        .catch((error) => {
+          console.log("Service Worker registration failed: ", error);
+        });
+    }
+  }, []);
 
   const showOfflineAlert =
     isOffline && (import.meta.env.PROD || !navigator.onLine);

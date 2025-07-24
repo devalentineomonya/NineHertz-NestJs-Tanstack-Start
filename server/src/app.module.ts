@@ -8,13 +8,13 @@ import { AppointmentModule } from './appointment/appointment.module';
 import { AdminModule } from './admin/admin.module';
 import { DoctorModule } from './doctor/doctor.module';
 import { PatientModule } from './patient/patient.module';
-import { CacheInterceptor, CacheModule } from '@nestjs/cache-manager';
+// import { CacheInterceptor, CacheModule } from '@nestjs/cache-manager';
 import { ConfigModule, ConfigService } from '@nestjs/config';
 import { DatabaseModule } from './database/database.module';
-import { createKeyv, Keyv } from '@keyv/redis';
-import { CacheableMemory } from 'cacheable';
+// import { createKeyv, Keyv } from '@keyv/redis';
+// import { CacheableMemory } from 'cacheable';
 import { ThrottlerGuard, ThrottlerModule } from '@nestjs/throttler';
-import { APP_INTERCEPTOR, APP_GUARD } from '@nestjs/core';
+import { APP_GUARD } from '@nestjs/core';
 import { AuthModule } from './auth/auth.module';
 import { PharmacistModule } from './pharmacist/pharmacist.module';
 import { ChatModule } from './chat/chat.module';
@@ -42,22 +42,22 @@ import { DashboardModule } from './dashboard/dashboard.module';
     ChatModule,
     NotificationModule,
 
-    CacheModule.registerAsync({
-      imports: [ConfigModule],
-      inject: [ConfigService],
-      isGlobal: true,
-      useFactory: (configService: ConfigService) => {
-        return {
-          ttl: 60000,
-          stores: [
-            new Keyv({
-              store: new CacheableMemory({ ttl: 30000, lruSize: 5000 }),
-            }),
-            createKeyv(configService.getOrThrow<string>('REDIS_URL')),
-          ],
-        };
-      },
-    }),
+    // CacheModule.registerAsync({
+    //   imports: [ConfigModule],
+    //   inject: [ConfigService],
+    //   isGlobal: true,
+    //   useFactory: (configService: ConfigService) => {
+    //     return {
+    //       ttl: 60000,
+    //       stores: [
+    //         new Keyv({
+    //           store: new CacheableMemory({ ttl: 30000, lruSize: 5000 }),
+    //         }),
+    //         createKeyv(configService.getOrThrow<string>('REDIS_URL')),
+    //       ],
+    //     };
+    //   },
+    // }),
     ThrottlerModule.forRootAsync({
       imports: [ConfigModule],
       inject: [ConfigService],
@@ -73,10 +73,10 @@ import { DashboardModule } from './dashboard/dashboard.module';
   controllers: [AppController],
   providers: [
     ContactHelper,
-    {
-      provide: APP_INTERCEPTOR,
-      useClass: CacheInterceptor,
-    },
+    // {
+    //   provide: APP_INTERCEPTOR,
+    //   useClass: CacheInterceptor,
+    // },
     {
       provide: APP_GUARD,
       useClass: ThrottlerGuard,
