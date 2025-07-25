@@ -1,4 +1,4 @@
-import { Calendar, dateFnsLocalizer, Views } from "react-big-calendar";
+import { Calendar, dateFnsLocalizer, View, Views } from "react-big-calendar";
 import { startOfWeek, getDay, format, parse } from "date-fns";
 import { enUS } from "date-fns/locale";
 import "react-big-calendar/lib/css/react-big-calendar.css";
@@ -56,14 +56,9 @@ export function DoctorScheduler() {
 
     const availabilityEvents: Event[] = availability.flatMap(
       (slot: Availability) => {
-        const startDate = new Date(slot.startTime);
-        const endDate = new Date(slot.endTime);
-
         return {
-          id: `available-${slot.id}`,
+          id: `available-${slot.hours.join(",")}`,
           title: "Available",
-          start: startDate,
-          end: endDate,
           patient: { id: "", name: "" },
           type: "availability",
         };
@@ -131,8 +126,8 @@ export function DoctorScheduler() {
         endAccessor="end"
         style={{ height: "100%" }}
         views={{ month: true, week: true, day: true, agenda: true }}
-        view={view}
-        onView={setView}
+        view={view as unknown as View}
+        onView={(view) => setView(view as keyof typeof Views)}
         date={date}
         onNavigate={setDate}
         selectable
