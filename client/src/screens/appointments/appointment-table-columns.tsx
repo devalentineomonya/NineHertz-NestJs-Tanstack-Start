@@ -59,6 +59,26 @@ const statusVariants = {
   [AppointmentStatus.CANCELLED]: "destructive",
 };
 
+// Add custom filter functions
+const dateRangeFilterFn = (row: any, columnId: string, value: [Date, Date]) => {
+  if (!value || value.length !== 2) return true;
+  const [start, end] = value;
+  const rowValue = new Date(row.getValue(columnId));
+  return rowValue >= start && rowValue <= end;
+};
+
+const multiSelectFilterFn = (row: any, columnId: string, value: string[]) => {
+  if (!value || value.length === 0) return true;
+  const rowValue = row.getValue(columnId);
+  return value.includes(rowValue);
+};
+
+const textFilterFn = (row: any, columnId: string, value: string) => {
+  if (!value) return true;
+  const rowValue = row.getValue(columnId);
+  return rowValue?.toLowerCase().includes(value.toLowerCase());
+};
+
 export const appointmentColumns: ColumnDef<AppointmentResponseDto>[] = [
   {
     id: "select",
@@ -90,7 +110,7 @@ export const appointmentColumns: ColumnDef<AppointmentResponseDto>[] = [
       <DataTableColumnHeader column={column} title="Date & Time" />
     ),
     cell: ({ cell }) => {
-      const date = cell.getValue<Date>();
+      const date = new Date(cell.getValue<string>());
       return (
         <div className="flex flex-col">
           <div className="flex items-center gap-2">
@@ -104,12 +124,21 @@ export const appointmentColumns: ColumnDef<AppointmentResponseDto>[] = [
         </div>
       );
     },
+    // Add proper sorting function for dates
+    sortingFn: (rowA, rowB, columnId) => {
+      const dateA = new Date(rowA.getValue(columnId));
+      const dateB = new Date(rowB.getValue(columnId));
+      return dateA.getTime() - dateB.getTime();
+    },
+    // Add custom filter function for date ranges
+    filterFn: dateRangeFilterFn,
     meta: {
       label: "Date",
       variant: "date",
       icon: Calendar,
     },
     enableColumnFilter: true,
+    enableSorting: true,
   },
   {
     id: "type",
@@ -121,9 +150,17 @@ export const appointmentColumns: ColumnDef<AppointmentResponseDto>[] = [
       const type = cell.getValue<AppointmentType>();
       return (
         <Badge variant="secondary" className="capitalize">
-          {type}
+          {type?.replace("_", " ")}
         </Badge>
       );
+    },
+    // Add custom filter function
+    filterFn: multiSelectFilterFn,
+    // Add sorting function
+    sortingFn: (rowA, rowB, columnId) => {
+      const valueA = rowA.getValue(columnId) as string;
+      const valueB = rowB.getValue(columnId) as string;
+      return valueA?.localeCompare(valueB) || 0;
     },
     meta: {
       label: "Type",
@@ -134,6 +171,7 @@ export const appointmentColumns: ColumnDef<AppointmentResponseDto>[] = [
       })),
     },
     enableColumnFilter: true,
+    enableSorting: true,
   },
   {
     id: "mode",
@@ -151,6 +189,14 @@ export const appointmentColumns: ColumnDef<AppointmentResponseDto>[] = [
         </Badge>
       );
     },
+    // Add custom filter function
+    filterFn: multiSelectFilterFn,
+    // Add sorting function
+    sortingFn: (rowA, rowB, columnId) => {
+      const valueA = rowA.getValue(columnId) as string;
+      const valueB = rowB.getValue(columnId) as string;
+      return valueA?.localeCompare(valueB) || 0;
+    },
     meta: {
       label: "Mode",
       variant: "multiSelect",
@@ -160,34 +206,48 @@ export const appointmentColumns: ColumnDef<AppointmentResponseDto>[] = [
       ],
     },
     enableColumnFilter: true,
+    enableSorting: true,
   },
   {
     id: "patient",
-    accessorFn: (row) => row.patient.fullName,
+    accessorFn: (row) => row.patient?.fullName || "",
     header: ({ column }) => (
       <DataTableColumnHeader column={column} title="Patient" />
     ),
-    cell: ({ row }) => (
-      <div className="flex items-center gap-3">
-        <Avatar className="w-10 h-10 rounded-md overflow-hidden">
-          <AvatarImage
-            src={`https://avatar.vercel.sh/${
-              row.original.id
-            }.png?name=${encodeURIComponent(row.original.patient.fullName)}`}
-            alt={row.original.patient.fullName}
-          />
-          <AvatarFallback>
-            {row.original.patient.fullName
-              .split(" ")
-              .map((n) => n[0])
-              .join("")
-              .slice(0, 2)
-              .toUpperCase()}
-          </AvatarFallback>
-        </Avatar>
-        <div className="font-medium">{row.original.patient.fullName}</div>
-      </div>
-    ),
+    cell: ({ row }) => {
+      const patient = row.original.patient;
+      if (!patient) return null;
+
+      return (
+        <div className="flex items-center gap-3">
+          <Avatar className="w-10 h-10 rounded-md overflow-hidden">
+            <AvatarImage
+              src={`https://avatar.vercel.sh/${
+                row.original.id
+              }.png?name=${encodeURIComponent(patient.fullName)}`}
+              alt={patient.fullName}
+            />
+            <AvatarFallback>
+              {patient.fullName
+                .split(" ")
+                .map((n) => n[0])
+                .join("")
+                .slice(0, 2)
+                .toUpperCase()}
+            </AvatarFallback>
+          </Avatar>
+          <div className="font-medium">{patient.fullName}</div>
+        </div>
+      );
+    },
+    // Add custom filter function
+    filterFn: textFilterFn,
+    // Add sorting function
+    sortingFn: (rowA, rowB, columnId) => {
+      const valueA = rowA.getValue(columnId) as string;
+      const valueB = rowB.getValue(columnId) as string;
+      return valueA?.localeCompare(valueB) || 0;
+    },
     meta: {
       label: "Patient",
       placeholder: "Search patients...",
@@ -195,39 +255,53 @@ export const appointmentColumns: ColumnDef<AppointmentResponseDto>[] = [
       icon: User,
     },
     enableColumnFilter: true,
+    enableSorting: true,
   },
   {
     id: "doctor",
-    accessorFn: (row) => row.doctor.fullName,
+    accessorFn: (row) => row.doctor?.fullName || "",
     header: ({ column }) => (
       <DataTableColumnHeader column={column} title="Doctor" />
     ),
-    cell: ({ row }) => (
-      <div className="flex items-center gap-3">
-        <Avatar className="w-10 h-10 rounded-md overflow-hidden">
-          <AvatarImage
-            src={`https://avatar.vercel.sh/${
-              row.original.id
-            }.png?name=${encodeURIComponent(row.original.doctor.fullName)}`}
-            alt={row.original.doctor.fullName}
-          />
-          <AvatarFallback>
-            {row.original.doctor.fullName
-              .split(" ")
-              .map((n) => n[0])
-              .join("")
-              .slice(0, 2)
-              .toUpperCase()}
-          </AvatarFallback>
-        </Avatar>
-        <div>
-          <div className="font-medium">{row.original.doctor.fullName}</div>
-          <div className="text-sm text-gray-500">
-            {row.original.doctor.specialty}
+    cell: ({ row }) => {
+      const doctor = row.original.doctor;
+      if (!doctor) return null;
+
+      return (
+        <div className="flex items-center gap-3">
+          <Avatar className="w-10 h-10 rounded-md overflow-hidden">
+            <AvatarImage
+              src={`https://avatar.vercel.sh/${
+                row.original.id
+              }.png?name=${encodeURIComponent(doctor.fullName)}`}
+              alt={doctor.fullName}
+            />
+            <AvatarFallback>
+              {doctor.fullName
+                .split(" ")
+                .map((n) => n[0])
+                .join("")
+                .slice(0, 2)
+                .toUpperCase()}
+            </AvatarFallback>
+          </Avatar>
+          <div>
+            <div className="font-medium">{doctor.fullName}</div>
+            <div className="text-sm text-gray-500">
+              {doctor.specialty}
+            </div>
           </div>
         </div>
-      </div>
-    ),
+      );
+    },
+    // Add custom filter function
+    filterFn: textFilterFn,
+    // Add sorting function
+    sortingFn: (rowA, rowB, columnId) => {
+      const valueA = rowA.getValue(columnId) as string;
+      const valueB = rowB.getValue(columnId) as string;
+      return valueA?.localeCompare(valueB) || 0;
+    },
     meta: {
       label: "Doctor",
       placeholder: "Search doctors...",
@@ -235,6 +309,7 @@ export const appointmentColumns: ColumnDef<AppointmentResponseDto>[] = [
       icon: Stethoscope,
     },
     enableColumnFilter: true,
+    enableSorting: true,
   },
   {
     id: "status",
@@ -259,6 +334,21 @@ export const appointmentColumns: ColumnDef<AppointmentResponseDto>[] = [
         </Badge>
       );
     },
+    // Add custom filter function
+    filterFn: multiSelectFilterFn,
+    // Add sorting function with custom order
+    sortingFn: (rowA, rowB, columnId) => {
+      const statusOrder = {
+        [AppointmentStatus.SCHEDULED]: 0,
+        [AppointmentStatus.COMPLETED]: 1,
+        [AppointmentStatus.CANCELLED]: 2,
+      };
+
+      const valueA = rowA.getValue(columnId) as AppointmentStatus;
+      const valueB = rowB.getValue(columnId) as AppointmentStatus;
+
+      return (statusOrder[valueA] ?? 999) - (statusOrder[valueB] ?? 999);
+    },
     meta: {
       label: "Status",
       variant: "multiSelect",
@@ -281,6 +371,7 @@ export const appointmentColumns: ColumnDef<AppointmentResponseDto>[] = [
       ],
     },
     enableColumnFilter: true,
+    enableSorting: true,
   },
   {
     id: "createdAt",
@@ -289,13 +380,20 @@ export const appointmentColumns: ColumnDef<AppointmentResponseDto>[] = [
       <DataTableColumnHeader column={column} title="Created" />
     ),
     cell: ({ cell }) => {
-      const date = cell.getValue<Date>();
+      const date = new Date(cell.getValue<string>());
       return (
         <div className="text-sm text-gray-500">
           {format(date, "MMMM dd, yyyy")}
         </div>
       );
     },
+    // Add proper sorting function for dates
+    sortingFn: (rowA, rowB, columnId) => {
+      const dateA = new Date(rowA.getValue(columnId));
+      const dateB = new Date(rowB.getValue(columnId));
+      return dateA.getTime() - dateB.getTime();
+    },
+    enableSorting: true,
   },
   {
     id: "actions",
@@ -367,5 +465,7 @@ export const appointmentColumns: ColumnDef<AppointmentResponseDto>[] = [
       );
     },
     size: 32,
+    enableSorting: false,
+    enableHiding: false,
   },
 ];

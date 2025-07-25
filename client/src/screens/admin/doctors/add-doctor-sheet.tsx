@@ -48,7 +48,6 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 
-
 import { DoctorFormValues, daysOfWeek, doctorFormSchema } from "./doctor-date";
 
 export const AddDoctorDrawer = () => {
@@ -231,7 +230,7 @@ export const AddDoctorDrawer = () => {
                       defaultValue={field.value}
                     >
                       <FormControl>
-                        <SelectTrigger>
+                        <SelectTrigger className="w-full">
                           <SelectValue placeholder="Select specialty" />
                         </SelectTrigger>
                       </FormControl>

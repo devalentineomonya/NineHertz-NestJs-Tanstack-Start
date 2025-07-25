@@ -23,6 +23,7 @@ import {
   User,
   XCircle,
 } from "lucide-react";
+import { motion } from "framer-motion";
 
 const calculateAge = (dob: string | null | Date): string => {
   if (!dob) return "N/A";
@@ -40,6 +41,25 @@ const calculateAge = (dob: string | null | Date): string => {
   }
 
   return `${age} years`;
+};
+
+const rowVariants = {
+  hidden: { opacity: 0, y: 20 },
+  visible: (i: number) => ({
+    opacity: 1,
+    y: 0,
+    transition: {
+      delay: i * 0.05,
+      duration: 0.3,
+    },
+  }),
+};
+
+const gradientVariants = {
+  hover: {
+    backgroundPosition: ["0% 50%", "100% 50%", "0% 50%"],
+  },
+  initial: { backgroundPosition: "0% 50%" },
 };
 
 export const patientColumns: ColumnDef<PatientResponseDto>[] = [
@@ -70,11 +90,14 @@ export const patientColumns: ColumnDef<PatientResponseDto>[] = [
     id: "fullName",
     accessorKey: "fullName",
     header: ({ column }) => (
-      <DataTableColumnHeader column={column} title="Patient" />
+      <DataTableColumnHeader
+        column={column}
+        title="Patient"
+        className="bg-gradient-to-r from-indigo-500/10 to-purple-500/10"
+      />
     ),
     cell: ({ row }) => {
       const patient = row.original;
-      // Generate initials for avatar fallback
       const initials = patient.fullName
         .split(" ")
         .map((n) => n[0])
@@ -83,23 +106,36 @@ export const patientColumns: ColumnDef<PatientResponseDto>[] = [
         .toUpperCase();
 
       return (
-        <div className="flex items-center gap-3">
-          <Avatar className="w-10 h-10 rounded-md">
-            <AvatarImage
-              src={`https://avatar.vercel.sh/${
-                patient.id
-              }.png?name=${encodeURIComponent(patient.fullName)}`}
-              alt={patient.fullName}
-            />
-            <AvatarFallback>{initials}</AvatarFallback>
-          </Avatar>
+        <motion.div
+          className="flex items-center gap-3"
+          custom={row.index}
+          variants={rowVariants}
+          initial="hidden"
+          animate="visible"
+        >
+          <motion.div whileHover={{ scale: 1.05 }} whileTap={{ scale: 0.95 }}>
+            <Avatar className="w-10 h-10 rounded-md ring-2 ring-white shadow-lg">
+              <AvatarImage
+                src={`https://avatar.vercel.sh/${
+                  patient.id
+                }.png?name=${encodeURIComponent(patient.fullName)}`}
+                alt={patient.fullName}
+                className="object-cover"
+              />
+              <AvatarFallback className="bg-gradient-to-br from-indigo-500 to-purple-600 text-white">
+                {initials}
+              </AvatarFallback>
+            </Avatar>
+          </motion.div>
           <div>
-            <div className="font-medium">{patient.fullName}</div>
-            <div className="text-sm text-gray-500">
+            <div className="font-medium text-gray-800 dark:text-white">
+              {patient.fullName}
+            </div>
+            <div className="text-sm text-gray-500 dark:text-gray-400">
               {calculateAge(patient.dateOfBirth)}
             </div>
           </div>
-        </div>
+        </motion.div>
       );
     },
     meta: {
@@ -114,13 +150,21 @@ export const patientColumns: ColumnDef<PatientResponseDto>[] = [
     id: "phone",
     accessorKey: "phone",
     header: ({ column }) => (
-      <DataTableColumnHeader column={column} title="Phone" />
+      <DataTableColumnHeader
+        column={column}
+        title="Phone"
+        className="bg-gradient-to-r from-cyan-500/10 to-blue-500/10"
+      />
     ),
     cell: ({ cell }) => (
-      <div className="flex items-center gap-2">
-        <Phone className="size-4 text-gray-500" />
-        {cell.getValue<string>()}
-      </div>
+      <motion.div
+        className="flex items-center gap-2"
+        whileHover={{ x: 5 }}
+        transition={{ type: "spring", stiffness: 300 }}
+      >
+        <Phone className="size-4 text-blue-500" />
+        <span className="font-mono">{cell.getValue<string>()}</span>
+      </motion.div>
     ),
     meta: {
       label: "Phone",
@@ -134,18 +178,29 @@ export const patientColumns: ColumnDef<PatientResponseDto>[] = [
     id: "status",
     accessorKey: "status",
     header: ({ column }) => (
-      <DataTableColumnHeader column={column} title="Status" />
+      <DataTableColumnHeader
+        column={column}
+        title="Status"
+        className="bg-gradient-to-r from-emerald-500/10 to-green-500/10"
+      />
     ),
     cell: ({ cell }) => {
       const status = cell.getValue();
       const Icon = status === "active" ? CheckCircle : XCircle;
-      const variant = status === "active" ? "default" : "secondary";
 
       return (
-        <Badge variant={variant} className="capitalize gap-2">
-          <Icon className="size-4" />
-          {status as string}
-        </Badge>
+        <motion.div whileHover={{ scale: 1.05 }} whileTap={{ scale: 0.95 }}>
+          <Badge
+            className={`capitalize gap-2 ${
+              status === "active"
+                ? "bg-gradient-to-r from-emerald-500 to-green-600 text-white shadow-lg shadow-emerald-500/20"
+                : "bg-gradient-to-r from-rose-500 to-pink-600 text-white shadow-lg shadow-rose-500/20"
+            }`}
+          >
+            <Icon className="size-4" />
+            {status as string}
+          </Badge>
+        </motion.div>
       );
     },
     meta: {
@@ -164,33 +219,66 @@ export const patientColumns: ColumnDef<PatientResponseDto>[] = [
     accessorFn: (row) =>
       row.dateOfBirth ? new Date(row.dateOfBirth).getTime() : null,
     header: ({ column }) => (
-      <DataTableColumnHeader column={column} title="Date of Birth" />
+      <DataTableColumnHeader
+        column={column}
+        title="Date of Birth"
+        className="bg-gradient-to-r from-amber-500/10 to-orange-500/10"
+      />
     ),
     cell: ({ row }) => {
       const dob = row.original.dateOfBirth;
       return (
-        <div className="flex items-center gap-2">
-          <Calendar className="size-4 text-gray-500" />
-          {dob ? new Date(dob).toLocaleDateString() : "N/A"}
-        </div>
+        <motion.div
+          className="flex items-center gap-2"
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 1 }}
+          transition={{ delay: 0.2 }}
+        >
+          <Calendar className="size-4 text-amber-500" />
+          <span className="text-gray-700 dark:text-gray-300">
+            {dob ? new Date(dob).toLocaleDateString() : "N/A"}
+          </span>
+        </motion.div>
       );
     },
     enableColumnFilter: false,
   },
   {
-    id: "appointments",
-    accessorKey: "appointments",
+    id: "medicalHistory",
+    accessorKey: "medicalHistory",
     accessorFn: (row) => row.appointments?.length || 0,
     header: ({ column }) => (
-      <DataTableColumnHeader column={column} title="Appointments" />
+      <DataTableColumnHeader
+        column={column}
+        title="Medical History"
+        className="bg-gradient-to-r from-violet-500/10 to-fuchsia-500/10"
+      />
     ),
     cell: ({ row }) => {
-      const count = row.getValue("appointmentsCount") as number;
+      const count = row.original.medicalHistory?.allergies?.length ?? 0;
       return (
-        <div className="flex items-center gap-2">
-          <Stethoscope className="size-4 text-gray-500" />
-          <span>{count}</span>
-        </div>
+        <motion.div
+          className="flex items-center gap-2"
+          whileHover={{ scale: 1.1 }}
+        >
+          <Stethoscope className="size-4 text-violet-500" />
+          <motion.span
+            className="w-6 h-6 rounded-full flex items-center justify-center text-xs font-bold text-white"
+            animate={{
+              background: [
+                "linear-gradient(45deg, #8b5cf6, #ec4899)",
+                "linear-gradient(45deg, #ec4899, #8b5cf6)",
+              ],
+            }}
+            transition={{
+              duration: 2,
+              repeat: Infinity,
+              repeatType: "reverse",
+            }}
+          >
+            {count}
+          </motion.span>
+        </motion.div>
       );
     },
     enableColumnFilter: true,
@@ -204,40 +292,92 @@ export const patientColumns: ColumnDef<PatientResponseDto>[] = [
       const { getCurrentUser } = useUserSessionStore();
       const currentUser = getCurrentUser();
       return (
-        <DropdownMenu>
-          <DropdownMenuTrigger asChild>
-            <Button variant="ghost" size="icon">
-              <MoreHorizontal className="h-4 w-4" />
-              <span className="sr-only">Open menu</span>
-            </Button>
-          </DropdownMenuTrigger>
-          <DropdownMenuContent align="end">
-            <DropdownMenuItem
-              onClick={() =>
-                onViewPatientOpen(cell.row.original.id, cell.row.original)
-              }
+        <motion.div
+          initial={{ opacity: 0, scale: 0.8 }}
+          animate={{ opacity: 1, scale: 1 }}
+          transition={{ delay: 0.3 }}
+        >
+          <DropdownMenu>
+            <DropdownMenuTrigger asChild>
+              <motion.button
+                whileHover={{ scale: 1.1 }}
+                whileTap={{ scale: 0.9 }}
+                className="p-2 rounded-full hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors"
+              >
+                <MoreHorizontal className="h-4 w-4" />
+                <span className="sr-only">Open menu</span>
+              </motion.button>
+            </DropdownMenuTrigger>
+            <DropdownMenuContent
+              align="end"
+              className="bg-white dark:bg-gray-800 shadow-xl rounded-xl overflow-hidden"
             >
-              View Details
-            </DropdownMenuItem>
-            {currentUser?.role === "admin" && (
-              <>
-                <DropdownMenuItem
-                  onClick={() =>
-                    onEditPatientOpen(cell.row.original.id, cell.row.original)
-                  }
-                >
-                  Edit Patient
+              <motion.div
+                variants={{
+                  hidden: { opacity: 0 },
+                  visible: {
+                    opacity: 1,
+                    transition: {
+                      staggerChildren: 0.1,
+                    },
+                  },
+                }}
+                initial="hidden"
+                animate="visible"
+              >
+                <DropdownMenuItem asChild>
+                  <motion.div
+                    variants={{
+                      hidden: { x: -10, opacity: 0 },
+                      visible: { x: 0, opacity: 1 },
+                    }}
+                    className="px-4 py-2 hover:bg-gray-50 dark:hover:bg-gray-700 cursor-pointer"
+                    onClick={() =>
+                      onViewPatientOpen(cell.row.original.id, cell.row.original)
+                    }
+                  >
+                    View Details
+                  </motion.div>
                 </DropdownMenuItem>
-                <DropdownMenuItem
-                  onClick={() => onDeletePatientModalOpen(cell.row.original.id)}
-                  variant="destructive"
-                >
-                  Delete
-                </DropdownMenuItem>
-              </>
-            )}
-          </DropdownMenuContent>
-        </DropdownMenu>
+                {currentUser?.role === "admin" && (
+                  <>
+                    <DropdownMenuItem asChild>
+                      <motion.div
+                        variants={{
+                          hidden: { x: -10, opacity: 0 },
+                          visible: { x: 0, opacity: 1 },
+                        }}
+                        className="px-4 py-2 hover:bg-gray-50 dark:hover:bg-gray-700 cursor-pointer"
+                        onClick={() =>
+                          onEditPatientOpen(
+                            cell.row.original.id,
+                            cell.row.original
+                          )
+                        }
+                      >
+                        Edit Patient
+                      </motion.div>
+                    </DropdownMenuItem>
+                    <DropdownMenuItem asChild>
+                      <motion.div
+                        variants={{
+                          hidden: { x: -10, opacity: 0 },
+                          visible: { x: 0, opacity: 1 },
+                        }}
+                        className="px-4 py-2 hover:bg-red-50 dark:hover:bg-red-900/50 text-red-500 cursor-pointer"
+                        onClick={() =>
+                          onDeletePatientModalOpen(cell.row.original.id)
+                        }
+                      >
+                        Delete
+                      </motion.div>
+                    </DropdownMenuItem>
+                  </>
+                )}
+              </motion.div>
+            </DropdownMenuContent>
+          </DropdownMenu>
+        </motion.div>
       );
     },
     size: 32,

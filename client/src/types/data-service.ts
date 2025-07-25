@@ -47,6 +47,7 @@ interface PatientResponseDto extends CreatePatientDto {
   id: string;
   status: "active" | "inactive";
   dateOfBirth: Date;
+  createdAt: Date;
   medicalHistory: Record<string, any>;
   user: UserResponseDto;
   appointments: AppointmentResponseDto[];
@@ -150,7 +151,7 @@ interface MedicineResponseDto extends Required<CreateMedicineDto> {
   createdAt: Date;
   updatedAt: Date;
 }
-interface UpdateMedicineDto extends Partial<CreateMedicineDto> {  }
+interface UpdateMedicineDto extends Partial<CreateMedicineDto> {}
 interface MedicinePaginatedDto {
   readonly data: MedicineResponseDto[];
   total: number;

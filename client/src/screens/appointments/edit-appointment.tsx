@@ -337,14 +337,13 @@ export const EditAppointmentDrawer = () => {
                               "w-full justify-between",
                               !field.value && "text-muted-foreground"
                             )}
-                            disabled={isSubmitting || loadingDoctors}
+                            disabled={isSubmitting || loadingPatients}
                           >
                             {field.value
-                              ? doctors?.data?.find(
-                                  (doctor) => doctor.id === field.value
-                                )?.fullName ||
-                                (loadingDoctors ? "Loading..." : tempDoctorName)
-                              : "Select doctor"}
+                              ? patients?.find(
+                                  (patient) => patient.id === field.value
+                                )?.fullName || "Loading patient..." // Simplified display
+                              : "Select patient"}
                             <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
                           </Button>
                         </FormControl>

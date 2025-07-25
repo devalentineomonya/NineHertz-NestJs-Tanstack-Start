@@ -84,6 +84,7 @@ export const UpdateDoctorDrawer = () => {
       form.reset({
         ...currentDoctor,
         availability: formAvailability,
+        userId: currentDoctor.user.id,
       });
     }
   }, [currentDoctor, form]);
@@ -147,6 +148,7 @@ export const UpdateDoctorDrawer = () => {
     currentAvailability[dayIndex].slots.splice(slotIndex, 1);
     form.setValue("availability", currentAvailability);
   };
+  console.log(form.formState.errors)
 
   return (
     <Drawer direction="right" open={isOpen} onOpenChange={onClose}>
@@ -202,7 +204,7 @@ export const UpdateDoctorDrawer = () => {
                       defaultValue={field.value}
                     >
                       <FormControl>
-                        <SelectTrigger>
+                        <SelectTrigger className="w-full">
                           <SelectValue placeholder="Select specialty" />
                         </SelectTrigger>
                       </FormControl>

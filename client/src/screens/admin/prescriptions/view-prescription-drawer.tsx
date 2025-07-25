@@ -4,13 +4,12 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import {
   Drawer,
-  DrawerClose,
   DrawerContent,
   DrawerFooter,
   DrawerHeader,
   DrawerTitle,
 } from "@/components/ui/drawer";
-import { ScrollArea } from "@/components/ui/scroll-area";
+import { useAddOrderStore } from "@/stores/use-add-order-store";
 import { useViewPrescriptionStore } from "@/stores/use-view-prescription-store";
 import { format, differenceInDays, parseISO } from "date-fns";
 import {
@@ -23,9 +22,6 @@ import {
   FileText,
   Clock,
   ChevronRight,
-  Printer,
-  Check,
-  X,
 } from "lucide-react";
 
 export const ViewPrescriptionDrawer = () => {
@@ -35,6 +31,7 @@ export const ViewPrescriptionDrawer = () => {
     prescription: selectedPrescription,
     id: prescriptionId,
   } = useViewPrescriptionStore();
+  const { onOpen: onAddOrderOpen } = useAddOrderStore();
 
   if (!selectedPrescription) return null;
 
@@ -69,7 +66,7 @@ export const ViewPrescriptionDrawer = () => {
           </Badge>
         </DrawerHeader>
 
-        <ScrollArea className="px-6 py-4 flex-1 h-[calc(100vh-150px)]">
+        <div className="px-6 py-4 overflow-y-auto space-y-4">
           <div className="space-y-6">
             {/* Prescription Summary Card - Updated with status indicator */}
             <Card>
@@ -418,7 +415,12 @@ export const ViewPrescriptionDrawer = () => {
               </CardContent>
             </Card>
           </div>
-        </ScrollArea>
+        </div>
+        <DrawerFooter className="pb-6">
+          <Button onClick={() => onAddOrderOpen()} variant={"primary"}>
+            Create Order
+          </Button>
+        </DrawerFooter>
       </DrawerContent>
     </Drawer>
   );

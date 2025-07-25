@@ -1,6 +1,5 @@
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Badge } from "@/components/ui/badge";
-import { Button } from "@/components/ui/button";
 import {
   Card,
   CardContent,
@@ -8,7 +7,11 @@ import {
   CardHeader,
   CardTitle,
 } from "@/components/ui/card";
-import { Drawer, DrawerContent, DrawerHeader } from "@/components/ui/drawer";
+import {
+  Drawer,
+  DrawerContent,
+  DrawerHeader,
+} from "@/components/ui/drawer";
 import { Separator } from "@/components/ui/separator";
 import { Skeleton } from "@/components/ui/skeleton";
 import {
@@ -84,17 +87,6 @@ export const VewPatientSheet = () => {
                 )}
               </div>
             </div>
-
-            {/* Button - Full width on mobile, auto on larger screens */}
-            <div className="w-full xs:w-auto">
-              <Button
-                onClick={newAppointment}
-                variant={"primary"}
-                className="w-full xs:w-fit"
-              >
-                New Appointment
-              </Button>
-            </div>
           </div>
 
           {/* Tabs Navigation - Responsive Solution */}
@@ -128,7 +120,7 @@ export const VewPatientSheet = () => {
         </DrawerHeader>
 
         {/* Tab Content */}
-        <div className="flex-1 overflow-auto p-6">
+        <div className="px-6 py-4 overflow-y-auto space-y-4">
           <Tabs value={activeTab}>
             <TabsContent value="overview">
               <OverviewTab patient={patient} isLoading={isLoading} />
@@ -164,7 +156,7 @@ const OverviewTab = ({
   patient?: PatientResponseDto | undefined;
   isLoading: boolean;
 }) => (
-  <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+  <div className="space-y-4">
     {/* Personal Info Card */}
     <Card>
       <CardHeader>
@@ -178,7 +170,7 @@ const OverviewTab = ({
             <Skeleton className="h-4 w-1/2" />
           </div>
         ) : (
-          <div className="space-y-4">
+          <div className="space-y-4 grid grid-cols-2 gap-4">
             <div>
               <p className="text-sm text-gray-500">Full Name</p>
               <p className="font-medium">{patient?.fullName || "N/A"}</p>
@@ -350,7 +342,7 @@ const AppointmentsTab = ({
             <Skeleton key={i} className="h-12 w-full" />
           ))}
         </div>
-      ) : patient?.appointments && patient.appointments?.length > 0 ? (
+      ) : (patient?.appointments ?? []).length > 0 ? (
         <Table>
           <TableHeader>
             <TableRow>
@@ -360,17 +352,17 @@ const AppointmentsTab = ({
             </TableRow>
           </TableHeader>
           <TableBody>
-            {patient.appointments.map((appointment) => (
+            {patient?.appointments?.map((appointment) => (
               <TableRow key={appointment.id}>
                 <TableCell>
                   {format(
-                    new Date(appointment.datetime),
+                    appointment.datetime ?? new Date(),
                     "MMM dd, yyyy hh:mm a"
                   )}
                 </TableCell>
 
                 <TableCell>
-                  {format(new Date(appointment.createdAt), "MMM dd, yyyy")}
+                  {format(appointment.createdAt ?? new Date(), "MMM dd, yyyy")}
                 </TableCell>
                 <TableCell>
                   <Badge
@@ -403,7 +395,7 @@ const MedicalHistoryTab = ({
   patient?: PatientResponseDto;
   isLoading: boolean;
 }) => (
-  <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+  <div className="space-y-4">
     <Card>
       <CardHeader>
         <CardTitle>Medical Conditions</CardTitle>
@@ -562,18 +554,7 @@ const PrescriptionsTab = ({
                     {format(new Date(prescription.expiryDate), "MMM dd, yyyy")}
                   </p>
                 </div>
-                <div>
-                  <p className="text-gray-500">Frequency</p>
-                  <p>{prescription?.id}</p>
-                </div>
               </div>
-
-              {prescription.id && (
-                <div className="mt-3">
-                  <p className="text-gray-500">Doctor's Notes</p>
-                  <p className="text-sm">{prescription?.id}</p>
-                </div>
-              )}
             </div>
           ))}
         </div>

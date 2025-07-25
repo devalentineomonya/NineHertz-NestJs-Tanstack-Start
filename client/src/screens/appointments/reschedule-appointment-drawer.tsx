@@ -77,6 +77,43 @@ export const RescheduleDrawer = () => {
     );
   }, [selectedDateTime, availability]);
 
+  const getAvailableSlotsForDate = (date: Date) => {
+    if (!availability) return [];
+
+    const dayOfWeek = date.toLocaleDateString("en-US", { weekday: "long" });
+    const dateStr = date.toISOString().split("T")[0];
+
+    const dayAvailability = availability.availableSlots.filter(
+      (slot: { day: string }) => slot.day === dayOfWeek
+    );
+
+    const busySlots = availability.busySlots.filter(
+      (slot: { date: string }) => slot.date === dateStr
+    );
+
+    return dayAvailability.filter(
+      (availSlot: { start: string; end: string }) =>
+        !busySlots.some(
+          (busySlot: { start: string; end: string }) =>
+            busySlot.start === availSlot.start && busySlot.end === availSlot.end
+        )
+    );
+  };
+
+  // Generate next 3 days with actual availability
+  const upcomingAvailabilityDays = useMemo(() => {
+    if (!availability) return [];
+
+    return [1, 2, 3].map((daysToAdd) => {
+      const date = addDays(new Date(), daysToAdd);
+      return {
+        date,
+        label: getDayLabel(date),
+        availableSlots: getAvailableSlotsForDate(date),
+      };
+    });
+  }, [availability]);
+
   // Update day of week when date changes
   useEffect(() => {
     if (selectedDateTime) {
@@ -293,47 +330,61 @@ export const RescheduleDrawer = () => {
                 </p>
               </CardHeader>
               <CardContent>
-                <div className="space-y-4">
-                  {Array.from({ length: 3 }).map((_, index) => {
-                    const date = addDays(new Date(), index + 1);
-                    const dayLabel = getDayLabel(date);
-
-                    return (
+                {loadingAvailability ? (
+                  <div className="flex justify-center py-4">
+                    <Loader className="animate-spin" />
+                  </div>
+                ) : (
+                  <div className="space-y-4">
+                    {upcomingAvailabilityDays.map((day, index) => (
                       <div key={index} className="border rounded-lg p-3">
                         <div className="flex items-center justify-between">
                           <h3 className="font-medium">
-                            {dayLabel} - {format(date, "MMM d")}
+                            {day.label} - {format(day.date, "MMM d")}
                           </h3>
-                          <Badge variant="secondary">
-                            Multiple slots available
+                          <Badge
+                            variant={
+                              day.availableSlots.length > 0
+                                ? "secondary"
+                                : "destructive"
+                            }
+                          >
+                            {day.availableSlots.length > 0
+                              ? `${day.availableSlots.length} slots available`
+                              : "No availability"}
                           </Badge>
                         </div>
 
-                        <div className="flex flex-wrap gap-2 mt-3">
-                          {["09:00", "11:00", "14:00", "16:00"].map(
-                            (time, timeIndex) => (
-                              <Button
-                                key={timeIndex}
-                                variant="outline"
-                                size="sm"
-                                onClick={() => {
-                                  const newDate = new Date(date);
-                                  const [hours, minutes] = time
-                                    .split(":")
-                                    .map(Number);
-                                  newDate.setHours(hours, minutes);
-                                  setSelectedDateTime(newDate);
-                                }}
-                              >
-                                {time}
-                              </Button>
-                            )
-                          )}
-                        </div>
+                        {day.availableSlots.length > 0 && (
+                          <div className="flex flex-wrap gap-2 mt-3">
+                            {day.availableSlots
+                              .slice(0, 4) // Limit to 4 slots per day
+                              .map((slot: TimeSlot, slotIndex: number) => {
+                                const slotTime = new Date(day.date);
+                                const [hours, minutes] = slot.start
+                                  .split(":")
+                                  .map(Number);
+                                slotTime.setHours(hours, minutes);
+
+                                return (
+                                  <Button
+                                    key={slotIndex}
+                                    variant="outline"
+                                    size="sm"
+                                    onClick={() =>
+                                      setSelectedDateTime(slotTime)
+                                    }
+                                  >
+                                    {slot.start}
+                                  </Button>
+                                );
+                              })}
+                          </div>
+                        )}
                       </div>
-                    );
-                  })}
-                </div>
+                    ))}
+                  </div>
+                )}
               </CardContent>
             </Card>
           </div>

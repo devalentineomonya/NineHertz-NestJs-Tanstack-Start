@@ -21,9 +21,9 @@ import { Medicine } from '../medicine/entities/medicine.entity';
 import { OrderItem } from './entities/order-item.entity';
 
 import { OrderStatus } from 'src/enums/order.enum';
-import { PaystackService } from 'src/payment/paystack.service';
-import { StripeService } from 'src/payment/stripe.service';
 import { PaginationDto } from 'src/shared/dto/pagination.dto';
+import { PaystackService } from 'src/transactions/paystack.service';
+import { StripeService } from 'src/transactions/stripe.service';
 import { CreateOrderDto } from './dto/create-order.dto';
 import { OrderFilterDto } from './dto/order-filter.dto';
 import { OrderItemResponseDto } from './dto/order-item-response.dto';
@@ -235,24 +235,36 @@ export class OrderService {
       throw new BadRequestException('Only pending orders can be paid');
     }
 
-    // let paymentResult;
+    let paymentResult: { id?: string; reference?: string };
 
-    // if (paymentMethod === 'stripe') {
-    //   paymentResult = await this.stripeService.charge({
-    //     amount: order.totalAmount * 100,
-    //     currency: 'usd',
-    //     source: paymentToken,
-    //     description: `Order #${order.id}`,
-    //   });
-    //   order.stripePaymentId = paymentResult.id;
-    // } else {
-    //   paymentResult = await this.paystackService.initializeTransaction({
-    //     email: order.patient.user.email,
-    //     amount: order.totalAmount * 100,
-    //     reference: `order_${order.id}`,
-    //   });
-    //   order.paystackReference = paymentResult.reference;
-    // }
+    if (paymentMethod === 'stripe') {
+      paymentResult = await this.stripeService.charge({
+        amount: order.totalAmount * 100,
+        currency: 'usd',
+        source: paymentToken,
+        description: `Order #${order.id}`,
+      });
+      order.stripePaymentId = paymentResult.id ?? '';
+    } else {
+      const transactionResult =
+        await this.paystackService.initializeTransaction({
+          email: order.patient.user.email,
+          amount: String(order.totalAmount * 100),
+          reference: `order_${order.id}`,
+        });
+
+      if (!transactionResult) {
+        throw new BadRequestException(
+          'Failed to initialize Paystack transaction',
+        );
+      }
+
+      paymentResult = {
+        reference: transactionResult.reference,
+      };
+
+      order.paystackReference = paymentResult.reference ?? '';
+    }
     console.log(paymentMethod);
     console.log(paymentToken);
 

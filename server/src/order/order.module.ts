@@ -1,13 +1,13 @@
 import { Module } from '@nestjs/common';
-import { OrderService } from './order.service';
-import { OrderController } from './order.controller';
-import { Patient } from 'src/patient/entities/patient.entity';
-import { OrderItem } from './entities/order-item.entity';
-import { Medicine } from 'src/medicine/entities/medicine.entity';
 import { TypeOrmModule } from '@nestjs/typeorm';
+import { Medicine } from 'src/medicine/entities/medicine.entity';
+import { Patient } from 'src/patient/entities/patient.entity';
+import { PaystackService } from 'src/transactions/paystack.service';
+import { StripeService } from 'src/transactions/stripe.service';
+import { OrderItem } from './entities/order-item.entity';
 import { Order } from './entities/order.entity';
-import { PaystackService } from 'src/payment/paystack.service';
-import { StripeService } from 'src/payment/stripe.service';
+import { OrderController } from './order.controller';
+import { OrderService } from './order.service';
 
 @Module({
   imports: [TypeOrmModule.forFeature([Medicine, OrderItem, Patient, Order])],
