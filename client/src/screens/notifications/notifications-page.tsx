@@ -26,6 +26,9 @@ export interface PushNotification {
     appointmentId?: string;
     doctorName?: string;
     prescriptionId?: string;
+    id?: string;
+    url?: string;
+    title?: string;
   };
 }
 
@@ -75,13 +78,17 @@ export default function NotificationsPage() {
         setIsLoading(true);
 
         if (data?.data) {
-          const mappedNotifications = data.data.map((notification: Notification) => ({
-            ...notification,
-            type: "info",
-          })) as PushNotification[];
+          const mappedNotifications = data.data.map(
+            (notification: Notification) => ({
+              ...notification,
+              type: "info",
+            })
+          ) as PushNotification[];
           setNotifications(mappedNotifications);
         }
-        setUnreadCount(data?.data ? data.data.filter((n: Notification) => !n.read).length : 0);
+        setUnreadCount(
+          data?.data ? data.data.filter((n: Notification) => !n.read).length : 0
+        );
       } catch (error) {
         console.error("Error fetching notifications", error);
       } finally {

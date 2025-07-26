@@ -126,14 +126,16 @@ export const PusherProvider = ({
 
     const channel = pusher.subscribe(`user-${userId}`);
 
-    channel.bind("new-notification", (data: PushNotification) => {
+    channel.bind("new-notification", async (data: PushNotification) => {
       console.log("Pusher data", data);
 
-      // Only show toast if app is active (push notifications handle background)
-      if (document.visibilityState === "visible") {
+      // Since backend sends web push notifications separately,
+      // only show toast when app is visible and push is not enabled
+      if (!isPushGranted && document.visibilityState === "visible") {
         toast.success(data.message);
       }
 
+      // Update app state regardless
       setNotifications((prev) => [data, ...prev]);
       setUnreadCount((prev) => prev + 1);
     });
@@ -144,7 +146,7 @@ export const PusherProvider = ({
       pusher.disconnect();
       pusherRef.current = null;
     };
-  }, [userId]);
+  }, [userId, isPushGranted]);
 
   // Convert VAPID key from base64
   const urlBase64ToUint8Array = (base64String: string): Uint8Array => {

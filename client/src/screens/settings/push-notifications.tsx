@@ -51,16 +51,18 @@ const PushNotificationSettings = () => {
   const handleTestNotification = async () => {
     setIsTesting(true);
     try {
+      // Call the correct test endpoint that sends both Pusher AND web push
       await dataServices.api.notifications.test().post.call({
         json: {
           userId: user?.id || "",
-          title: "Sample Push Notification",
-          message: "This is a test notification message.",
-          url: "https://example.com",
+          title: "Test Push Notification",
+          message:
+            "This is a test push notification! You should see this as a Chrome notification.",
+          url: window.location.origin + "/notifications",
         },
       });
 
-      console.log("Test notification sent");
+      console.log("Test notification sent (both Pusher and Web Push)");
     } catch (error) {
       console.error("Error sending test notification:", error);
     } finally {
@@ -129,9 +131,9 @@ const PushNotificationSettings = () => {
                   <Button
                     disabled={isTesting}
                     onClick={handleTestNotification}
-                    className="px-3 py-2 text-sm bg-gray-200 text-gray-700 rounded-lg hover:bg-gray-300 transition-colors"
+                    className="px-3 py-2 text-sm bg-gray-200 text-gray-700 rounded-lg hover:bg-gray-300 transition-colors disabled:opacity-50"
                   >
-                    Test
+                    {isTesting ? "Testing..." : "Test Push"}
                   </Button>
                   <Button
                     onClick={handleDisablePush}
@@ -156,7 +158,8 @@ const PushNotificationSettings = () => {
                   </p>
                   <p className="text-green-700 mt-1">
                     You'll receive notifications even when the app is closed or
-                    in the background
+                    in the background. Click "Test Push" to see a real push
+                    notification.
                   </p>
                 </div>
               </div>
@@ -172,6 +175,7 @@ const PushNotificationSettings = () => {
               • You can manage notification permissions in your browser settings
             </p>
             <p>• Different devices may require separate permission grants</p>
+            <p>• Test notifications are sent as actual push notifications</p>
           </div>
         </div>
       </div>
