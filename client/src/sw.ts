@@ -40,9 +40,7 @@ const navigationHandler = async (params: any) => {
     }
     throw new Error("No response found");
   } catch (error) {
-    // Try to return cached index.html or fallback
     const cachedResponse =
-      (await caches.match("/index.html")) ||
       (await caches.match("/")) ||
       new Response("Offline - App not available", {
         status: 503,
@@ -251,7 +249,7 @@ sw.addEventListener("pushsubscriptionchange", (event: Event) => {
 function getVapidPublicKey(): string {
   // Replace with your actual VAPID public key
   // This should ideally come from your build process or environment
-  return "YOUR_VAPID_PUBLIC_KEY_HERE";
+  return import.meta.env.VITE_VAPID_PUBLIC_KEY;
 }
 
 // Utility function to convert VAPID key
