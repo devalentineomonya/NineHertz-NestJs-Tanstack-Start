@@ -62,18 +62,21 @@ export const PusherProvider = ({
       if (!isPushSupported) return;
 
       try {
+        // Register service worker from public directory
         const registration = await navigator.serviceWorker.register("/sw.js", {
           scope: "/",
-          type: "module",
         });
 
-        swRegistrationRef.current = registration;
-        console.log("Service Worker registered:", registration);
+        // Wait for it to be ready
+        const readyRegistration = await navigator.serviceWorker.ready;
+        swRegistrationRef.current = readyRegistration;
+
+        console.log("Service Worker registered successfully:", readyRegistration);
 
         navigator.serviceWorker.addEventListener("message", handleSWMessage);
 
         if (Notification.permission === "granted") {
-          await subscribeToPushInternal(registration);
+          await subscribeToPushInternal(readyRegistration);
         }
       } catch (error) {
         console.error("Service Worker registration failed:", error);

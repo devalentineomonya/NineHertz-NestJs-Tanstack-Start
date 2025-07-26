@@ -19,8 +19,8 @@ export default defineConfig({
     VitePWA({
       registerType: "autoUpdate",
       strategies: "injectManifest",
-      srcDir: "src",
-      filename: "sw.ts",
+      srcDir: "public",
+      filename: "sw.js",
       manifest: {
         name: "NineHertz Dashboard",
         short_name: "NineHertzDashboard",
