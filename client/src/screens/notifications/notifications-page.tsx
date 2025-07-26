@@ -19,6 +19,7 @@ import { useMarkAllAsRead } from "@/services/notifications/mark-all-as-read";
 export interface PushNotification {
   id: string;
   message: string;
+  title: string;
   createdAt: string;
   read: boolean;
   type: "info" | "warning" | "urgent";

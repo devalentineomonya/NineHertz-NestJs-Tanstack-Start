@@ -433,13 +433,13 @@ export class DataServices {
       subscribe: () => ({
         post: this.createEndpoint<PushSubscriptionDto, void>(
           "post",
-          "push/subscribe"
+          "notifications/push/subscribe"
         ),
       }),
       unsubscribe: () => ({
         post: this.createEndpoint<{ endpoint: string }, void>(
           "post",
-          "push/unsubscribe"
+          "notifications/push/unsubscribe"
         ),
       }),
       _all_read: () => ({
