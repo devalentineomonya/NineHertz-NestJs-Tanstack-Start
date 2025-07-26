@@ -1,4 +1,4 @@
-import  { useState, useEffect } from "react";
+import { useState, useEffect } from "react";
 import { SettingsTab } from "./settings-tab";
 import { NotificationsTab } from "./notification";
 import { TwoFactorAuthTab } from "./two-factor-auth";
@@ -8,6 +8,7 @@ import { useUserSessionStore } from "@/stores/user-session-store";
 import { useGetPatient } from "@/services/patients/use-get-patient";
 import { useGetPharmacist } from "@/services/pharmacists/use-get-pharmacist";
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
+import PushNotificationSettings from "./push-notifications";
 
 export const Settings = () => {
   const [activeTab, setActiveTab] = useState("Role");
@@ -18,9 +19,9 @@ export const Settings = () => {
   const currentUser = getCurrentUser();
   const userRole = currentUser?.role;
   const userId = currentUser?.id;
-useEffect(()=>{
-  setCurrentRole(userRole)
-},[userRole])
+  useEffect(() => {
+    setCurrentRole(userRole);
+  }, [userRole]);
 
   // Conditionally enable queries based on user role
   const adminQuery = useGetAdmin(userId, currentRole === userRole);
@@ -56,17 +57,21 @@ useEffect(()=>{
         <TabsList className="grid grid-cols-4 w-full bg-white shadow-sm">
           <TabsTrigger value="Role">Role</TabsTrigger>
           <TabsTrigger value="notifications">Notifications</TabsTrigger>
+          <TabsTrigger value="push-notifications">Push Notifications</TabsTrigger>
           <TabsTrigger value="security">Security</TabsTrigger>
         </TabsList>
 
         {/* Role Tab */}
         <TabsContent value="Role">
-          <SettingsTab   />
+          <SettingsTab />
         </TabsContent>
 
         {/* Notifications Tab */}
         <TabsContent value="notifications">
           <NotificationsTab />
+        </TabsContent>
+        <TabsContent value="push-notifications">
+          <PushNotificationSettings />
         </TabsContent>
 
         {/* Security Tab */}

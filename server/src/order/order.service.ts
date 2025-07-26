@@ -4,30 +4,32 @@ import {
   NotFoundException,
 } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
+import { OrderStatus } from 'src/enums/order.enum';
+import { PaginationDto } from 'src/shared/dto/pagination.dto';
+import { InitiatePaymentDto } from 'src/transactions/dto/initiate-transaction.dto';
+import {
+  Gateway,
+  TransactionStatus,
+} from 'src/transactions/entities/transaction.entity';
+import { TransactionService } from 'src/transactions/transaction.service';
 import {
   Between,
+  FindOptionsWhere,
   In,
   LessThanOrEqual,
   MoreThanOrEqual,
   Repository,
 } from 'typeorm';
-import { OrderResponseDto } from './dto/order-response.dto';
-import { UpdateOrderDto } from './dto/update-order.dto';
-import { Order } from './entities/order.entity';
-
-import { Patient } from '../patient/entities/patient.entity';
-
 import { Medicine } from '../medicine/entities/medicine.entity';
-import { OrderItem } from './entities/order-item.entity';
-
-import { OrderStatus } from 'src/enums/order.enum';
-import { PaginationDto } from 'src/shared/dto/pagination.dto';
-import { PaystackService } from 'src/transactions/paystack.service';
-import { StripeService } from 'src/transactions/stripe.service';
+import { Patient } from '../patient/entities/patient.entity';
 import { CreateOrderDto } from './dto/create-order.dto';
 import { OrderFilterDto } from './dto/order-filter.dto';
 import { OrderItemResponseDto } from './dto/order-item-response.dto';
 import { OrderPaginatedDto } from './dto/order-paginated.dto';
+import { OrderResponseDto } from './dto/order-response.dto';
+import { UpdateOrderDto } from './dto/update-order.dto';
+import { OrderItem } from './entities/order-item.entity';
+import { Order } from './entities/order.entity';
 
 @Injectable()
 export class OrderService {
@@ -40,8 +42,7 @@ export class OrderService {
     private orderItemRepository: Repository<OrderItem>,
     @InjectRepository(Medicine)
     private medicineRepository: Repository<Medicine>,
-    private stripeService: StripeService,
-    private paystackService: PaystackService,
+    private transactionService: TransactionService,
   ) {}
 
   async create(createDto: CreateOrderDto): Promise<OrderResponseDto> {
@@ -54,8 +55,8 @@ export class OrderService {
         `Patient with ID ${createDto.patientId} not found`,
       );
     }
-    const medicineIds = createDto.items.map((item) => item.medicineId).flat();
 
+    const medicineIds = createDto.items.map((item) => item.medicineId);
     const medicines = await this.medicineRepository.findBy({
       id: In(medicineIds),
     });
@@ -97,11 +98,7 @@ export class OrderService {
     const { page = 1, limit = 50 } = pagination;
     const skip = (page - 1) * limit;
 
-    const where: {
-      status?: OrderStatus;
-      patient?: { id: string };
-      orderDate?: any;
-    } = {};
+    const where: FindOptionsWhere<Order> = {};
 
     if (filters.status) {
       where.status = filters.status;
@@ -124,7 +121,13 @@ export class OrderService {
 
     const [orders, total] = await this.orderRepository.findAndCount({
       where,
-      relations: ['patient', 'patient.user', 'items', 'items.medicine'],
+      relations: [
+        'patient',
+        'patient.user',
+        'items',
+        'items.medicine',
+        'transactions',
+      ],
       take: limit,
       skip,
       order: { orderDate: 'DESC' },
@@ -141,7 +144,13 @@ export class OrderService {
   async findOne(id: string): Promise<OrderResponseDto> {
     const order = await this.orderRepository.findOne({
       where: { id },
-      relations: ['patient', 'patient.user', 'items', 'items.medicine'],
+      relations: [
+        'patient',
+        'patient.user',
+        'items',
+        'items.medicine',
+        'transactions',
+      ],
     });
 
     if (!order) {
@@ -157,7 +166,13 @@ export class OrderService {
   ): Promise<OrderResponseDto> {
     const order = await this.orderRepository.findOne({
       where: { id },
-      relations: ['patient', 'patient.user', 'items', 'items.medicine'],
+      relations: [
+        'patient',
+        'patient.user',
+        'items',
+        'items.medicine',
+        'transactions',
+      ],
     });
 
     if (!order) {
@@ -172,19 +187,6 @@ export class OrderService {
     // Update total amount
     if (updateDto.totalAmount) {
       order.totalAmount = updateDto.totalAmount;
-    }
-
-    // Update payment information
-    if (updateDto.stripePaymentId) {
-      order.stripePaymentId = updateDto.stripePaymentId;
-    }
-
-    if (updateDto.paystackReference) {
-      order.paystackReference = updateDto.paystackReference;
-    }
-
-    if (updateDto.paymentStatus) {
-      order.paymentStatus = updateDto.paymentStatus;
     }
 
     // Update items if provided
@@ -218,63 +220,45 @@ export class OrderService {
 
   async processPayment(
     id: string,
-    paymentMethod: 'stripe' | 'paystack',
-    paymentToken: string,
+    paymentMethod: Gateway,
   ): Promise<OrderResponseDto> {
-    const order = await this.orderRepository.findOne({ where: { id } });
+    const order = await this.orderRepository.findOne({
+      where: { id },
+      relations: ['patient', 'patient.user'],
+    });
 
     if (!order) {
       throw new NotFoundException(`Order with ID ${id} not found`);
-    }
-
-    if (order.paymentStatus === 'paid') {
-      throw new BadRequestException('Payment already processed for this order');
     }
 
     if (order.status !== OrderStatus.PENDING) {
       throw new BadRequestException('Only pending orders can be paid');
     }
 
-    let paymentResult: { id?: string; reference?: string };
+    // Create transaction DTO
+    const transactionDto: InitiatePaymentDto = {
+      amount: order.totalAmount,
+      gateway:
+        paymentMethod === Gateway.STRIPE ? Gateway.STRIPE : Gateway.PAYSTACK,
+      customerEmail: order.patient.user.email,
+      description: `Payment for Order #${order.id}`,
+    };
 
-    if (paymentMethod === 'stripe') {
-      paymentResult = await this.stripeService.charge({
-        amount: order.totalAmount * 100,
-        currency: 'usd',
-        source: paymentToken,
-        description: `Order #${order.id}`,
-      });
-      order.stripePaymentId = paymentResult.id ?? '';
+    const transaction = await this.transactionService.initiateTransaction(
+      order.patient.user.id,
+      {
+        ...transactionDto,
+      },
+    );
+
+    if (transaction) {
+      order.status = OrderStatus.PROCESSING;
+      await this.updateInventory(order.id);
     } else {
-      const transactionResult =
-        await this.paystackService.initializeTransaction({
-          email: order.patient.user.email,
-          amount: String(order.totalAmount * 100),
-          reference: `order_${order.id}`,
-        });
-
-      if (!transactionResult) {
-        throw new BadRequestException(
-          'Failed to initialize Paystack transaction',
-        );
-      }
-
-      paymentResult = {
-        reference: transactionResult.reference,
-      };
-
-      order.paystackReference = paymentResult.reference ?? '';
+      order.status = OrderStatus.FAILED;
     }
-    console.log(paymentMethod);
-    console.log(paymentToken);
 
-    order.paymentStatus = 'paid';
-    order.status = OrderStatus.PROCESSING;
     const updatedOrder = await this.orderRepository.save(order);
-
-    // Update inventory
-    await this.updateInventory(order.id);
-
     return this.mapToResponseDto(updatedOrder);
   }
 
@@ -297,22 +281,23 @@ export class OrderService {
   async remove(id: string): Promise<void> {
     const order = await this.orderRepository.findOne({
       where: { id },
-      relations: ['items'],
+      relations: ['items', 'transactions'],
     });
 
     if (!order) {
       throw new NotFoundException(`Order with ID ${id} not found`);
     }
 
-    // Delete order items first
+    // Delete related entities
     if (order.items && order.items.length > 0) {
       await this.orderItemRepository.remove(order.items);
     }
 
-    const result = await this.orderRepository.delete(id);
-    if (result.affected === 0) {
-      throw new NotFoundException(`Order with ID ${id} not found`);
+    if (order.transactions && order.transactions.length > 0) {
+      await this.transactionService.removeTransactions(order.transactions);
     }
+
+    await this.orderRepository.delete(id);
   }
 
   private async updateInventory(orderId: string) {
@@ -324,12 +309,8 @@ export class OrderService {
     if (!order) return;
 
     for (const item of order.items) {
-      // await this.inventoryService.deductStock(
-      //   item.medicine.id,
-      //   order.pharmacy.id,
-      //   item.quantity,
-      // );
-      console.log(item);
+      // Inventory update logic
+      console.log(`Updating inventory for medicine ${item.medicine.id}`);
     }
   }
 
@@ -339,9 +320,6 @@ export class OrderService {
       orderDate: order.orderDate,
       status: order.status,
       totalAmount: order.totalAmount,
-      stripePaymentId: order.stripePaymentId,
-      paystackReference: order.paystackReference,
-      paymentStatus: order.paymentStatus,
       patient: {
         id: order.patient.id,
         fullName: order.patient.fullName,
@@ -358,10 +336,36 @@ export class OrderService {
         },
       },
       items: order.items.map((item) => this.mapItemToResponseDto(item)),
+      transactions: order.transactions?.map((t) => ({
+        id: t.id,
+        reference: t.reference,
+        amount: t.amount,
+        status: t.status,
+        gateway: t.gateway,
+        createdAt: t.createdAt,
+        gatewayReference: t.gatewayReference,
+        updatedAt: t.updatedAt,
+        userId: t.user.id,
+      })),
       createdAt: order.createdAt,
       updatedAt: order.updatedAt,
     };
   };
+
+  private getPaymentStatus(order: Order): string {
+    if (!order.transactions || order.transactions.length === 0) {
+      return 'unpaid';
+    }
+
+    const successful = order.transactions.some(
+      (t) => t.status === TransactionStatus.SUCCESS,
+    );
+    const refunded = order.transactions.some(
+      (t) => t.status === TransactionStatus.REFUNDED,
+    );
+
+    return refunded ? 'refunded' : successful ? 'paid' : 'unpaid';
+  }
 
   private mapItemToResponseDto(item: OrderItem): OrderItemResponseDto {
     return {
@@ -377,8 +381,8 @@ export class OrderService {
         price: item.medicine.price,
         manufacturer: item.medicine.manufacturer,
         barcode: item.medicine.barcode,
-        createdAt: new Date(),
-        updatedAt: new Date(),
+        createdAt: item.medicine.createdAt,
+        updatedAt: item.medicine.updatedAt,
       },
     };
   }

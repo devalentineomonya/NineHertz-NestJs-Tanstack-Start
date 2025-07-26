@@ -1,19 +1,18 @@
+import { cn } from "@/lib/utils";
 import { Link, useLocation } from "@tanstack/react-router";
 import {
-  Twitter,
-  Linkedin,
-  Facebook,
-  Instagram,
-  MessageSquare,
-  Heart,
-  Stethoscope,
-  ClipboardList,
   CalendarCheck,
+  ClipboardList,
+  Facebook,
+  Heart,
+  Instagram,
+  Linkedin,
+  MessageSquare,
   Pill,
+  Stethoscope,
+  Twitter,
   Video,
 } from "lucide-react";
-import { Button } from "@/components/ui/button";
-import { cn } from "@/lib/utils";
 
 export default function FooterSection() {
   // Navigation links
@@ -40,7 +39,7 @@ export default function FooterSection() {
     {
       title: "Solutions",
       links: [
-        { name: "Telemedicine", href: "#" },
+        { name: "TeleMedicine", href: "#" },
         { name: "Appointment System", href: "#" },
         { name: "EHR Management", href: "#" },
         { name: "Pharmacy Solutions", href: "#" },

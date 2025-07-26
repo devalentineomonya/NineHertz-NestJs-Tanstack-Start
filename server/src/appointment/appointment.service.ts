@@ -47,6 +47,7 @@ export class AppointmentService {
 
     const doctor = await this.doctorRepository.findOne({
       where: { id: doctorId },
+      relations: ['user'],
     });
     if (!doctor)
       throw new NotFoundException(`Doctor with ID ${doctorId} not found`);
@@ -105,12 +106,21 @@ export class AppointmentService {
       datetime: savedAppointment.datetime,
     };
 
-    await this.notificationService.triggerNotification(patient.user.id, {
-      ...notification,
-      eventType: 'appointment',
-      eventId: savedAppointment.id,
-      datatime: new Date().toISOString(),
-    });
+    await Promise.all([
+      this.notificationService.triggerNotification(patient.user.id, {
+        ...notification,
+        eventType: 'appointment',
+        eventId: savedAppointment.id,
+        datetime: new Date().toISOString(),
+      }),
+      this.notificationService.triggerNotification(doctor.user.id, {
+        ...notification,
+        message: `New appointment scheduled with Patient ${patient.fullName}`,
+        eventType: 'appointment',
+        eventId: savedAppointment.id,
+        datetime: new Date().toISOString(),
+      }),
+    ]);
 
     return this.mapToResponseDto(savedAppointment);
   }
@@ -142,7 +152,6 @@ export class AppointmentService {
         where.doctor = { id: filters.doctorId };
       }
     }
-    console.log(where);
     const [appointments, total] = await this.appointmentRepository.findAndCount(
       {
         where,
@@ -312,7 +321,7 @@ export class AppointmentService {
       await this.notificationService.triggerNotification(
         appointment.patient.user.id,
         {
-          datatime: new Date().toLocaleDateString(),
+          datetime: new Date().toLocaleDateString(),
           message: `Your appointment with Dr. ${appointment.doctor.fullName} starts in 15 minutes`,
           appointmentId: appointment.id,
           eventType: 'reminder',

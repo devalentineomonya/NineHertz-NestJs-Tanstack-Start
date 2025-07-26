@@ -18,6 +18,7 @@ import { StreamService } from 'src/stream/stream.service';
 import { NotificationService } from 'src/notification/notification.service';
 import { MailModule } from 'src/shared/mail/mail.module';
 import { Notification } from 'src/notification/entities/notification.entity';
+import { PushSubscription } from 'src/notification/entities/push-subscription.entity';
 
 @Module({
   imports: [
@@ -27,6 +28,7 @@ import { Notification } from 'src/notification/entities/notification.entity';
       Appointment,
       Patient,
       Notification,
+      PushSubscription,
     ]),
     ConfigModule.forRoot(),
     CacheModule.registerAsync({

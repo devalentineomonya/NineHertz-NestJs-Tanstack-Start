@@ -1,5 +1,5 @@
 import { ClipboardList, ShieldCheck, Users } from "lucide-react";
-
+import { GlowCard } from "@/components/nurui/spotlight-card";
 import SectionLayout from "@/components/shared/layouts/section-layout";
 import { coreValues } from "./values-service-data";
 import { ServiceCard } from "./values-card";
@@ -40,19 +40,21 @@ const CoreValues = () => {
     >
       <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
         {coreValues.map((coreValue, index) => (
-          <ServiceCard
-            key={index}
-            color={coreValue.color}
-            icon={coreValue.icon}
-            title={coreValue.title}
-            description={coreValue.description}
-            mockup={coreValue.mockup}
-          />
+          <GlowCard>
+            <ServiceCard
+              key={index}
+              color={coreValue.color}
+              icon={coreValue.icon}
+              title={coreValue.title}
+              description={coreValue.description}
+              mockup={coreValue.mockup}
+            />
+          </GlowCard>
         ))}
       </div>
 
       <div className="w-full">
-      <div className="relative w-full grid divide-x divide-y border *:p-12 sm:grid-cols-2 lg:grid-cols-3 mt-4">
+        <div className="relative w-full grid divide-x divide-y border *:p-12 sm:grid-cols-2 lg:grid-cols-3 mt-4">
           {features.map((feature, index) => (
             <FeatureItem {...feature} key={index} />
           ))}

@@ -1,6 +1,6 @@
 import SectionLayout from "@/components/shared/layouts/section-layout";
-import { motion, Variant } from "framer-motion";
 import { cn } from "@/lib/utils";
+import { motion, Variant } from "framer-motion";
 
 const services = () => {
   const CARD = `group flex items-center gap-x-3 py-2 px-4 rounded-lg border border-green-200
@@ -146,7 +146,7 @@ dark:focus-visible:ring-offset-green-500`;
             </div>
           </motion.div>
 
-          {/* Telemedicine */}
+          {/* TeleMedicine */}
           <motion.div
             className={cn(
               CARD,
@@ -249,7 +249,7 @@ dark:focus-visible:ring-offset-green-500`;
               </div>
               <div className="mt-14 text-center relative z-10 space-y-2">
                 <h2 className="text-lg font-medium transition text-green-600 group-hover:text-green-700 dark:text-green-400">
-                  Telemedicine Solutions
+                  TeleMedicine Solutions
                 </h2>
                 <p>
                   Connect patients and healthcare providers remotely with secure

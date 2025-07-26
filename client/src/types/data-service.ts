@@ -320,3 +320,20 @@ interface NotificationResponse {
   page: number;
   limit: number;
 }
+
+interface TestNotification {
+  userId: string;
+  title: string;
+  message: string;
+  url: string;
+}
+interface PushSubscriptionDto {
+  userId: string;
+  subscription: {
+    endpoint: string;
+    keys: {
+      p256dh: string;
+      auth: string;
+    };
+  };
+}

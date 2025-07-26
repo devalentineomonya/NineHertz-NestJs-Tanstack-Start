@@ -20,6 +20,9 @@ export class Notification {
   @Column({ type: 'jsonb', nullable: true })
   data: any;
 
+  @Column('simple-array', { nullable: true })
+  channels: string[];
+
   @ManyToOne(() => User, (user) => user.notifications)
   user: User;
 

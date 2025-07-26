@@ -424,6 +424,24 @@ export class DataServices {
           { id }
         ),
       }),
+      test: () => ({
+        post: this.createEndpoint<TestNotification, void>(
+          "post",
+          "notifications/push/test"
+        ),
+      }),
+      subscribe: () => ({
+        post: this.createEndpoint<PushSubscriptionDto, void>(
+          "post",
+          "push/subscribe"
+        ),
+      }),
+      unsubscribe: () => ({
+        post: this.createEndpoint<{ endpoint: string }, void>(
+          "post",
+          "push/unsubscribe"
+        ),
+      }),
       _all_read: () => ({
         patch: this.createEndpoint<void, { success: boolean }>(
           "patch",

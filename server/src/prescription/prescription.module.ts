@@ -8,6 +8,7 @@ import { Doctor } from '../doctor/entities/doctor.entity';
 import { Pharmacist } from 'src/pharmacist/entities/pharmacist.entity';
 import { Notification } from 'src/notification/entities/notification.entity';
 import { NotificationService } from 'src/notification/notification.service';
+import { PushSubscription } from 'src/notification/entities/push-subscription.entity';
 
 @Module({
   imports: [
@@ -17,6 +18,7 @@ import { NotificationService } from 'src/notification/notification.service';
       Doctor,
       Pharmacist,
       Notification,
+      PushSubscription,
     ]),
   ],
   controllers: [PrescriptionController],

@@ -1,17 +1,17 @@
-import SectionLayout from "@/components/shared/layouts/section-layout";
-import { HeroVideoDialog } from "@/components/magicui/hero-video-dialog";
-import {
-  Video,
-  Stethoscope,
-  ClipboardList,
-  Smartphone,
-  ShieldCheck,
-  HeartPulse,
-} from "lucide-react";
-import { Button } from "@/components/ui/button";
 import { SlidingNumber } from "@/components/animate-ui/text/sliding-number";
-import { motion } from "framer-motion";
+import { HeroVideoDialog } from "@/components/magicui/hero-video-dialog";
+import SectionLayout from "@/components/shared/layouts/section-layout";
+import { Button } from "@/components/ui/button";
 import { fadeIn, staggerContainer } from "@/lib/motion";
+import { motion } from "framer-motion";
+import {
+  ClipboardList,
+  HeartPulse,
+  ShieldCheck,
+  Smartphone,
+  Stethoscope,
+  Video,
+} from "lucide-react";
 
 const TelemedicineSection = () => {
   const features = [
@@ -40,7 +40,7 @@ const TelemedicineSection = () => {
   return (
     <SectionLayout
       id="telemedicine"
-      name="Telemedicine"
+      name="TeleMedicine"
       number="04"
       title="Virtual Care That Comes To You"
       description="Experience healthcare without boundaries with our telemedicine platform. Connect with board-certified doctors in minutes, not days - anytime, anywhere."
@@ -156,7 +156,7 @@ const TelemedicineSection = () => {
         viewport={{ once: true }}
       >
         <div className="flex flex-col gap-y-3">
-            <div className="text-4xl font-bold text-green-700 dark:text-green-400 mb-2 flex items-center gap-x-1">
+          <div className="text-4xl font-bold text-green-700 dark:text-green-400 mb-2 flex items-center gap-x-1">
             <SlidingNumber
               transition={{ stiffness: 100, damping: 30, mass: 0.6 }}
               padStart
@@ -172,7 +172,13 @@ const TelemedicineSection = () => {
         </div>
         <div className="flex flex-col gap-y-3">
           <div className="text-4xl font-bold text-green-700 dark:text-green-400 mb-2 flex items-center gap-x-1">
-            <SlidingNumber  transition={{ stiffness: 100, damping: 30, mass: 0.6 }} padStart inViewOnce={false} inView number={98} />
+            <SlidingNumber
+              transition={{ stiffness: 100, damping: 30, mass: 0.6 }}
+              padStart
+              inViewOnce={false}
+              inView
+              number={98}
+            />
             <span className="text-3xl">%</span>
           </div>
           <p className="text-gray-700 dark:text-gray-300">
@@ -181,7 +187,13 @@ const TelemedicineSection = () => {
         </div>
         <div className="flex flex-col gap-y-3">
           <div className="text-4xl font-bold text-green-700 dark:text-green-400 mb-2 flex items-center gap-x-1">
-            <SlidingNumber  transition={{ stiffness: 100, damping: 30, mass: 0.6 }} padStart inViewOnce={false} inView number={10} />
+            <SlidingNumber
+              transition={{ stiffness: 100, damping: 30, mass: 0.6 }}
+              padStart
+              inViewOnce={false}
+              inView
+              number={10}
+            />
             <span className="text-3xl">min</span>
           </div>
           <p className="text-gray-700 dark:text-gray-300">

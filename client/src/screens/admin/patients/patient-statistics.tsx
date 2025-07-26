@@ -2,6 +2,13 @@ import React from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Users, UserCheck, UserX, Activity } from "lucide-react";
 import { motion } from "framer-motion";
+import {
+  Carousel,
+  CarouselContent,
+  CarouselItem,
+  CarouselNext,
+  CarouselPrevious,
+} from "@/components/ui/carousel";
 
 interface PatientStatsCardsProps {
   patients: PatientResponseDto[];
@@ -28,7 +35,7 @@ const StatsCard: React.FC<StatsCardProps> = ({
   icon,
   trend,
   gradient,
-  delay = 0
+  delay = 0,
 }) => (
   <motion.div
     initial={{ opacity: 0, y: 20 }}
@@ -46,9 +53,7 @@ const StatsCard: React.FC<StatsCardProps> = ({
       </CardHeader>
       <CardContent>
         <div className="text-2xl font-bold">{value}</div>
-        {subtitle && (
-          <p className="text-xs text-white/80 mt-1">{subtitle}</p>
-        )}
+        {subtitle && <p className="text-xs text-white/80 mt-1">{subtitle}</p>}
         {trend && (
           <div
             className={`text-xs mt-1 flex items-center ${
@@ -101,7 +106,6 @@ export function PatientStatsCards({
   ).length;
   const unverifiedPatients = totalPatients - verifiedPatients;
 
-  // Calculate recent registrations (last 30 days)
   const thirtyDaysAgo = new Date();
   thirtyDaysAgo.setDate(thirtyDaysAgo.getDate() - 30);
   const recentRegistrations = patients.filter(
@@ -114,12 +118,15 @@ export function PatientStatsCards({
       value: totalPatients.toLocaleString(),
       subtitle: "Registered in system",
       icon: <Users className="h-4 w-4 text-blue-100" />,
-      trend: recentRegistrations > 0 ? {
-        value: Math.round((recentRegistrations / totalPatients) * 100),
-        isPositive: true,
-      } : undefined,
+      trend:
+        recentRegistrations > 0
+          ? {
+              value: Math.round((recentRegistrations / totalPatients) * 100),
+              isPositive: true,
+            }
+          : undefined,
       gradient: "from-blue-500 to-indigo-600",
-      delay: 0.1
+      delay: 0.1,
     },
     {
       title: "Verified Patients",
@@ -131,7 +138,7 @@ export function PatientStatsCards({
       }% of total`,
       icon: <UserCheck className="h-4 w-4 text-green-100" />,
       gradient: "from-green-500 to-emerald-600",
-      delay: 0.2
+      delay: 0.2,
     },
     {
       title: "Pending Verification",
@@ -139,7 +146,7 @@ export function PatientStatsCards({
       subtitle: "Email not verified",
       icon: <UserX className="h-4 w-4 text-amber-100" />,
       gradient: "from-amber-500 to-orange-500",
-      delay: 0.3
+      delay: 0.3,
     },
     {
       title: "Recent Registrations",
@@ -147,15 +154,33 @@ export function PatientStatsCards({
       subtitle: "Last 30 days",
       icon: <Activity className="h-4 w-4 text-purple-100" />,
       gradient: "from-purple-500 to-fuchsia-600",
-      delay: 0.4
-    }
+      delay: 0.4,
+    },
   ];
 
   return (
-    <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4 mb-6">
-      {stats.map((stat, index) => (
-        <StatsCard key={index} {...stat} />
-      ))}
-    </div>
+    <>
+      {/* Carousel for small screens */}
+      <div className="block md:hidden mb-6">
+        <Carousel className="w-full max-w-xs mx-auto">
+          <CarouselContent>
+            {stats.map((stat, index) => (
+              <CarouselItem key={index}>
+                <StatsCard {...stat} />
+              </CarouselItem>
+            ))}
+          </CarouselContent>
+          <CarouselPrevious />
+          <CarouselNext />
+        </Carousel>
+      </div>
+
+      {/* Grid for medium and larger screens */}
+      <div className="hidden md:grid gap-4 md:grid-cols-2 lg:grid-cols-4 mb-6">
+        {stats.map((stat, index) => (
+          <StatsCard key={index} {...stat} />
+        ))}
+      </div>
+    </>
   );
 }

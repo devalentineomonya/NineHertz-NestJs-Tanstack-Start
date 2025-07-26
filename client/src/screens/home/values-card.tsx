@@ -17,8 +17,8 @@ export const ServiceCard: React.FC<ServiceCardProps> = ({
 }) => {
   return (
     <Card
-      className="group relative overflow-hidden min-h-fit rounded-3xl border border-border
-      bg-card backdrop-blur-md transition-all duration-300 hover:shadow-xl"
+      className="group relative overflow-hidden min-h-fit rounded-none border-none shadow-none
+      bg-transparent backdrop-blur-md transition-all duration-300 hover:shadow-none"
     >
       {/* Gradient Background Effects */}
       <div className="absolute inset-0 bg-gradient-to-br from-foreground/[0.02] to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-500" />

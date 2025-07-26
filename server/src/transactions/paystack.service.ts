@@ -1,5 +1,6 @@
 import { Injectable, BadRequestException } from '@nestjs/common';
 import { Paystack } from 'paystack-sdk';
+
 @Injectable()
 export class PaystackService {
   private readonly paystack: Paystack;
@@ -12,9 +13,7 @@ export class PaystackService {
     this.paystack = new Paystack(apiKey);
   }
 
-  /**===================================
-   * Create a customer on Paystack
-  ======================================= */
+  /** Create a customer on Paystack */
   async createCustomer(data: {
     email: string;
     first_name?: string;
@@ -28,7 +27,6 @@ export class PaystackService {
         last_name: data.last_name || '',
         phone: data.phone || '',
       });
-
       return response.data;
     } catch (error) {
       const errorMessage =
@@ -37,18 +35,16 @@ export class PaystackService {
     }
   }
 
-  /**====================================
-   * Initialize a transaction
-   =====================================*/
+  /** Initialize a transaction */
   async initializeTransaction(data: {
     email: string;
-    amount: string;
+    amount: string; // Paystack requires amount in kobo (100 kobo = 1 NGN)
     reference: string;
     callback_url?: string;
   }) {
     try {
       const response = await this.paystack.transaction.initialize(data);
-      return response.data;
+      return response.data; // returns authorization_url, access_code, reference
     } catch (error: unknown) {
       const errorMessage =
         error instanceof Error
@@ -58,13 +54,20 @@ export class PaystackService {
     }
   }
 
-  /**========================================
-   * Verify a transaction by reference
-  ========================================== */
-  async verifyTransaction(reference: string) {
+  /** Verify a transaction by reference */
+  async verifyTransaction(reference: string): Promise<{
+    id: number;
+    status: string;
+    response: any;
+  } | null> {
     try {
       const response = await this.paystack.transaction.verify(reference);
-      return response.data;
+      if (!response.data) return null;
+      return {
+        id: response.data.id,
+        status: response.data.status,
+        response: response.data,
+      };
     } catch (error: unknown) {
       const errorMessage =
         error instanceof Error
@@ -74,9 +77,7 @@ export class PaystackService {
     }
   }
 
-  /**===========================================================
-   * Charge an existing customer by email (for saved cards)
-   ============================================================*/
+  /** Charge an existing customer by email (for saved cards) */
   async chargeAuthorization(data: {
     email: string;
     amount: string;
@@ -89,14 +90,12 @@ export class PaystackService {
       return response.data;
     } catch (error: unknown) {
       const errorMessage =
-        error instanceof Error ? error.message : 'Change authorization failed';
+        error instanceof Error ? error.message : 'Charge authorization failed';
       throw new BadRequestException(errorMessage);
     }
   }
 
-  /**============================
-   * List transactions
-  ==============================*/
+  /** List transactions */
   async listTransactions(params?: { perPage?: number; page?: number }) {
     try {
       const response = await this.paystack.transaction.list(params);
@@ -104,6 +103,26 @@ export class PaystackService {
     } catch (error: unknown) {
       const errorMessage =
         error instanceof Error ? error.message : 'Failed to list transactions';
+      throw new BadRequestException(errorMessage);
+    }
+  }
+
+  /** Refund a transaction */
+  async refundTransaction(data: {
+    transaction: string;
+    amount?: number;
+    merchant_note?: string;
+  }) {
+    try {
+      const response = await this.paystack.refund.create({
+        transaction: data.transaction,
+        amount: data.amount,
+        merchant_note: data.merchant_note || '',
+      });
+      return response.data;
+    } catch (error: unknown) {
+      const errorMessage =
+        error instanceof Error ? error.message : 'Refund creation failed';
       throw new BadRequestException(errorMessage);
     }
   }

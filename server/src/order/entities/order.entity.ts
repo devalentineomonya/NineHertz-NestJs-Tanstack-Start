@@ -1,18 +1,19 @@
+import { OrderStatus } from 'src/enums/order.enum';
+import { Transaction } from 'src/transactions/entities/transaction.entity';
 import {
-  Index,
-  Entity,
-  PrimaryGeneratedColumn,
   Column,
+  Entity,
+  Index,
   ManyToOne,
   OneToMany,
+  PrimaryGeneratedColumn,
   UpdateDateColumn,
 } from 'typeorm';
 import { Patient } from '../../patient/entities/patient.entity';
 import { OrderItem } from './order-item.entity';
-import { OrderStatus } from 'src/enums/order.enum';
 
 @Entity()
-@Index(['status', 'paymentStatus', 'orderDate'])
+@Index(['status', 'orderDate'])
 export class Order {
   @PrimaryGeneratedColumn('uuid')
   id: string;
@@ -30,18 +31,8 @@ export class Order {
   @Column({ type: 'decimal', precision: 10, scale: 2 })
   totalAmount: number;
 
-  @Column({ nullable: true })
-  stripePaymentId: string;
-
-  @Column({ nullable: true })
-  paystackReference: string;
-
-  @Column({
-    type: 'enum',
-    enum: ['unpaid', 'paid', 'refunded'],
-    default: 'unpaid',
-  })
-  paymentStatus: string;
+  @OneToMany(() => Transaction, (transaction) => transaction.order)
+  transactions: Transaction[];
 
   @ManyToOne(() => Patient, (patient) => patient.orders)
   patient: Patient;

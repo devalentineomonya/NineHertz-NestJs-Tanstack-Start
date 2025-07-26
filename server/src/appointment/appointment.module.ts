@@ -11,10 +11,17 @@ import { MailModule } from 'src/shared/mail/mail.module';
 import { Notification } from 'src/notification/entities/notification.entity';
 import { NotificationModule } from 'src/notification/notification.module';
 import { ChatModule } from 'src/chat/chat.module';
+import { PushSubscription } from 'src/notification/entities/push-subscription.entity';
 
 @Module({
   imports: [
-    TypeOrmModule.forFeature([Appointment, Doctor, Patient, Notification]),
+    TypeOrmModule.forFeature([
+      Appointment,
+      Doctor,
+      Patient,
+      Notification,
+      PushSubscription,
+    ]),
     MailModule,
     NotificationModule,
     ChatModule,

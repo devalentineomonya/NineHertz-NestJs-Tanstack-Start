@@ -1,9 +1,9 @@
-import { useRef } from "react";
-import { motion, useInView } from "framer-motion";
 import { Button } from "@/components/ui/button";
-import { Link } from "@tanstack/react-router";
-import { ArrowRight, Clock, Video, MessageSquare, Zap } from "lucide-react";
 import { Card } from "@/components/ui/card";
+import { Link } from "@tanstack/react-router";
+import { motion, useInView } from "framer-motion";
+import { ArrowRight, Clock, MessageSquare, Video, Zap } from "lucide-react";
+import { useRef } from "react";
 
 const HomeHero = () => {
   const container = {
@@ -37,7 +37,7 @@ const HomeHero = () => {
       },
     },
     {
-      title: "Telemedicine",
+      title: "TeleMedicine",
       icon: <Video className="w-5 h-5" />,
       color: "bg-blue-500",
       position: "top-1/4 -right-10",

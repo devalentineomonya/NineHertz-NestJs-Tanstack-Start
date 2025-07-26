@@ -56,6 +56,7 @@ import {
   appointmentStatuses,
   appointmentTypes,
 } from "./appointment-data";
+import { AxiosError } from "axios";
 
 export const AddAppointmentDrawer = () => {
   const { isOpen, onClose } = useAddAppointmentStore();
@@ -171,7 +172,13 @@ export const AddAppointmentDrawer = () => {
       onClose();
       form.reset();
     } catch (error) {
-      toast.error("Failed to create appointment");
+      const errorMessage =
+        error instanceof AxiosError
+          ? error.response?.data.message
+          : error instanceof Error
+          ? error.message
+          : "An error occurred while creating appointment. Please try again.";
+      toast.error(errorMessage);
     }
   };
   const isSubmitting = addAppointmentMutation.isPending;

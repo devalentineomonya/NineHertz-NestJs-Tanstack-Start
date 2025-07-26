@@ -1,16 +1,18 @@
+import { Doctor } from 'src/doctor/entities/doctor.entity';
+import { AppointmentStatus } from 'src/enums/appointment.enum';
+import { Patient } from 'src/patient/entities/patient.entity';
+import { Transaction } from 'src/transactions/entities/transaction.entity';
 import {
-  Entity,
-  PrimaryGeneratedColumn,
   Column,
-  ManyToOne,
   CreateDateColumn,
-  UpdateDateColumn,
+  Entity,
   Index,
   JoinColumn,
+  ManyToOne,
+  OneToMany,
+  PrimaryGeneratedColumn,
+  UpdateDateColumn,
 } from 'typeorm';
-import { Patient } from '../../patient/entities/patient.entity';
-import { Doctor } from '../../doctor/entities/doctor.entity';
-import { AppointmentStatus } from 'src/enums/appointment.enum';
 
 export enum AppointmentType {
   CONSULTATION = 'consultation',
@@ -76,6 +78,10 @@ export class Appointment {
   })
   @JoinColumn({ name: 'doctorId' })
   doctor: Doctor;
+
+  // ADDED: Transaction relationship
+  @OneToMany(() => Transaction, (transaction) => transaction.appointment)
+  transactions: Transaction[];
 
   @CreateDateColumn()
   createdAt: Date;

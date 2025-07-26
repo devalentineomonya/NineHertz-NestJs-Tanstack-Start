@@ -24,6 +24,7 @@ import { ContactHelper } from './shared/helpers/contact.helper';
 import { AppController } from './app.controller';
 import { NotificationModule } from './notification/notification.module';
 import { DashboardModule } from './dashboard/dashboard.module';
+import { TransactionsModule } from './transactions/transactions.module';
 
 @Module({
   imports: [
@@ -69,6 +70,7 @@ import { DashboardModule } from './dashboard/dashboard.module';
       ],
     }),
     DashboardModule,
+    TransactionsModule,
   ],
   controllers: [AppController],
   providers: [

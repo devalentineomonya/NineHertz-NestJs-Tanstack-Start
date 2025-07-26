@@ -55,7 +55,9 @@
     "rxjs": "^7.8.1",
     "stream-chat": "^9.10.0",
     "stripe": "^18.2.1",
-    "typeorm": "^0.3.25"
+    "twilio": "^5.8.0",
+    "typeorm": "^0.3.25",
+    "web-push": "^3.6.7"
   },
   "devDependencies": {
     "@eslint/eslintrc": "^3.2.0",
@@ -72,6 +74,7 @@
     "@types/passport-google-oauth20": "^2.0.16",
     "@types/passport-jwt": "^4.0.1",
     "@types/supertest": "^6.0.2",
+    "@types/web-push": "^3.6.4",
     "eslint": "^9.18.0",
     "eslint-config-prettier": "^10.0.1",
     "eslint-plugin-prettier": "^5.2.2",

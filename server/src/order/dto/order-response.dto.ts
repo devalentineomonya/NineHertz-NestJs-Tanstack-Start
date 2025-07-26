@@ -2,6 +2,7 @@ import { ApiProperty } from '@nestjs/swagger';
 import { OrderStatus } from 'src/enums/order.enum';
 import { PatientResponseDto } from '../../patient/dto/patient-response.dto';
 import { OrderItemResponseDto } from './order-item-response.dto';
+import { TransactionResponseDto } from 'src/transactions/dto/transaction-response.dto';
 
 export class OrderResponseDto {
   @ApiProperty({
@@ -30,22 +31,10 @@ export class OrderResponseDto {
   totalAmount: number;
 
   @ApiProperty({
-    example: 'pi_3Lt2Fd2eZvKYlo2C0HX2e1',
-    description: 'Stripe payment ID',
+    type: [TransactionResponseDto],
+    description: 'Transaction response',
   })
-  stripePaymentId: string;
-
-  @ApiProperty({
-    example: '5q7w8e9r',
-    description: 'Paystack reference',
-  })
-  paystackReference: string;
-
-  @ApiProperty({
-    example: 'paid',
-    description: 'Payment status',
-  })
-  paymentStatus: string;
+  transactions: TransactionResponseDto[];
 
   @ApiProperty({
     type: PatientResponseDto,

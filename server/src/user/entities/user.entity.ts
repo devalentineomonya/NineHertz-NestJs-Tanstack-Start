@@ -13,6 +13,8 @@ import { Doctor } from 'src/doctor/entities/doctor.entity';
 import { Admin } from 'src/admin/entities/admin.entity';
 import { Pharmacist } from 'src/pharmacist/entities/pharmacist.entity';
 import { Notification } from 'src/notification/entities/notification.entity';
+import { Transaction } from 'src/transactions/entities/transaction.entity';
+
 import * as bcrypt from 'bcrypt';
 
 export enum UserRole {
@@ -83,6 +85,8 @@ export class User {
 
   @OneToMany(() => Notification, (notification) => notification.user)
   notifications: Notification[];
+  @OneToMany(() => Transaction, (transaction) => transaction.user)
+  transactions: Transaction[];
 
   @BeforeInsert()
   @BeforeUpdate()

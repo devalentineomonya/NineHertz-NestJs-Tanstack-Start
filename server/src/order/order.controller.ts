@@ -10,16 +10,22 @@ import {
 } from '@nestjs/common';
 import { OrderService } from './order.service';
 import { UpdateOrderDto } from './dto/update-order.dto';
-import { ApiTags, ApiOperation, ApiResponse } from '@nestjs/swagger';
+import {
+  ApiTags,
+  ApiOperation,
+  ApiResponse,
+  ApiBearerAuth,
+} from '@nestjs/swagger';
 import { OrderResponseDto } from './dto/order-response.dto';
 import { CreateOrderDto } from './dto/create-order.dto';
 
 import { OrderFilterDto } from './dto/order-filter.dto';
 import { OrderPaginatedDto } from './dto/order-paginated.dto';
 import { PaginationDto } from 'src/shared/dto/pagination.dto';
+import { Gateway } from 'src/transactions/entities/transaction.entity';
 
 @ApiTags('Order')
-// @ApiBearerAuth()
+@ApiBearerAuth()
 @Controller('orders')
 export class OrderController {
   constructor(private readonly orderService: OrderService) {}
@@ -90,10 +96,9 @@ export class OrderController {
   @ApiResponse({ status: 404, description: 'Order not found' })
   processPayment(
     @Param('id') id: string,
-    @Body('paymentMethod') paymentMethod: 'stripe' | 'paystack',
-    @Body('paymentToken') paymentToken: string,
+    @Body('paymentMethod') paymentMethod: Gateway,
   ) {
-    return this.orderService.processPayment(id, paymentMethod, paymentToken);
+    return this.orderService.processPayment(id, paymentMethod);
   }
 
   @Patch(':id/cancel')

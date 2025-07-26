@@ -146,7 +146,7 @@ export class PatientService {
     updatePatientDto: UpdatePatientDto,
   ): Promise<Patient> {
     const patient = await this.patientRepository.findOne({
-      where: { user: { id } },
+      where: { id },
       relations: ['user'],
     });
 
