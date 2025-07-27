@@ -218,22 +218,22 @@ export const medicineColumns: ColumnDef<MedicineResponseDto>[] = [
               <Eye className="mr-2 h-4 w-4" />
               View Details
             </DropdownMenuItem>
-            {/* {currentUser?.role === "admin" ||
-              (currentUser?.role === "pharmacist" && ( */}
-            <>
-              <DropdownMenuItem onClick={() => onEditMedicine(medicine.id)}>
-                <Edit2 className="mr-2 h-4 w-4" />
-                Edit Medicine
-              </DropdownMenuItem>
-              <DropdownMenuItem
-                onClick={() => onDeleteMedicine(row.original.id)}
-                className="text-red-600"
-              >
-                <Trash2 className="mr-2 h-4 w-4" />
-                Delete Medicine
-              </DropdownMenuItem>
-            </>
-            {/* ))} */}
+            {currentUser?.role === "admin" ||
+              (currentUser?.role === "pharmacist" && (
+                <>
+                  <DropdownMenuItem onClick={() => onEditMedicine(medicine.id)}>
+                    <Edit2 className="mr-2 h-4 w-4" />
+                    Edit Medicine
+                  </DropdownMenuItem>
+                  <DropdownMenuItem
+                    onClick={() => onDeleteMedicine(row.original.id)}
+                    className="text-red-600"
+                  >
+                    <Trash2 className="mr-2 h-4 w-4" />
+                    Delete Medicine
+                  </DropdownMenuItem>
+                </>
+              ))}
           </DropdownMenuContent>
         </DropdownMenu>
       );

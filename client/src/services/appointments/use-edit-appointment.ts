@@ -17,8 +17,9 @@ export const useEditAppointmentService = () => {
 
       return response.data;
     },
-    onSuccess: async () => {
-      await queryClient.invalidateQueries({ queryKey: ["appointments"] });
+    onSuccess:  () => {
+       queryClient.invalidateQueries({ queryKey: ["appointments"] });
+       queryClient.invalidateQueries({ queryKey: ["doctorAvailability"] });
     },
   });
 };

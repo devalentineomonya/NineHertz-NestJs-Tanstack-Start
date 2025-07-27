@@ -2,7 +2,7 @@ import { IsEnum, IsOptional } from 'class-validator';
 
 import { ApiProperty } from '@nestjs/swagger';
 
-enum DaysOfWeek {
+export enum DaysOfWeek {
   Monday = 'Monday',
   Tuesday = 'Tuesday',
   Wednesday = 'Wednesday',

@@ -42,7 +42,7 @@ const StatsCard: React.FC<StatsCardProps> = ({
     animate={{ opacity: 1, y: 0 }}
     transition={{ duration: 0.5, delay }}
     whileHover={{ y: -5 }}
-    className="h-full"
+    className="h-full max-h-40"
   >
     <Card className={`h-full bg-gradient-to-br ${gradient} text-white border-0 shadow-lg`}>
       <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
@@ -51,7 +51,7 @@ const StatsCard: React.FC<StatsCardProps> = ({
         </CardTitle>
         <div className="bg-white/20 p-2 rounded-full">{icon}</div>
       </CardHeader>
-      <CardContent>
+      <CardContent className="pt-0">
         <div className="text-2xl font-bold">{value}</div>
         {subtitle && <p className="text-xs text-white/80 mt-1">{subtitle}</p>}
         {trend && (

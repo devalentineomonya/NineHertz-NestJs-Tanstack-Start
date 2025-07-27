@@ -8,11 +8,12 @@ import { StripeService } from './stripe.service';
 import { User } from 'src/user/entities/user.entity';
 import { Order } from 'src/order/entities/order.entity';
 import { Appointment } from 'src/appointment/entities/appointment.entity';
+import { StripeVerificationController } from './stripe.controller';
 
 @Module({
   imports: [TypeOrmModule.forFeature([Transaction, User, Order, Appointment])],
   exports: [TransactionService],
   providers: [TransactionService, PaystackService, StripeService],
-  controllers: [TransactionController],
+  controllers: [TransactionController, StripeVerificationController],
 })
 export class TransactionsModule {}

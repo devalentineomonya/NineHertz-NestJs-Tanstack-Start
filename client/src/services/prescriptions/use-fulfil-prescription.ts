@@ -17,7 +17,7 @@ export const useFulfillPrescriptionService = () => {
       return response.data;
     },
     onSuccess: async () => {
-      queryClient.invalidateQueries({ queryKey: ["appointments"] });
+      queryClient.invalidateQueries({ queryKey: ["prescriptions"] });
     },
   });
 };

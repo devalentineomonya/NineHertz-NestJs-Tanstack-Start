@@ -24,6 +24,7 @@ import { Route as LayoutpharmacistPharmacistInventoryRouteImport } from './route
 import { Route as LayoutpharmacistPharmacistDashboardRouteImport } from './routes/_layout/(pharmacist)/pharmacist.dashboard'
 import { Route as LayoutpharmacistPharmacistChatRouteImport } from './routes/_layout/(pharmacist)/pharmacist.chat'
 import { Route as LayoutpatientsPatientSettingsRouteImport } from './routes/_layout/(patients)/patient.settings'
+import { Route as LayoutpatientsPatientRoomsRouteImport } from './routes/_layout/(patients)/patient.rooms'
 import { Route as LayoutpatientsPatientPrescriptionsRouteImport } from './routes/_layout/(patients)/patient.prescriptions'
 import { Route as LayoutpatientsPatientOrdersRouteImport } from './routes/_layout/(patients)/patient.orders'
 import { Route as LayoutpatientsPatientNotificationRouteImport } from './routes/_layout/(patients)/patient.notification'
@@ -33,6 +34,7 @@ import { Route as LayoutpatientsPatientChatRouteImport } from './routes/_layout/
 import { Route as LayoutpatientsPatientCalendarRouteImport } from './routes/_layout/(patients)/patient.calendar'
 import { Route as LayoutpatientsPatientAppointmentsRouteImport } from './routes/_layout/(patients)/patient.appointments'
 import { Route as LayoutdoctorsDoctorSettingsRouteImport } from './routes/_layout/(doctors)/doctor.settings'
+import { Route as LayoutdoctorsDoctorRoomsRouteImport } from './routes/_layout/(doctors)/doctor.rooms'
 import { Route as LayoutdoctorsDoctorPrescriptionsRouteImport } from './routes/_layout/(doctors)/doctor.prescriptions'
 import { Route as LayoutdoctorsDoctorPatientsRouteImport } from './routes/_layout/(doctors)/doctor.patients'
 import { Route as LayoutdoctorsDoctorNotificationRouteImport } from './routes/_layout/(doctors)/doctor.notification'
@@ -45,6 +47,7 @@ import { Route as LayoutdoctorsDoctorAppointmentsRouteImport } from './routes/_l
 import { Route as LayoutadminAdminUsersRouteImport } from './routes/_layout/(admin)/admin.users'
 import { Route as LayoutadminAdminTransactionsRouteImport } from './routes/_layout/(admin)/admin.transactions'
 import { Route as LayoutadminAdminSettingsRouteImport } from './routes/_layout/(admin)/admin.settings'
+import { Route as LayoutadminAdminRoomsRouteImport } from './routes/_layout/(admin)/admin.rooms'
 import { Route as LayoutadminAdminProfileRouteImport } from './routes/_layout/(admin)/admin.profile'
 import { Route as LayoutadminAdminPrescriptionsRouteImport } from './routes/_layout/(admin)/admin.prescriptions'
 import { Route as LayoutadminAdminPharmacistRouteImport } from './routes/_layout/(admin)/admin.pharmacist'
@@ -143,6 +146,12 @@ const LayoutpatientsPatientSettingsRoute =
     path: '/patient/settings',
     getParentRoute: () => LayoutRouteRoute,
   } as any)
+const LayoutpatientsPatientRoomsRoute =
+  LayoutpatientsPatientRoomsRouteImport.update({
+    id: '/(patients)/patient/rooms',
+    path: '/patient/rooms',
+    getParentRoute: () => LayoutRouteRoute,
+  } as any)
 const LayoutpatientsPatientPrescriptionsRoute =
   LayoutpatientsPatientPrescriptionsRouteImport.update({
     id: '/(patients)/patient/prescriptions',
@@ -195,6 +204,12 @@ const LayoutdoctorsDoctorSettingsRoute =
   LayoutdoctorsDoctorSettingsRouteImport.update({
     id: '/(doctors)/doctor/settings',
     path: '/doctor/settings',
+    getParentRoute: () => LayoutRouteRoute,
+  } as any)
+const LayoutdoctorsDoctorRoomsRoute =
+  LayoutdoctorsDoctorRoomsRouteImport.update({
+    id: '/(doctors)/doctor/rooms',
+    path: '/doctor/rooms',
     getParentRoute: () => LayoutRouteRoute,
   } as any)
 const LayoutdoctorsDoctorPrescriptionsRoute =
@@ -267,6 +282,11 @@ const LayoutadminAdminSettingsRoute =
     path: '/admin/settings',
     getParentRoute: () => LayoutRouteRoute,
   } as any)
+const LayoutadminAdminRoomsRoute = LayoutadminAdminRoomsRouteImport.update({
+  id: '/(admin)/admin/rooms',
+  path: '/admin/rooms',
+  getParentRoute: () => LayoutRouteRoute,
+} as any)
 const LayoutadminAdminProfileRoute = LayoutadminAdminProfileRouteImport.update({
   id: '/(admin)/admin/profile',
   path: '/admin/profile',
@@ -366,6 +386,7 @@ export interface FileRoutesByFullPath {
   '/admin/pharmacist': typeof LayoutadminAdminPharmacistRoute
   '/admin/prescriptions': typeof LayoutadminAdminPrescriptionsRoute
   '/admin/profile': typeof LayoutadminAdminProfileRoute
+  '/admin/rooms': typeof LayoutadminAdminRoomsRoute
   '/admin/settings': typeof LayoutadminAdminSettingsRoute
   '/admin/transactions': typeof LayoutadminAdminTransactionsRoute
   '/admin/users': typeof LayoutadminAdminUsersRoute
@@ -378,6 +399,7 @@ export interface FileRoutesByFullPath {
   '/doctor/notification': typeof LayoutdoctorsDoctorNotificationRoute
   '/doctor/patients': typeof LayoutdoctorsDoctorPatientsRoute
   '/doctor/prescriptions': typeof LayoutdoctorsDoctorPrescriptionsRoute
+  '/doctor/rooms': typeof LayoutdoctorsDoctorRoomsRoute
   '/doctor/settings': typeof LayoutdoctorsDoctorSettingsRoute
   '/patient/appointments': typeof LayoutpatientsPatientAppointmentsRoute
   '/patient/calendar': typeof LayoutpatientsPatientCalendarRoute
@@ -387,6 +409,7 @@ export interface FileRoutesByFullPath {
   '/patient/notification': typeof LayoutpatientsPatientNotificationRoute
   '/patient/orders': typeof LayoutpatientsPatientOrdersRoute
   '/patient/prescriptions': typeof LayoutpatientsPatientPrescriptionsRoute
+  '/patient/rooms': typeof LayoutpatientsPatientRoomsRoute
   '/patient/settings': typeof LayoutpatientsPatientSettingsRoute
   '/pharmacist/chat': typeof LayoutpharmacistPharmacistChatRoute
   '/pharmacist/dashboard': typeof LayoutpharmacistPharmacistDashboardRoute
@@ -417,6 +440,7 @@ export interface FileRoutesByTo {
   '/admin/pharmacist': typeof LayoutadminAdminPharmacistRoute
   '/admin/prescriptions': typeof LayoutadminAdminPrescriptionsRoute
   '/admin/profile': typeof LayoutadminAdminProfileRoute
+  '/admin/rooms': typeof LayoutadminAdminRoomsRoute
   '/admin/settings': typeof LayoutadminAdminSettingsRoute
   '/admin/transactions': typeof LayoutadminAdminTransactionsRoute
   '/admin/users': typeof LayoutadminAdminUsersRoute
@@ -429,6 +453,7 @@ export interface FileRoutesByTo {
   '/doctor/notification': typeof LayoutdoctorsDoctorNotificationRoute
   '/doctor/patients': typeof LayoutdoctorsDoctorPatientsRoute
   '/doctor/prescriptions': typeof LayoutdoctorsDoctorPrescriptionsRoute
+  '/doctor/rooms': typeof LayoutdoctorsDoctorRoomsRoute
   '/doctor/settings': typeof LayoutdoctorsDoctorSettingsRoute
   '/patient/appointments': typeof LayoutpatientsPatientAppointmentsRoute
   '/patient/calendar': typeof LayoutpatientsPatientCalendarRoute
@@ -438,6 +463,7 @@ export interface FileRoutesByTo {
   '/patient/notification': typeof LayoutpatientsPatientNotificationRoute
   '/patient/orders': typeof LayoutpatientsPatientOrdersRoute
   '/patient/prescriptions': typeof LayoutpatientsPatientPrescriptionsRoute
+  '/patient/rooms': typeof LayoutpatientsPatientRoomsRoute
   '/patient/settings': typeof LayoutpatientsPatientSettingsRoute
   '/pharmacist/chat': typeof LayoutpharmacistPharmacistChatRoute
   '/pharmacist/dashboard': typeof LayoutpharmacistPharmacistDashboardRoute
@@ -470,6 +496,7 @@ export interface FileRoutesById {
   '/_layout/(admin)/admin/pharmacist': typeof LayoutadminAdminPharmacistRoute
   '/_layout/(admin)/admin/prescriptions': typeof LayoutadminAdminPrescriptionsRoute
   '/_layout/(admin)/admin/profile': typeof LayoutadminAdminProfileRoute
+  '/_layout/(admin)/admin/rooms': typeof LayoutadminAdminRoomsRoute
   '/_layout/(admin)/admin/settings': typeof LayoutadminAdminSettingsRoute
   '/_layout/(admin)/admin/transactions': typeof LayoutadminAdminTransactionsRoute
   '/_layout/(admin)/admin/users': typeof LayoutadminAdminUsersRoute
@@ -482,6 +509,7 @@ export interface FileRoutesById {
   '/_layout/(doctors)/doctor/notification': typeof LayoutdoctorsDoctorNotificationRoute
   '/_layout/(doctors)/doctor/patients': typeof LayoutdoctorsDoctorPatientsRoute
   '/_layout/(doctors)/doctor/prescriptions': typeof LayoutdoctorsDoctorPrescriptionsRoute
+  '/_layout/(doctors)/doctor/rooms': typeof LayoutdoctorsDoctorRoomsRoute
   '/_layout/(doctors)/doctor/settings': typeof LayoutdoctorsDoctorSettingsRoute
   '/_layout/(patients)/patient/appointments': typeof LayoutpatientsPatientAppointmentsRoute
   '/_layout/(patients)/patient/calendar': typeof LayoutpatientsPatientCalendarRoute
@@ -491,6 +519,7 @@ export interface FileRoutesById {
   '/_layout/(patients)/patient/notification': typeof LayoutpatientsPatientNotificationRoute
   '/_layout/(patients)/patient/orders': typeof LayoutpatientsPatientOrdersRoute
   '/_layout/(patients)/patient/prescriptions': typeof LayoutpatientsPatientPrescriptionsRoute
+  '/_layout/(patients)/patient/rooms': typeof LayoutpatientsPatientRoomsRoute
   '/_layout/(patients)/patient/settings': typeof LayoutpatientsPatientSettingsRoute
   '/_layout/(pharmacist)/pharmacist/chat': typeof LayoutpharmacistPharmacistChatRoute
   '/_layout/(pharmacist)/pharmacist/dashboard': typeof LayoutpharmacistPharmacistDashboardRoute
@@ -523,6 +552,7 @@ export interface FileRouteTypes {
     | '/admin/pharmacist'
     | '/admin/prescriptions'
     | '/admin/profile'
+    | '/admin/rooms'
     | '/admin/settings'
     | '/admin/transactions'
     | '/admin/users'
@@ -535,6 +565,7 @@ export interface FileRouteTypes {
     | '/doctor/notification'
     | '/doctor/patients'
     | '/doctor/prescriptions'
+    | '/doctor/rooms'
     | '/doctor/settings'
     | '/patient/appointments'
     | '/patient/calendar'
@@ -544,6 +575,7 @@ export interface FileRouteTypes {
     | '/patient/notification'
     | '/patient/orders'
     | '/patient/prescriptions'
+    | '/patient/rooms'
     | '/patient/settings'
     | '/pharmacist/chat'
     | '/pharmacist/dashboard'
@@ -574,6 +606,7 @@ export interface FileRouteTypes {
     | '/admin/pharmacist'
     | '/admin/prescriptions'
     | '/admin/profile'
+    | '/admin/rooms'
     | '/admin/settings'
     | '/admin/transactions'
     | '/admin/users'
@@ -586,6 +619,7 @@ export interface FileRouteTypes {
     | '/doctor/notification'
     | '/doctor/patients'
     | '/doctor/prescriptions'
+    | '/doctor/rooms'
     | '/doctor/settings'
     | '/patient/appointments'
     | '/patient/calendar'
@@ -595,6 +629,7 @@ export interface FileRouteTypes {
     | '/patient/notification'
     | '/patient/orders'
     | '/patient/prescriptions'
+    | '/patient/rooms'
     | '/patient/settings'
     | '/pharmacist/chat'
     | '/pharmacist/dashboard'
@@ -626,6 +661,7 @@ export interface FileRouteTypes {
     | '/_layout/(admin)/admin/pharmacist'
     | '/_layout/(admin)/admin/prescriptions'
     | '/_layout/(admin)/admin/profile'
+    | '/_layout/(admin)/admin/rooms'
     | '/_layout/(admin)/admin/settings'
     | '/_layout/(admin)/admin/transactions'
     | '/_layout/(admin)/admin/users'
@@ -638,6 +674,7 @@ export interface FileRouteTypes {
     | '/_layout/(doctors)/doctor/notification'
     | '/_layout/(doctors)/doctor/patients'
     | '/_layout/(doctors)/doctor/prescriptions'
+    | '/_layout/(doctors)/doctor/rooms'
     | '/_layout/(doctors)/doctor/settings'
     | '/_layout/(patients)/patient/appointments'
     | '/_layout/(patients)/patient/calendar'
@@ -647,6 +684,7 @@ export interface FileRouteTypes {
     | '/_layout/(patients)/patient/notification'
     | '/_layout/(patients)/patient/orders'
     | '/_layout/(patients)/patient/prescriptions'
+    | '/_layout/(patients)/patient/rooms'
     | '/_layout/(patients)/patient/settings'
     | '/_layout/(pharmacist)/pharmacist/chat'
     | '/_layout/(pharmacist)/pharmacist/dashboard'
@@ -775,6 +813,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof LayoutpatientsPatientSettingsRouteImport
       parentRoute: typeof LayoutRouteRoute
     }
+    '/_layout/(patients)/patient/rooms': {
+      id: '/_layout/(patients)/patient/rooms'
+      path: '/patient/rooms'
+      fullPath: '/patient/rooms'
+      preLoaderRoute: typeof LayoutpatientsPatientRoomsRouteImport
+      parentRoute: typeof LayoutRouteRoute
+    }
     '/_layout/(patients)/patient/prescriptions': {
       id: '/_layout/(patients)/patient/prescriptions'
       path: '/patient/prescriptions'
@@ -836,6 +881,13 @@ declare module '@tanstack/react-router' {
       path: '/doctor/settings'
       fullPath: '/doctor/settings'
       preLoaderRoute: typeof LayoutdoctorsDoctorSettingsRouteImport
+      parentRoute: typeof LayoutRouteRoute
+    }
+    '/_layout/(doctors)/doctor/rooms': {
+      id: '/_layout/(doctors)/doctor/rooms'
+      path: '/doctor/rooms'
+      fullPath: '/doctor/rooms'
+      preLoaderRoute: typeof LayoutdoctorsDoctorRoomsRouteImport
       parentRoute: typeof LayoutRouteRoute
     }
     '/_layout/(doctors)/doctor/prescriptions': {
@@ -920,6 +972,13 @@ declare module '@tanstack/react-router' {
       path: '/admin/settings'
       fullPath: '/admin/settings'
       preLoaderRoute: typeof LayoutadminAdminSettingsRouteImport
+      parentRoute: typeof LayoutRouteRoute
+    }
+    '/_layout/(admin)/admin/rooms': {
+      id: '/_layout/(admin)/admin/rooms'
+      path: '/admin/rooms'
+      fullPath: '/admin/rooms'
+      preLoaderRoute: typeof LayoutadminAdminRoomsRouteImport
       parentRoute: typeof LayoutRouteRoute
     }
     '/_layout/(admin)/admin/profile': {
@@ -1037,6 +1096,7 @@ interface LayoutRouteRouteChildren {
   LayoutadminAdminPharmacistRoute: typeof LayoutadminAdminPharmacistRoute
   LayoutadminAdminPrescriptionsRoute: typeof LayoutadminAdminPrescriptionsRoute
   LayoutadminAdminProfileRoute: typeof LayoutadminAdminProfileRoute
+  LayoutadminAdminRoomsRoute: typeof LayoutadminAdminRoomsRoute
   LayoutadminAdminSettingsRoute: typeof LayoutadminAdminSettingsRoute
   LayoutadminAdminTransactionsRoute: typeof LayoutadminAdminTransactionsRoute
   LayoutadminAdminUsersRoute: typeof LayoutadminAdminUsersRoute
@@ -1049,6 +1109,7 @@ interface LayoutRouteRouteChildren {
   LayoutdoctorsDoctorNotificationRoute: typeof LayoutdoctorsDoctorNotificationRoute
   LayoutdoctorsDoctorPatientsRoute: typeof LayoutdoctorsDoctorPatientsRoute
   LayoutdoctorsDoctorPrescriptionsRoute: typeof LayoutdoctorsDoctorPrescriptionsRoute
+  LayoutdoctorsDoctorRoomsRoute: typeof LayoutdoctorsDoctorRoomsRoute
   LayoutdoctorsDoctorSettingsRoute: typeof LayoutdoctorsDoctorSettingsRoute
   LayoutpatientsPatientAppointmentsRoute: typeof LayoutpatientsPatientAppointmentsRoute
   LayoutpatientsPatientCalendarRoute: typeof LayoutpatientsPatientCalendarRoute
@@ -1058,6 +1119,7 @@ interface LayoutRouteRouteChildren {
   LayoutpatientsPatientNotificationRoute: typeof LayoutpatientsPatientNotificationRoute
   LayoutpatientsPatientOrdersRoute: typeof LayoutpatientsPatientOrdersRoute
   LayoutpatientsPatientPrescriptionsRoute: typeof LayoutpatientsPatientPrescriptionsRoute
+  LayoutpatientsPatientRoomsRoute: typeof LayoutpatientsPatientRoomsRoute
   LayoutpatientsPatientSettingsRoute: typeof LayoutpatientsPatientSettingsRoute
   LayoutpharmacistPharmacistChatRoute: typeof LayoutpharmacistPharmacistChatRoute
   LayoutpharmacistPharmacistDashboardRoute: typeof LayoutpharmacistPharmacistDashboardRoute
@@ -1083,6 +1145,7 @@ const LayoutRouteRouteChildren: LayoutRouteRouteChildren = {
   LayoutadminAdminPharmacistRoute: LayoutadminAdminPharmacistRoute,
   LayoutadminAdminPrescriptionsRoute: LayoutadminAdminPrescriptionsRoute,
   LayoutadminAdminProfileRoute: LayoutadminAdminProfileRoute,
+  LayoutadminAdminRoomsRoute: LayoutadminAdminRoomsRoute,
   LayoutadminAdminSettingsRoute: LayoutadminAdminSettingsRoute,
   LayoutadminAdminTransactionsRoute: LayoutadminAdminTransactionsRoute,
   LayoutadminAdminUsersRoute: LayoutadminAdminUsersRoute,
@@ -1095,6 +1158,7 @@ const LayoutRouteRouteChildren: LayoutRouteRouteChildren = {
   LayoutdoctorsDoctorNotificationRoute: LayoutdoctorsDoctorNotificationRoute,
   LayoutdoctorsDoctorPatientsRoute: LayoutdoctorsDoctorPatientsRoute,
   LayoutdoctorsDoctorPrescriptionsRoute: LayoutdoctorsDoctorPrescriptionsRoute,
+  LayoutdoctorsDoctorRoomsRoute: LayoutdoctorsDoctorRoomsRoute,
   LayoutdoctorsDoctorSettingsRoute: LayoutdoctorsDoctorSettingsRoute,
   LayoutpatientsPatientAppointmentsRoute:
     LayoutpatientsPatientAppointmentsRoute,
@@ -1107,6 +1171,7 @@ const LayoutRouteRouteChildren: LayoutRouteRouteChildren = {
   LayoutpatientsPatientOrdersRoute: LayoutpatientsPatientOrdersRoute,
   LayoutpatientsPatientPrescriptionsRoute:
     LayoutpatientsPatientPrescriptionsRoute,
+  LayoutpatientsPatientRoomsRoute: LayoutpatientsPatientRoomsRoute,
   LayoutpatientsPatientSettingsRoute: LayoutpatientsPatientSettingsRoute,
   LayoutpharmacistPharmacistChatRoute: LayoutpharmacistPharmacistChatRoute,
   LayoutpharmacistPharmacistDashboardRoute:

@@ -19,6 +19,10 @@ import { NotificationService } from 'src/notification/notification.service';
 import { MailModule } from 'src/shared/mail/mail.module';
 import { Notification } from 'src/notification/entities/notification.entity';
 import { PushSubscription } from 'src/notification/entities/push-subscription.entity';
+import { PrescriptionService } from 'src/prescription/prescription.service';
+import { Prescription } from 'src/prescription/entities/prescription.entity';
+import { Pharmacist } from 'src/pharmacist/entities/pharmacist.entity';
+import { Review } from 'src/appointment/entities/review.entity';
 
 @Module({
   imports: [
@@ -29,6 +33,9 @@ import { PushSubscription } from 'src/notification/entities/push-subscription.en
       Patient,
       Notification,
       PushSubscription,
+      Prescription,
+      Pharmacist,
+      Review,
     ]),
     ConfigModule.forRoot(),
     CacheModule.registerAsync({
@@ -55,6 +62,7 @@ import { PushSubscription } from 'src/notification/entities/push-subscription.en
     PatientService,
     StreamService,
     NotificationService,
+    PrescriptionService,
   ],
   exports: [ChatService],
   controllers: [ChatController],

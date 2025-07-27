@@ -1,5 +1,6 @@
 import { Injectable, BadRequestException } from '@nestjs/common';
 import { Paystack } from 'paystack-sdk';
+import { Transaction } from 'paystack-sdk/dist/transaction/interface';
 
 @Injectable()
 export class PaystackService {
@@ -58,7 +59,7 @@ export class PaystackService {
   async verifyTransaction(reference: string): Promise<{
     id: number;
     status: string;
-    response: any;
+    response: Transaction;
   } | null> {
     try {
       const response = await this.paystack.transaction.verify(reference);

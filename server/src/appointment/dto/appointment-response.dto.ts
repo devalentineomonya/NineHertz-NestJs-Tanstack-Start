@@ -6,6 +6,8 @@ import {
   AppointmentType,
   AppointmentMode,
 } from '../entities/appointment.entity';
+import { TransactionResponseDto } from 'src/transactions/dto/transaction-response.dto';
+import { ReviewResponseDto } from './review-response.dto';
 
 export class AppointmentResponseDto {
   @ApiProperty({
@@ -66,6 +68,14 @@ export class AppointmentResponseDto {
     description: 'Doctor details',
   })
   doctor?: DoctorResponseDto;
+  @ApiProperty({
+    type: TransactionResponseDto,
+    description: 'Doctor details',
+  })
+  transactions: TransactionResponseDto[];
+
+  @ApiProperty({ type: [ReviewResponseDto] })
+  reviews?: ReviewResponseDto[];
 
   @ApiProperty({
     example: '2023-11-01T08:00:00Z',

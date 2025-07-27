@@ -9,8 +9,8 @@ export const useDeleteMedicineService = () => {
       const response = await dataService.api.medicines._id(id).delete.call();
       return response.data;
     },
-    onSuccess: async () => {
-      await queryClient.invalidateQueries({ queryKey: ["medicines"] });
+    onSuccess:  () => {
+       queryClient.invalidateQueries({ queryKey: ["medicines"] });
     },
   });
 };

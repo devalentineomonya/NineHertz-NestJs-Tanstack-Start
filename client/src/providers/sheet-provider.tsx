@@ -13,6 +13,8 @@ import { AddPrescriptionDrawer } from "@/screens/admin/prescriptions/add-prescri
 import { EditPrescriptionDrawer } from "@/screens/admin/prescriptions/edit-prescription-sheet";
 import { ViewPrescriptionDrawer } from "@/screens/admin/prescriptions/view-prescription-drawer";
 import { AddAppointmentDrawer } from "@/screens/appointments/add-appointment-sheet";
+import { AppointmentPaymentDrawer } from "@/screens/appointments/appointment-payment-drawer";
+import { CancelAppointmentModal } from "@/screens/appointments/cancel-appointment-modal";
 import { EditAppointmentDrawer } from "@/screens/appointments/edit-appointment";
 import { RescheduleDrawer } from "@/screens/appointments/reschedule-appointment-drawer";
 import { ViewAppointmentDrawer } from "@/screens/appointments/view-appointment-sheet";
@@ -29,6 +31,7 @@ import { ViewOrderDrawer } from "@/screens/order/view-order-drawer";
 import { AddUserDrawer } from "@/screens/users/add-user-sheet";
 import { EditUserDrawer } from "@/screens/users/update-user-drawer";
 import { ViewUserSheet } from "@/screens/users/view-user-sheet";
+import { ReviewModal } from "@/screens/appointments/review-modal";
 
 export const SheetProvider = () => (
   <>
@@ -53,6 +56,7 @@ export const SheetProvider = () => (
     <AddAppointmentDrawer />
     <EditAppointmentDrawer />
     <ViewAppointmentDrawer />
+    <AppointmentPaymentDrawer />
 
     <AddPrescriptionDrawer />
     <ViewPrescriptionDrawer />
@@ -72,5 +76,8 @@ export const SheetProvider = () => (
     <ViewInventoryDrawer />
     <AdjustQuantity />
     <ReorderItemDrawer />
+
+    <CancelAppointmentModal />
+    <ReviewModal />
   </>
 );

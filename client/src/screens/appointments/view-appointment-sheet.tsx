@@ -362,12 +362,13 @@ export const ViewAppointmentDrawer = () => {
             </CardContent>
           </Card>
         </div>
-
-        <DrawerFooter className="pb-6">
-          <Button variant={"primary"}>
-            <Link to="/">View Rooms</Link>
-          </Button>
-        </DrawerFooter>
+        {appointment.mode === "virtual" && (
+          <DrawerFooter className="pb-6">
+            <Button variant={"primary"}>
+              <Link to="/">View Rooms</Link>
+            </Button>
+          </DrawerFooter>
+        )}
       </DrawerContent>
     </Drawer>
   );

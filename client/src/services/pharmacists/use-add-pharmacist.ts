@@ -11,9 +11,9 @@ export const useAddPharmacistService = () => {
       });
       return response.data;
     },
-    onSuccess: async () => {
-      await queryClient.invalidateQueries({ queryKey: ["pharmacists"] });
-      await queryClient.invalidateQueries({ queryKey: ["users"] });
+    onSuccess:  () => {
+       queryClient.invalidateQueries({ queryKey: ["pharmacists"] });
+       queryClient.invalidateQueries({ queryKey: ["users"] });
     },
   });
 };

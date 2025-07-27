@@ -200,6 +200,7 @@ export const EditAppointmentDrawer = () => {
         data: {
           ...data,
           endTime,
+          status: data.status as AppointmentStatus,
           startTime: data.datetime,
           duration: durationMinutes,
         },
@@ -534,7 +535,8 @@ export const EditAppointmentDrawer = () => {
                         <Input
                           placeholder="Enter video session ID"
                           {...field}
-                          disabled={isSubmitting}
+                          disabled
+                          readOnly
                         />
                       </FormControl>
                       <FormMessage />

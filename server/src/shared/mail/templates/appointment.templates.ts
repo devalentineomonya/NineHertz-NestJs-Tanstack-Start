@@ -129,3 +129,70 @@ export function appointmentReminderEmail({
     content,
   });
 }
+
+export function appointmentCancelledEmail({
+  patientName,
+  doctorName,
+  appointmentTime,
+  reason,
+  refundMessage = '',
+  isDoctor = false,
+  companyName = 'NineHertz Medic',
+}: {
+  patientName: string;
+  doctorName: string;
+  appointmentTime: string;
+  reason: string;
+  refundMessage?: string;
+  isDoctor?: boolean;
+  companyName?: string;
+}) {
+  const content = `
+    <h1 style="${baseStyles.heading}">Appointment Cancelled</h1>
+
+    <div style="margin-bottom: 20px;">
+      <p style="${baseStyles.contentText}">
+        ${
+          isDoctor
+            ? `Your appointment with ${patientName} has been cancelled.`
+            : `Hello ${patientName}, your appointment with Dr. ${doctorName} has been cancelled.`
+        }
+      </p>
+
+      <table style="${baseStyles.table}">
+        <tr>
+          <td style="${baseStyles.labelCell}">Date & Time:</td>
+          <td style="${baseStyles.valueCell}">${appointmentTime}</td>
+        </tr>
+        <tr>
+          <td style="${baseStyles.labelCell}">Reason:</td>
+          <td style="${baseStyles.valueCell}">${reason}</td>
+        </tr>
+      </table>
+
+      ${
+        !isDoctor && refundMessage
+          ? `
+      <div style="${baseStyles.messageBox}">
+        <p style="${baseStyles.messageText}">
+          ${refundMessage}
+        </p>
+      </div>
+      `
+          : ''
+      }
+    </div>
+
+    <div style="${baseStyles.messageBox}">
+      <p style="${baseStyles.messageText}">
+        If you have any questions, please contact our support team.
+      </p>
+    </div>
+  `;
+
+  return baseEmailTemplate({
+    companyName,
+    title: 'Appointment Cancelled',
+    content,
+  });
+}

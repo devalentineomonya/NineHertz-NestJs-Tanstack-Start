@@ -1,6 +1,8 @@
+import Stripe from 'stripe';
 import {
   BadRequestException,
   Injectable,
+  Inject,
   InternalServerErrorException,
   NotFoundException,
 } from '@nestjs/common';
@@ -30,6 +32,42 @@ import { StripeService } from './stripe.service';
 import { User } from 'src/user/entities/user.entity';
 import { Order } from 'src/order/entities/order.entity';
 import { Appointment } from 'src/appointment/entities/appointment.entity';
+import { ConfigService } from '@nestjs/config';
+import { JwtService } from '@nestjs/jwt';
+import { Request } from 'express';
+import { REQUEST } from '@nestjs/core';
+interface StripeResponse {
+  id: string;
+  status: TransactionStatus;
+  response: Stripe.Checkout.Session;
+}
+
+interface PaystackResponse {
+  id: number;
+  status: string;
+  response: Transaction;
+}
+
+interface StripeJwtPayload {
+  reference: string;
+  amount: number;
+  userId: string;
+  orderId?: string;
+  appointmentId?: string;
+  iat?: number;
+  exp?: number;
+}
+
+type GatewayResponse<T extends Gateway> = T extends Gateway.STRIPE
+  ? StripeResponse
+  : T extends Gateway.PAYSTACK
+    ? PaystackResponse
+    : never;
+
+type VerificationResult<T extends Gateway> = {
+  verified: boolean;
+  gatewayResponse: GatewayResponse<T>;
+};
 
 @Injectable()
 export class TransactionService {
@@ -42,8 +80,12 @@ export class TransactionService {
     private orderRepository: Repository<Order>,
     @InjectRepository(Appointment)
     private appointmentRepository: Repository<Appointment>,
+    @Inject(REQUEST)
+    private readonly request: Request,
     private stripeService: StripeService,
     private paystackService: PaystackService,
+    private readonly configService: ConfigService,
+    private readonly jwtService: JwtService,
   ) {}
 
   async initiateTransaction(
@@ -73,7 +115,6 @@ export class TransactionService {
       if (!order) throw new NotFoundException(`Order ${orderId} not found`);
     }
 
-    // Validate and fetch appointment entity if provided
     if (appointmentId) {
       appointment = await this.appointmentRepository.findOneBy({
         id: appointmentId,
@@ -83,48 +124,72 @@ export class TransactionService {
       }
     }
 
+    // Check for an existing transaction
+    const existingTransaction = await this.transactionRepository.findOne({
+      where: [
+        orderId ? { order: { id: orderId } } : {},
+        appointmentId ? { appointment: { id: appointmentId } } : {},
+      ],
+      relations: ['order', 'appointment'],
+    });
+
+    if (existingTransaction) {
+      if (existingTransaction.status !== TransactionStatus.SUCCESS) {
+        // Return the existing transaction with accessCode/checkoutUrl
+        return {
+          transaction: existingTransaction,
+          accessCode: existingTransaction.accessCode,
+          checkoutUrl: existingTransaction.checkoutUrl,
+        };
+      } else {
+        throw new BadRequestException(
+          'Transaction already completed for this order/appointment',
+        );
+      }
+    }
+
+    // Create new transaction
     const reference = this.generateReference(initiateDto.gateway);
 
     try {
       let accessCode: string | undefined;
       let checkoutUrl: string | undefined;
       let gatewayReference: string;
+      const baseUrl =
+        this.request.protocol + '://' + this.request.headers.host + '/';
 
+      const newUrl = new URL(this.request.url, baseUrl);
       switch (initiateDto.gateway) {
         case Gateway.STRIPE: {
-          {
-            const stripeIntent = await this.stripeService.initializeTransaction(
-              {
-                amount: initiateDto.amount ?? 0,
-                currency: 'usd',
-                description: initiateDto.description ?? '',
-                successUrl: 'https://example.com/success',
-                cancelUrl: 'https://example.com/cancel',
-                email: user?.email,
+          const stripeInit = await this.stripeService.initializeTransaction({
+            amount: initiateDto.amount ?? 0,
+            currency: 'usd',
+            description: initiateDto.description ?? '',
+            successUrl: `${newUrl.origin}/stripe/success`,
+            cancelUrl: `${newUrl.origin}/stripe/cancel`,
+            email: user?.email,
+            reference,
+            userId,
+            orderId: orderId || undefined,
+            appointmentId: appointmentId || undefined,
+          });
+          checkoutUrl = stripeInit.checkoutUrl;
 
-                reference,
-              },
-            );
-            console.log('Stripe intent', stripeIntent);
-            checkoutUrl = stripeIntent.checkoutUrl || undefined;
-            gatewayReference = reference;
-          }
+          gatewayReference = stripeInit.sessionId;
           break;
         }
-
-        case Gateway.PAYSTACK:
-          {
-            const paystackInit =
-              await this.paystackService.initializeTransaction({
-                email: initiateDto.customerEmail ?? '',
-                amount: String(initiateDto.amount),
-                reference,
-              });
-            accessCode = paystackInit?.access_code || undefined;
-            gatewayReference = reference;
-          }
+        case Gateway.PAYSTACK: {
+          const paystackInit = await this.paystackService.initializeTransaction(
+            {
+              email: initiateDto.customerEmail ?? '',
+              amount: String(initiateDto.amount),
+              reference,
+            },
+          );
+          accessCode = paystackInit?.access_code || undefined;
+          gatewayReference = reference;
           break;
-
+        }
         default:
           throw new InternalServerErrorException('Unsupported payment gateway');
       }
@@ -133,15 +198,14 @@ export class TransactionService {
         gateway: restDto.gateway,
         amount: restDto.amount,
         description: restDto.description,
-        customerEmail: restDto.customerEmail,
         reference,
         gatewayReference,
+        accessCode,
+        checkoutUrl,
         status: TransactionStatus.PENDING,
         user,
         order: order ?? undefined,
         appointment: appointment ?? undefined,
-        createdAt: new Date(),
-        updatedAt: new Date(),
       } as Partial<Transaction>);
 
       const savedTransaction =
@@ -157,25 +221,37 @@ export class TransactionService {
     }
   }
 
-  async verifyPayment(
+  async verifyPayment<T extends Gateway>(
     reference: string,
-    gateway: Gateway,
+    gateway: T,
   ): Promise<Transaction> {
     try {
-    //   let verified = false;
-    //   let gatewayResponse: any;
+      let result: VerificationResult<T>;
 
       switch (gateway) {
-        case Gateway.STRIPE:
-        //   gatewayResponse = await this.stripeService.verifyPayment(reference);
-        //   verified = gatewayResponse.status === TransactionStatus.SUCCESS;
+        case Gateway.STRIPE: {
+          const stripeResponse =
+            await this.stripeService.verifyPayment(reference);
+          result = {
+            verified: stripeResponse.status === TransactionStatus.SUCCESS,
+            gatewayResponse:
+              stripeResponse.response as unknown as GatewayResponse<T>,
+          } as VerificationResult<T>;
           break;
+        }
 
-        case Gateway.PAYSTACK:
-        //   gatewayResponse =
-        //     await this.paystackService.verifyTransaction(reference);
-        //   verified = gatewayResponse.status === 'success';
+        case Gateway.PAYSTACK: {
+          const paystackResponse =
+            await this.paystackService.verifyTransaction(reference);
+          if (!paystackResponse) {
+            throw new InternalServerErrorException('Paystack response is null');
+          }
+          result = {
+            verified: paystackResponse.status === 'success',
+            gatewayResponse: paystackResponse as unknown as GatewayResponse<T>,
+          } as VerificationResult<T>;
           break;
+        }
 
         default:
           throw new InternalServerErrorException('Unsupported payment gateway');
@@ -191,14 +267,57 @@ export class TransactionService {
         );
       }
 
-    //   transaction.status = verified
-    //     ? TransactionStatus.SUCCESS
-    //     : TransactionStatus.FAILED;
+      transaction.status = result.verified
+        ? TransactionStatus.SUCCESS
+        : TransactionStatus.FAILED;
+      transaction.gatewayResponse = result.gatewayResponse;
+      transaction.processedAt = new Date();
 
       return await this.transactionRepository.save(transaction);
     } catch (error) {
       const message =
         error instanceof Error ? error.message : 'Payment verification failed';
+      throw new InternalServerErrorException(message);
+    }
+  }
+
+  /** New method to verify Stripe payment using JWT token */
+  async verifyStripePaymentWithToken(token: string): Promise<Transaction> {
+    try {
+      const payload = this.jwtService.verify<StripeJwtPayload>(token, {
+        secret: this.configService.getOrThrow('PAYMENT_JWT_SECRET'),
+      });
+      const transaction = await this.transactionRepository.findOne({
+        where: { reference: payload.reference },
+      });
+
+      if (!transaction) {
+        throw new NotFoundException(
+          `Transaction with reference ${payload.reference} not found`,
+        );
+      }
+
+      const stripeResponse = await this.stripeService.verifyPaymentWithToken(
+        transaction.gatewayReference,
+      );
+
+      // Verify that the gateway reference matches the session ID
+      if (transaction.gatewayReference !== stripeResponse.id) {
+        throw new BadRequestException('Transaction session ID mismatch');
+      }
+
+      transaction.status = stripeResponse.status;
+      transaction.gatewayResponse = stripeResponse.response;
+      transaction.processedAt = new Date();
+      transaction.paidAt =
+        stripeResponse.status === TransactionStatus.SUCCESS
+          ? new Date()
+          : transaction.paidAt;
+
+      return await this.transactionRepository.save(transaction);
+    } catch (error) {
+      const message =
+        error instanceof Error ? error.message : 'Stripe verification failed';
       throw new InternalServerErrorException(message);
     }
   }
@@ -339,7 +458,6 @@ export class TransactionService {
       gateway: transaction.gateway,
       gatewayReference: transaction.gatewayReference,
       gatewayFees: transaction.gatewayFees,
-
       createdAt: transaction.createdAt,
       updatedAt: transaction.updatedAt,
       paidAt: transaction.paidAt,
@@ -350,6 +468,7 @@ export class TransactionService {
       appointmentId: transaction.appointment?.id,
     };
   }
+
   private generateReference(gateway: Gateway): string {
     const prefix = gateway === Gateway.STRIPE ? 'STRP' : 'PSTK';
     const timestamp = Date.now();

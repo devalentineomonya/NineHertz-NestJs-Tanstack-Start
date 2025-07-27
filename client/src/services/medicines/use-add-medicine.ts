@@ -11,8 +11,8 @@ export const useAddMedicineService = () => {
       });
       return response.data;
     },
-    onSuccess: async () => {
-      await queryClient.invalidateQueries({ queryKey: ["medicines"] });
+    onSuccess:  () => {
+       queryClient.invalidateQueries({ queryKey: ["medicines"] });
     },
   });
 };

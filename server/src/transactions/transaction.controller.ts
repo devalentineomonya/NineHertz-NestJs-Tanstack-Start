@@ -36,11 +36,24 @@ export class TransactionController {
   }
 
   @Post('verify')
-  @ApiOperation({ summary: 'Verify a transaction by reference' })
+  @ApiOperation({
+    summary:
+      'Verify a transaction by reference (Legacy - supports both gateways)',
+  })
   async verify(
     @Body() data: { reference: string; gateway: Gateway },
   ): Promise<TransactionResponseDto> {
     return this.transactionService.verifyPayment(data.reference, data.gateway);
+  }
+
+  @Post('verify/stripe/token')
+  @ApiOperation({
+    summary: 'Verify Stripe transaction using JWT token from callback',
+  })
+  async verifyStripeWithToken(
+    @Body() data: { token: string },
+  ): Promise<TransactionResponseDto> {
+    return this.transactionService.verifyStripePaymentWithToken(data.token);
   }
 
   @Get()

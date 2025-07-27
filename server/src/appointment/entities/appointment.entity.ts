@@ -13,6 +13,7 @@ import {
   PrimaryGeneratedColumn,
   UpdateDateColumn,
 } from 'typeorm';
+import { Review } from './review.entity';
 
 export enum AppointmentType {
   CONSULTATION = 'consultation',
@@ -82,6 +83,9 @@ export class Appointment {
   // ADDED: Transaction relationship
   @OneToMany(() => Transaction, (transaction) => transaction.appointment)
   transactions: Transaction[];
+
+  @OneToMany(() => Review, (review) => review.appointment)
+  reviews: Review[];
 
   @CreateDateColumn()
   createdAt: Date;

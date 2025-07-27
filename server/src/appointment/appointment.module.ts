@@ -12,13 +12,15 @@ import { Notification } from 'src/notification/entities/notification.entity';
 import { NotificationModule } from 'src/notification/notification.module';
 import { ChatModule } from 'src/chat/chat.module';
 import { PushSubscription } from 'src/notification/entities/push-subscription.entity';
+import { Review } from './entities/review.entity';
 
 @Module({
   imports: [
     TypeOrmModule.forFeature([
-      Appointment,
+      Review,
       Doctor,
       Patient,
+      Appointment,
       Notification,
       PushSubscription,
     ]),

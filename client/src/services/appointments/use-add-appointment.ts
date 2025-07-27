@@ -12,7 +12,8 @@ export const useAddAppointmentService = () => {
       return response.data;
     },
     onSuccess: async () => {
-      await queryClient.invalidateQueries({ queryKey: ["appointments"] });
+       queryClient.invalidateQueries({ queryKey: ["appointments"] });
+       queryClient.invalidateQueries({ queryKey: ["doctorAvailability"] });
     },
   });
 };

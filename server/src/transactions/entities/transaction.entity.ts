@@ -54,6 +54,18 @@ export class Transaction {
   @Column({ nullable: true })
   gatewayFees: number;
 
+  @Column({ nullable: true })
+  accessCode?: string;
+
+  @Column({ nullable: true })
+  checkoutUrl?: string;
+
+  @Column({ nullable: true })
+  processedAt?: Date;
+
+  @Column({ type: 'jsonb', nullable: true })
+  gatewayResponse?: Record<string, any>;
+
   // Relationships
   @ManyToOne(() => Order, (order) => order.transactions, { nullable: true })
   order: Order;

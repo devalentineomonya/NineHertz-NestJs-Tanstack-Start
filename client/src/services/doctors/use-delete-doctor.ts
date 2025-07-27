@@ -14,8 +14,8 @@ export const useDeleteDoctor = () => {
 
       return response.data;
     },
-    onSuccess: async () => {
-      await queryClient.invalidateQueries({ queryKey: ["doctors"] });
+    onSuccess:  () => {
+       queryClient.invalidateQueries({ queryKey: ["doctors"] });
       toast.success("Doctor deleted successfully");
     },
     onError: () => {

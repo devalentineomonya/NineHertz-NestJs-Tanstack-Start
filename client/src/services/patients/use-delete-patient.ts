@@ -10,11 +10,11 @@ export function useDeletePatient() {
   return useMutation({
     mutationFn: async (patientId: string) =>
       dataService.api.patients._id(patientId).delete.call(),
-    onSuccess:async (_, patientId) => {
+    onSuccess: (_, patientId) => {
       toast.success("Patient account has been deactivated");
       closeModal();
-      await queryClient.invalidateQueries({ queryKey: ["patients"] });
-      await queryClient.invalidateQueries({ queryKey: ["patient", patientId] });
+       queryClient.invalidateQueries({ queryKey: ["patients"] });
+       queryClient.invalidateQueries({ queryKey: ["patient", patientId] });
     },
     onError: () => {
       toast.error("Failed to deactivate patient account");

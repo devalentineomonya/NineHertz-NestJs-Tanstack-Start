@@ -19,9 +19,9 @@ export const useEditMedicineService = () => {
       });
       return response.data;
     },
-    onSuccess: async () => {
-      await queryClient.invalidateQueries({ queryKey: ["medicines"] });
-      await queryClient.invalidateQueries({
+    onSuccess:  () => {
+       queryClient.invalidateQueries({ queryKey: ["medicines"] });
+       queryClient.invalidateQueries({
         queryKey: ["medicine", patientId],
       });
     },

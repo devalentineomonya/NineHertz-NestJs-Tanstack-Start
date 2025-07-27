@@ -21,6 +21,8 @@ const EndCallButton = () => {
     call.state.createdBy &&
     localParticipant.userId === call.state.createdBy.id;
 
+    console.log(localParticipant, call.state )
+
   if (!isMeetingOwner) return null;
 
   const endCall = async () => {

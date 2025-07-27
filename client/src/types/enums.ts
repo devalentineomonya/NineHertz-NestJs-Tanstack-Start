@@ -17,9 +17,22 @@ enum AppointmentStatus {
 }
 
 enum OrderStatus {
-    PENDING = 'pending',
-    PROCESSING = 'processing',
-    SHIPPED = 'shipped',
-    DELIVERED = 'delivered',
-    CANCELLED = 'cancelled',
-  }
+  PENDING = "pending",
+  PROCESSING = "processing",
+  SHIPPED = "shipped",
+  DELIVERED = "delivered",
+  CANCELLED = "cancelled",
+}
+
+enum Gateway {
+  PAYSTACK = "paystack",
+  STRIPE = "stripe",
+}
+
+enum TransactionStatus {
+  PENDING = "pending",
+  SUCCESS = "success",
+  FAILED = "failed",
+  REFUNDED = "refunded",
+  ABANDONED = "abandoned",
+}

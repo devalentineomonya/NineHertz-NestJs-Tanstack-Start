@@ -11,7 +11,7 @@ import {
   VideoPreview,
 } from "@stream-io/video-react-sdk";
 import { useRouter } from "@tanstack/react-router";
-import { useEffect, useState } from "react";
+import { useEffect, useState, useCallback, useRef, useMemo } from "react";
 import { DisabledVideoPreview } from "./disabled-video-preview";
 import { ToggleSettingsTabModal } from "./settings/settings-tab-modal";
 import { ToggleCameraButton } from "./toggle-camera-button";
@@ -45,26 +45,58 @@ export const MeetingSetup = ({
   const router = useRouter();
   const { layout, setLayout } = useLayoutSwitcher();
 
-  useEffect(() => {
-    const id = setTimeout(() => {
-      onJoin();
-    }, 500);
-    return () => clearTimeout(id);
-  }, [onJoin]);
+  // REMOVE THIS PROBLEMATIC useEffect - it's causing infinite re-renders
+  // useEffect(() => {
+  //   const id = setTimeout(() => {
+  //     onJoin();
+  //   }, 500);
+  //   return () => clearTimeout(id);
+  // }, [onJoin]);
 
   const [isRequestToJoinCallSent, setIsRequestToJoinCallSent] = useState(false);
-  const isCurrentUserCallMember = members.some(
-    (m) => m.user_id === currentUser?.id
-  );
-  const hasBrowserMediaPermission = hasCameraPermission && hasMicPermission;
-  const hasOtherParticipants = callSession?.participants.length;
+  const requestSentRef = useRef(false);
+
+  // Memoize expensive computations to prevent unnecessary re-renders
+  const isCurrentUserCallMember = useMemo(() => {
+    return members.some((m) => m.user_id === currentUser?.id);
+  }, [members, currentUser?.id]);
+
+  const hasBrowserMediaPermission = useMemo(() => {
+    return hasCameraPermission && hasMicPermission;
+  }, [hasCameraPermission, hasMicPermission]);
+
+  const hasOtherParticipants = useMemo(() => {
+    return callSession?.participants.length || 0;
+  }, [callSession?.participants.length]);
+
+  // Memoize the join handler to prevent re-renders
+  const handleJoinCall = useCallback(() => {
+    onJoin();
+  }, [onJoin]);
+
+  // Memoize the request to join handler
+  const handleRequestToJoin = useCallback(async () => {
+    if (requestSentRef.current || !call) return;
+
+    requestSentRef.current = true;
+    setIsRequestToJoinCallSent(true);
+
+    try {
+      await call.sendCustomEvent({
+        type: "pronto.request-to-join-call",
+      });
+    } catch (error) {
+      console.error("Failed to send request to join:", error);
+      requestSentRef.current = false;
+      setIsRequestToJoinCallSent(false);
+    }
+  }, [call]);
 
   return (
     <div className="flex flex-col items-center justify-center bg-[#101213] w-[500px] aspect-video rounded-xl shadow-lg p-6">
       <div className="w-full h-full flex flex-col">
         {mode !== "anon" && (
           <>
-
             <div
               className={cn(
                 "flex flex-col items-center mb-6",
@@ -73,7 +105,7 @@ export const MeetingSetup = ({
             >
               <div className="relative w-full aspect-video bg-gray-200 rounded-lg overflow-hidden mb-4 grid place-content-center">
                 <VideoPreview
-                className="w-[500px] aspect-video"
+                  className="w-[500px] aspect-video"
                   DisabledVideoPreview={
                     hasBrowserMediaPermission
                       ? DisabledVideoPreview
@@ -93,7 +125,7 @@ export const MeetingSetup = ({
                 </div>
 
                 <div className="flex gap-3">
-                  <ToggleParticipantsPreviewButton onJoin={onJoin} />
+                  <ToggleParticipantsPreviewButton onJoin={handleJoinCall} />
                   {/* <ToggleEffectsButton inMeeting={false} /> */}
                   <ToggleSettingsTabModal
                     layoutProps={{
@@ -132,12 +164,7 @@ export const MeetingSetup = ({
               isRequestToJoinCallSent && "opacity-50 cursor-not-allowed"
             )}
             disabled={isRequestToJoinCallSent}
-            onClick={async () => {
-              await call?.sendCustomEvent({
-                type: "pronto.request-to-join-call",
-              });
-              setIsRequestToJoinCallSent(true);
-            }}
+            onClick={handleRequestToJoin}
           >
             <Icon icon="login" />
             Request to join
@@ -145,7 +172,7 @@ export const MeetingSetup = ({
         ) : (
           <button
             className="flex items-center justify-center gap-2 w-full py-3 px-4 bg-blue-600 text-white rounded-lg font-medium hover:bg-blue-700 transition-colors"
-            onClick={onJoin}
+            onClick={handleJoinCall}
           >
             <Icon icon="login" />
             {hasOtherParticipants ? t("Join") : t("Start call")}

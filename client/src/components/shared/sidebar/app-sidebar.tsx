@@ -24,6 +24,7 @@ import {
   Stethoscope,
   User,
   Users,
+  Video,
 } from "lucide-react";
 import * as React from "react";
 
@@ -54,6 +55,12 @@ const ALL_NAV_ITEMS = [
     roles: ["admin", "doctor", "patient"],
   },
   {
+    title: "Rooms",
+    url: "rooms",
+    icon: Video,
+    roles: ["admin", "doctor", "patient"],
+  },
+  {
     title: "Prescriptions",
     url: "prescriptions",
     icon: ClipboardCheck,
@@ -64,7 +71,7 @@ const ALL_NAV_ITEMS = [
     title: "Medicines",
     url: "medicine",
     icon: Pill,
-    roles: ["admin", "pharmacist", "patient", "doctor"],
+    roles: ["admin", "pharmacist", "patient"],
   },
   {
     title: "Inventory",

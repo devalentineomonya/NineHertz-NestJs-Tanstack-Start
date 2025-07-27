@@ -12,8 +12,8 @@ export const useAddPrescriptionService = () => {
       });
       return response.data;
     },
-    onSuccess: async () => {
-      await queryClient.invalidateQueries({ queryKey: ["prescriptions"] });
+    onSuccess:  () => {
+       queryClient.invalidateQueries({ queryKey: ["prescriptions"] });
     },
   });
 };

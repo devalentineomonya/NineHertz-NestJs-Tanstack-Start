@@ -18,8 +18,8 @@ export const useEditPrescriptionService = () => {
       });
       return response.data;
     },
-    onSuccess: async () => {
-      await queryClient.invalidateQueries({ queryKey: ["prescriptions"] });
+    onSuccess:  () => {
+       queryClient.invalidateQueries({ queryKey: ["prescriptions"] });
     },
   });
 };

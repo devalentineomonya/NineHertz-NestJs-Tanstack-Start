@@ -183,15 +183,10 @@ export class DataServices {
         "post",
         "/appointments"
       ),
-      get: this.createEndpoint<
-        void,
-        {
-          page: number;
-          limit: number;
-          total: number;
-          data: AppointmentPaginatedDto[];
-        }
-      >("get", "/appointments"),
+      get: this.createEndpoint<void, AppointmentPaginatedDto>(
+        "get",
+        "/appointments"
+      ),
       _id: (id: string) => ({
         get: this.createEndpoint<void, AppointmentResponseDto>(
           "get",
@@ -204,6 +199,28 @@ export class DataServices {
         delete: this.createEndpoint<void, void>(
           "delete",
           `/appointments/${id}`
+        ),
+        reviews: this.createEndpoint<CreateReviewDto, ReviewResponseDto>(
+          "post",
+          `/appointments/${id}/reviews`
+        ),
+        "mark-as-complete": () => ({
+          patch: this.createEndpoint<void, AppointmentResponseDto>(
+            "patch",
+            `appointments/${id}/complete`
+          ),
+        }),
+        "send-reminder": () => ({
+          post: this.createEndpoint<void, AppointmentResponseDto>(
+            "post",
+            `appointments/${id}/reminder`
+          ),
+        }),
+      }),
+      cancel: (id: string) => ({
+        patch: this.createEndpoint<{ reason: string }, AppointmentResponseDto>(
+          "patch",
+          `appointments/${id}/cancel`
         ),
       }),
       videoToken: (callId: string) => ({
@@ -446,6 +463,38 @@ export class DataServices {
         patch: this.createEndpoint<void, { success: boolean }>(
           "patch",
           "notifications/mark-all-read"
+        ),
+      }),
+    },
+    transactions: {
+      initiate: this.createEndpoint<
+        InitiatePaymentDto,
+        {
+          transaction: TransactionResponseDto;
+          checkoutUrl?: string;
+          accessCode?: string;
+        }
+      >("post", "/transactions/initiate"),
+
+      verify: this.createEndpoint<
+        { reference: string; gateway: Gateway },
+        TransactionResponseDto
+      >("post", "/transactions/verify"),
+
+      get: this.createEndpoint<void, TransactionPaginatedDto>(
+        "get",
+        "/transactions"
+      ),
+
+      refund: this.createEndpoint<RefundTransactionDto, TransactionResponseDto>(
+        "post",
+        "/transactions/refund"
+      ),
+
+      _id: (id: string) => ({
+        get: this.createEndpoint<void, TransactionResponseDto>(
+          "get",
+          `/transactions/${id}`
         ),
       }),
     },

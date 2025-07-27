@@ -7,6 +7,7 @@ import {
   ResetPasswordEmail,
 } from './templates/mail.templates';
 import {
+  appointmentCancelledEmail,
   appointmentCreatedEmail,
   appointmentReminderEmail,
 } from './templates/appointment.templates';
@@ -83,5 +84,30 @@ export class MailService {
   ): Promise<nodemailer.SentMessageInfo> {
     const html = appointmentReminderEmail(props);
     return this.sendEmail(to, 'Appointment Reminder', html);
+  }
+
+  async sendAppointmentCancelled(
+    email: string,
+    data: {
+      patientName: string;
+      doctorName: string;
+      appointmentTime: string;
+      reason: string;
+      refundMessage?: string;
+      isDoctor?: boolean;
+    },
+  ): Promise<void> {
+    const html = appointmentCancelledEmail({
+      ...data,
+      companyName: 'NineHertz Medic',
+    });
+
+    await this.sendEmail(
+      email,
+      data.isDoctor
+        ? 'Appointment Cancellation Notification'
+        : 'Your Appointment Has Been Cancelled',
+      html,
+    );
   }
 }

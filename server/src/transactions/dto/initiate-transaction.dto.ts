@@ -1,13 +1,13 @@
+import { ApiProperty } from '@nestjs/swagger';
 import {
+  IsEmail,
   IsEnum,
   IsNotEmpty,
-  IsString,
   IsNumber,
   IsOptional,
-  IsEmail,
+  IsString,
   IsUUID,
 } from 'class-validator';
-import { ApiProperty } from '@nestjs/swagger';
 import { Gateway } from '../entities/transaction.entity';
 
 export class InitiatePaymentDto {

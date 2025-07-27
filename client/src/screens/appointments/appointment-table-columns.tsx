@@ -287,9 +287,7 @@ export const appointmentColumns: ColumnDef<AppointmentResponseDto>[] = [
           </Avatar>
           <div>
             <div className="font-medium">{doctor.fullName}</div>
-            <div className="text-sm text-gray-500">
-              {doctor.specialty}
-            </div>
+            <div className="text-sm text-gray-500">{doctor.specialty}</div>
           </div>
         </div>
       );
@@ -422,18 +420,34 @@ export const appointmentColumns: ColumnDef<AppointmentResponseDto>[] = [
             >
               View Details
             </DropdownMenuItem>
-            <DropdownMenuItem
-              onClick={() => onEditAppointment(row.original.id)}
-            >
-              Edit Appointment
-            </DropdownMenuItem>
-            <DropdownMenuItem
-              onClick={() => onRescheduleAppointment(row.original.id)}
-            >
-              {row.original.status === AppointmentStatus.SCHEDULED
-                ? "Reschedule"
-                : "Reschedule (New)"}
-            </DropdownMenuItem>
+
+            {/* Disable edit/reschedule for cancelled appointments */}
+            {row.original.status !== AppointmentStatus.CANCELLED && (
+              <>
+                <DropdownMenuItem
+                  onClick={() => onEditAppointment(row.original.id)}
+                  disabled={
+                    (row.original.status as AppointmentStatus) ===
+                    AppointmentStatus.CANCELLED
+                  }
+                >
+                  Edit Appointment
+                </DropdownMenuItem>
+                <DropdownMenuItem
+                  onClick={() => onRescheduleAppointment(row.original.id)}
+                  disabled={
+                    (row.original.status as AppointmentStatus) ===
+                    AppointmentStatus.CANCELLED
+                  }
+                >
+                  {row.original.status === AppointmentStatus.SCHEDULED
+                    ? "Reschedule"
+                    : "Reschedule (New)"}
+                </DropdownMenuItem>
+              </>
+            )}
+
+            {/* Cancellation only for scheduled appointments */}
             {row.original.status === AppointmentStatus.SCHEDULED && (
               <DropdownMenuItem
                 variant="destructive"
@@ -442,15 +456,20 @@ export const appointmentColumns: ColumnDef<AppointmentResponseDto>[] = [
                 Cancel Appointment
               </DropdownMenuItem>
             )}
-            {currentUser?.role === "admin" && (
+
+            {/* Admin/doctor actions */}
+            {(currentUser?.role === "admin" ||
+              currentUser?.role === "doctor") && (
               <>
-                {row.original.status !== AppointmentStatus.COMPLETED && (
-                  <DropdownMenuItem
-                    onClick={() => onMarkAsComplete(row.original.id)}
-                  >
-                    Mark as Completed
-                  </DropdownMenuItem>
-                )}
+                {row.original.status !== AppointmentStatus.COMPLETED &&
+                  row.original.mode === "physical" &&
+                  row.original.status !== AppointmentStatus.CANCELLED && (
+                    <DropdownMenuItem
+                      onClick={() => onMarkAsComplete(row.original.id)}
+                    >
+                      Mark as Completed
+                    </DropdownMenuItem>
+                  )}
                 {row.original.status === AppointmentStatus.SCHEDULED && (
                   <DropdownMenuItem
                     onClick={() => onSendReminder(row.original.id)}

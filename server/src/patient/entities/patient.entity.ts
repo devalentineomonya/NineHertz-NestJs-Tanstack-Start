@@ -11,6 +11,7 @@ import { User } from '../../user/entities/user.entity';
 import { Appointment } from '../../appointment/entities/appointment.entity';
 import { Prescription } from '../../prescription/entities/prescription.entity';
 import { Order } from '../../order/entities/order.entity';
+import { Review } from 'src/appointment/entities/review.entity';
 
 @Entity()
 export class Patient {
@@ -45,4 +46,7 @@ export class Patient {
 
   @OneToMany(() => Order, (order) => order.patient, {})
   orders: Order[];
+
+  @OneToMany(() => Review, (review) => review.patient)
+  reviews: Review[];
 }

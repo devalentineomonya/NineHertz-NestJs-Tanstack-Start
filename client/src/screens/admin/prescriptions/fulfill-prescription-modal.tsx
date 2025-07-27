@@ -124,6 +124,8 @@ export function FulfillPrescriptionModal() {
             Cancel
           </Button>
           <Button
+            variant={"primary"}
+            className="min-lg:w-fit"
             onClick={handleFulfill}
             disabled={!pharmacistId || fulfillMutation.isPending}
           >

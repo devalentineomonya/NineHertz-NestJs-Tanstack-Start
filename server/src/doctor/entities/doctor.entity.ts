@@ -10,6 +10,7 @@ import {
 import { User } from '../../user/entities/user.entity';
 import { Appointment } from '../../appointment/entities/appointment.entity';
 import { Prescription } from '../../prescription/entities/prescription.entity';
+import { Review } from 'src/appointment/entities/review.entity';
 
 @Entity()
 @Index(['specialty', 'status'])
@@ -61,6 +62,9 @@ export class Doctor {
     onDelete: 'CASCADE',
   })
   appointments: Appointment[];
+
+  @OneToMany(() => Review, (review) => review.doctor)
+  reviews: Review[];
 
   @OneToMany(() => Prescription, (prescription) => prescription.prescribedBy, {
     cascade: true,

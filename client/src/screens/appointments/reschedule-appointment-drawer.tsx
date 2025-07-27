@@ -25,6 +25,7 @@ import { DateTimePicker24h } from "@/components/ui/date-time-picker";
 import { useGetDoctorAvailability } from "@/services/doctors/use-get-doctor-availability";
 import { toast } from "sonner";
 import { Loader } from "lucide-react";
+import { useEditAppointmentService } from "@/services/appointments/use-edit-appointment";
 
 const DAYS_OF_WEEK = [
   "Sunday",
@@ -50,6 +51,7 @@ export const RescheduleDrawer = () => {
   const [dayOfWeek, setDayOfWeek] = useState<string>("");
   const { data: availability, isLoading: loadingAvailability } =
     useGetDoctorAvailability(appointment?.doctor.id || "", dayOfWeek);
+  const rescheduleAppointmentMutation = useEditAppointmentService();
 
   // Calculate available time slots
   const availableTimeSlots = useMemo(() => {
@@ -100,6 +102,11 @@ export const RescheduleDrawer = () => {
     );
   };
 
+  const getDayLabel = (date: Date) => {
+    if (isToday(date)) return "Today";
+    if (isTomorrow(date)) return "Tomorrow";
+    return format(date, "EEEE");
+  };
   // Generate next 3 days with actual availability
   const upcomingAvailabilityDays = useMemo(() => {
     if (!availability) return [];
@@ -117,7 +124,7 @@ export const RescheduleDrawer = () => {
   // Update day of week when date changes
   useEffect(() => {
     if (selectedDateTime) {
-      const day = selectedDateTime.toLocaleDateString("en-US", {
+      const day = selectedDateTime?.toLocaleDateString("en-US", {
         weekday: "long",
       });
       setDayOfWeek(day);
@@ -139,7 +146,7 @@ export const RescheduleDrawer = () => {
   };
 
   const handleReschedule = async () => {
-    if (!selectedDateTime) return;
+    if (!selectedDateTime || !appointment) return;
 
     // Validate selected time slot
     const isValidTime = validateSelectedTime(selectedDateTime);
@@ -159,11 +166,19 @@ export const RescheduleDrawer = () => {
     }
 
     try {
-      // Here you would call your reschedule mutation
-      // await rescheduleAppointmentMutation.mutateAsync({
-      //   id: appointment?.id,
-      //   newDateTime: selectedDateTime
-      // });
+      // Format the time strings
+      const endDateTime = new Date(selectedDateTime);
+      endDateTime.setMinutes(endDateTime.getMinutes() + appointment.duration);
+
+      await rescheduleAppointmentMutation.mutateAsync({
+        id: appointment.id,
+        data: {
+          ...appointment,
+          startTime: selectedDateTime,
+          endTime: endDateTime,
+          datetime: selectedDateTime,
+        },
+      });
 
       toast.success("Appointment rescheduled successfully");
       onClose();
@@ -172,12 +187,15 @@ export const RescheduleDrawer = () => {
     }
   };
 
-  const getDayLabel = (date: Date) => {
-    if (isToday(date)) return "Today";
-    if (isTomorrow(date)) return "Tomorrow";
-    return format(date, "EEEE");
-  };
+  // Helper function to calculate end time
+  const calculateEndTime = (startTime: string, durationMinutes: number) => {
+    const [hours, minutes] = startTime.split(":").map(Number);
+    const startDate = new Date();
+    startDate.setHours(hours, minutes, 0, 0);
 
+    const endDate = new Date(startDate.getTime() + durationMinutes * 60000);
+    return format(endDate, "HH:mm");
+  };
   return (
     <Drawer direction="right" open={isOpen} onOpenChange={onClose}>
       <DrawerContent className="right-2 top-2 bottom-2 fixed flex data-[vaul-drawer-direction=right]:sm:max-w-lg bg-gradient-to-b from-white to-gray-50">
@@ -239,7 +257,7 @@ export const RescheduleDrawer = () => {
                         Appointment Fee
                       </p>
                       <p className="font-medium">
-                        ${appointment?.doctor.appointmentFee}
+                        Kes {appointment?.doctor.appointmentFee}
                       </p>
                     </div>
                   </div>

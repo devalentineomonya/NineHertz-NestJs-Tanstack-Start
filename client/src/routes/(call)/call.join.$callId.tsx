@@ -1,5 +1,5 @@
-import { useEffect, useRef, useState } from "react";
-import { useParams, createFileRoute } from "@tanstack/react-router";
+import { useEffect, useRef, useState, useCallback, useMemo } from "react";
+import { useParams, createFileRoute, useRouter } from "@tanstack/react-router";
 import {
   StreamCall,
   StreamTheme,
@@ -7,7 +7,7 @@ import {
   BackgroundFiltersProvider,
   NoiseCancellationProvider,
   StreamVideo,
-  StreamVideoClient, 
+  StreamVideoClient,
 } from "@stream-io/video-react-sdk";
 import type { INoiseCancellation } from "@stream-io/audio-filters-web";
 import Alert from "@/screens/call/alert";
@@ -35,6 +35,12 @@ function CallRoom() {
     null
   );
   const [joinError, setJoinError] = useState<Error | null>(null);
+  const router = useRouter();
+
+  // Add refs to prevent multiple initializations
+  const videoClientInitialized = useRef(false);
+  const callInitialized = useRef(false);
+  const cleanupRef = useRef<(() => void) | null>(null);
 
   const {
     data,
@@ -44,8 +50,16 @@ function CallRoom() {
   } = useGetUserToken(callId);
   const token = data?.token;
 
+  // Memoize the setup complete handler to prevent unnecessary re-renders
+  const handleSetupComplete = useCallback(() => {
+    setIsSetupComplete(true);
+  }, []);
+
+  // Initialize video client only once
   useEffect(() => {
-    if (!token || !user) return;
+    if (!token || !user || videoClientInitialized.current) return;
+
+    videoClientInitialized.current = true;
 
     const client = new StreamVideoClient({
       apiKey: import.meta.env.VITE_STREAM_API_KEY,
@@ -65,33 +79,61 @@ function CallRoom() {
 
     setVideoClient(client);
 
-    return () => {
+    // Store cleanup function
+    cleanupRef.current = () => {
       client.disconnectUser();
     };
-  }, [token, user]);
 
+    return () => {
+      if (cleanupRef.current) {
+        cleanupRef.current();
+        cleanupRef.current = null;
+      }
+      videoClientInitialized.current = false;
+    };
+  }, [token, user?.id, user?.name]); // Use specific user properties instead of entire user object
+
+  // Initialize call only once
   useEffect(() => {
-    if (!videoClient || !callId || !token) return;
+    if (!videoClient || !callId || !token || callInitialized.current) return;
+
+    callInitialized.current = true;
 
     const newCall = videoClient.call("default", callId);
     setCall(newCall);
 
-    newCall
-      .join({ create: true })
-      .then(() => setJoinError(null))
-      .catch((err) => {
+    // Join call with proper error handling
+    const joinCall = async () => {
+      try {
+        await newCall.join({ create: true });
+        setJoinError(null);
+      } catch (err) {
         console.error("Failed to join call", err);
-        setJoinError(err);
-      });
+        setJoinError(err as Error);
+      }
+    };
+
+    joinCall();
 
     return () => {
-      if (newCall.state.callingState !== "left") {
-        newCall.leave().catch(console.error);
-      }
+      const cleanup = async () => {
+        try {
+          if (newCall.state.callingState !== "left") {
+            await newCall.leave();
+          }
+        } catch (error) {
+          console.error("Error leaving call:", error);
+        }
+      };
+      cleanup();
+      callInitialized.current = false;
     };
   }, [videoClient, callId, token]);
 
+  // Load noise cancellation only once
   useEffect(() => {
+    if (ncLoader.current) return;
+
     const loadNoiseCancellation = async () => {
       try {
         const { NoiseCancellation } = await import(
@@ -100,41 +142,45 @@ function CallRoom() {
         setNoiseCancellation(new NoiseCancellation());
       } catch (error) {
         console.error("Failed to load noise cancellation", error);
+        setNoiseCancellation(null);
       }
     };
 
-    const load = ncLoader.current || Promise.resolve();
-    ncLoader.current = load.then(loadNoiseCancellation);
+    ncLoader.current = loadNoiseCancellation();
 
     return () => {
-      ncLoader.current = load.then(() => setNoiseCancellation(null));
+      // Cleanup noise cancellation
+      setNoiseCancellation(null);
     };
   }, []);
 
-  if (tokenError || joinError) {
+  // Memoize error handling to prevent re-renders
+  const errorMessage = useMemo(() => {
     const error = tokenError || joinError;
-    let errorMessage = error?.message ?? "An Error occurred";
+    if (!error) return null;
 
-    if (
-      errorMessage.includes("TokenExpired") ||
-      errorMessage.includes("InvalidToken")
-    ) {
-      errorMessage = "Session expired. Please try to reconnect.";
+    let message = error?.message ?? "An Error occurred";
+
+    if (message.includes("TokenExpired") || message.includes("InvalidToken")) {
+      return "Session expired. Please try to reconnect.";
     }
 
-    if (errorMessage.includes("appointment is not currently active")) {
-      errorMessage =
-        "The appointment is not active right now. Please check the appointment time.";
+    if (message.includes("appointment is not currently active")) {
+      return "The appointment is not active right now. Please check the appointment time.";
     }
 
-    if (errorMessage.includes("appointment has been cancelled")) {
-      errorMessage = "This appointment has been cancelled.";
+    if (message.includes("appointment has been cancelled")) {
+      return "This appointment has been cancelled.";
     }
 
-    if (errorMessage.includes("not a virtual meeting")) {
-      errorMessage = "This is not a virtual appointment.";
+    if (message.includes("not a virtual meeting")) {
+      return "This is not a virtual appointment.";
     }
 
+    return message;
+  }, [tokenError, joinError]);
+
+  if (errorMessage) {
     return <Alert title={errorMessage} />;
   }
 
@@ -152,7 +198,6 @@ function CallRoom() {
 
   return (
     <main className="h-screen w-full px-6 bg-black pt-1">
-      {/* Wrap everything in StreamVideo provider */}
       <StreamVideo client={videoClient}>
         <StreamCall call={call}>
           <StreamTheme className="bg-black" lang={settings.language}>
@@ -174,12 +219,16 @@ function CallRoom() {
                 >
                   {!isSetupComplete ? (
                     <div className="grid place-content-center h-[70dvh]">
-                      <MeetingSetup onJoin={() => setIsSetupComplete(true)} />
+                      <MeetingSetup onJoin={handleSetupComplete} />
                     </div>
                   ) : (
                     <MeetingRoom
                       activeCall={call}
-                      onLeave={() => call.leave().catch(console.error)}
+                      onLeave={() =>
+                        router.navigate({
+                          to: `/${user?.role as "doctor" | "patient"}/rooms`,
+                        })
+                      }
                       onJoin={() =>
                         call.join({ create: true }).catch(console.error)
                       }

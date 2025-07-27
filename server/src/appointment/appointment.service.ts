@@ -18,6 +18,10 @@ import { UpdateAppointmentDto } from './dto/update-appointment.dto';
 import { Appointment, AppointmentMode } from './entities/appointment.entity';
 import { NotificationService } from 'src/notification/notification.service';
 import { MailService } from 'src/shared/mail/mail.service';
+import { TransactionStatus } from 'src/transactions/entities/transaction.entity';
+import { CreateReviewDto } from './dto/create-review.dto';
+import { Review } from './entities/review.entity';
+import { ReviewResponseDto } from './dto/review-response.dto';
 
 @Injectable()
 export class AppointmentService {
@@ -28,6 +32,8 @@ export class AppointmentService {
     private patientRepository: Repository<Patient>,
     @InjectRepository(Doctor)
     private doctorRepository: Repository<Doctor>,
+    @InjectRepository(Review)
+    private reviewRepository: Repository<Review>,
     private streamService: StreamService,
     private notificationService: NotificationService,
     private mailService: MailService,
@@ -130,6 +136,7 @@ export class AppointmentService {
     filters: AppointmentFilter,
     id?: string,
     role?: string,
+    includeReviews = false,
   ): Promise<AppointmentPaginatedDto> {
     const { page = 1, limit = 50 } = pagination;
     const skip = (page - 1) * limit;
@@ -152,10 +159,23 @@ export class AppointmentService {
         where.doctor = { id: filters.doctorId };
       }
     }
+
+    const relations = [
+      'patient',
+      'doctor',
+      'doctor.user',
+      'patient.user',
+      'transactions',
+    ];
+
+    if (includeReviews) {
+      relations.push('reviews', 'reviews.patient', 'reviews.doctor');
+    }
+
     const [appointments, total] = await this.appointmentRepository.findAndCount(
       {
         where,
-        relations: ['patient', 'doctor', 'doctor.user', 'patient.user'],
+        relations,
         take: limit,
         skip,
         order: { datetime: 'ASC' },
@@ -175,7 +195,18 @@ export class AppointmentService {
   async findOne(id: string): Promise<AppointmentResponseDto> {
     const appointment = await this.appointmentRepository.findOne({
       where: { id },
-      relations: ['patient', 'doctor', 'doctor.user', 'patient.user'],
+      relations: [
+        'patient',
+        'doctor',
+        'doctor.user',
+        'patient.user',
+        'transactions',
+        'reviews',
+        'reviews.patient',
+        'reviews.patient.user',
+        'reviews.doctor',
+        'reviews.doctor.user',
+      ],
     });
 
     if (!appointment) {
@@ -249,6 +280,153 @@ export class AppointmentService {
     const updatedAppointment =
       await this.appointmentRepository.save(appointment);
     return this.mapToResponseDto(updatedAppointment);
+  }
+  // Add this method to the AppointmentService class
+  async cancelAppointment(
+    id: string,
+    reason?: string,
+  ): Promise<AppointmentResponseDto> {
+    const appointment = await this.appointmentRepository.findOne({
+      where: { id },
+      relations: [
+        'patient',
+        'patient.user',
+        'doctor',
+        'doctor.user',
+        'transactions',
+      ],
+    });
+
+    if (!appointment) {
+      throw new NotFoundException(`Appointment with ID ${id} not found`);
+    }
+
+    // Check if appointment can be cancelled
+    if (appointment.status !== AppointmentStatus.SCHEDULED) {
+      throw new BadRequestException(
+        'Only scheduled appointments can be cancelled',
+      );
+    }
+
+    // Check for successful transaction to refund
+    let refundMessage = '';
+    const successfulTransaction = appointment.transactions?.find(
+      (t) => t.status === TransactionStatus.SUCCESS,
+    );
+
+    if (successfulTransaction) {
+      refundMessage =
+        ' A refund for your payment is being processed and will be credited within 3-5 business days.';
+    }
+
+    // Update appointment status
+    appointment.status = AppointmentStatus.CANCELLED;
+    const updatedAppointment =
+      await this.appointmentRepository.save(appointment);
+
+    // Send notifications and emails
+    const patient = appointment.patient;
+    const doctor = appointment.doctor;
+
+    // Patient notification and email
+    await Promise.all([
+      this.notificationService.triggerNotification(patient.user.id, {
+        message: `Your appointment with Dr. ${doctor.fullName} has been cancelled`,
+        appointmentId: appointment.id,
+        eventType: 'appointment',
+        eventId: appointment.id,
+        datetime: new Date().toISOString(),
+      }),
+      this.mailService.sendAppointmentCancelled(patient.user.email, {
+        patientName: patient.fullName,
+        doctorName: doctor.fullName,
+        appointmentTime: appointment.datetime.toLocaleString(),
+        reason: reason || 'No reason provided',
+        refundMessage,
+      }),
+    ]);
+
+    // Doctor notification and email
+    await Promise.all([
+      this.notificationService.triggerNotification(doctor.user.id, {
+        message: `Your appointment with ${patient.fullName} has been cancelled`,
+        appointmentId: appointment.id,
+        eventType: 'appointment',
+        eventId: appointment.id,
+        datetime: new Date().toISOString(),
+      }),
+      this.mailService.sendAppointmentCancelled(doctor.user.email, {
+        patientName: patient.fullName,
+        doctorName: doctor.fullName,
+        appointmentTime: appointment.datetime.toLocaleString(),
+        reason: reason || 'No reason provided',
+        isDoctor: true, // Flag for doctor-specific message
+      }),
+    ]);
+
+    return this.mapToResponseDto(updatedAppointment);
+  }
+
+  async createReview(
+    createReviewDto: CreateReviewDto,
+    patientId: string,
+  ): Promise<Review> {
+    const appointment = await this.appointmentRepository.findOne({
+      where: { id: createReviewDto.appointmentId },
+      relations: ['patient', 'doctor', 'patient.user'],
+    });
+
+    if (!appointment) {
+      throw new NotFoundException('Appointment not found');
+    }
+
+    if (appointment.patient.user.id !== patientId) {
+      throw new BadRequestException(
+        'You can only review your own appointments',
+      );
+    }
+
+    if (appointment.status !== AppointmentStatus.COMPLETED) {
+      throw new BadRequestException(
+        'You can only review completed appointments',
+      );
+    }
+
+    // Check if review already exists
+    const existingReview = await this.reviewRepository.findOne({
+      where: { appointment: { id: createReviewDto.appointmentId } },
+    });
+
+    if (existingReview) {
+      throw new BadRequestException(
+        'You have already reviewed this appointment',
+      );
+    }
+
+    const review = this.reviewRepository.create({
+      comment: createReviewDto.comment,
+      rating: createReviewDto.rating,
+      appointment,
+      patient: appointment.patient,
+      doctor: appointment.doctor,
+    });
+
+    return this.reviewRepository.save(review);
+  }
+
+  async getAppointmentReviews(
+    appointmentId: string,
+  ): Promise<ReviewResponseDto[]> {
+    const reviews = await this.reviewRepository.find({
+      where: { appointment: { id: appointmentId } },
+      relations: ['patient', 'patient.user', 'doctor', 'doctor.user'],
+    });
+
+    if (!reviews || reviews.length === 0) {
+      return [];
+    }
+
+    return reviews.map((review) => this.mapReviewToDto(review));
   }
   // in your AppointmentService (backend)
   async getVideoUserToken(
@@ -344,6 +522,130 @@ export class AppointmentService {
     }
   }
 
+  async sendAppointmentReminder(id: string): Promise<void> {
+    const appointment = await this.appointmentRepository.findOne({
+      where: { id, status: AppointmentStatus.SCHEDULED },
+      relations: ['patient', 'patient.user', 'doctor'],
+    });
+
+    if (!appointment) {
+      throw new NotFoundException(
+        `Scheduled appointment with ID ${id} not found`,
+      );
+    }
+
+    const now = new Date();
+    const reminderTime = new Date(appointment.datetime.getTime() - 15 * 60000);
+
+    if (now > reminderTime) {
+      throw new BadRequestException('Reminder time has already passed');
+    }
+
+    // Send Pusher notification
+    await this.notificationService.triggerNotification(
+      appointment.patient.user.id,
+      {
+        datetime: new Date().toLocaleDateString(),
+        message: `Your appointment with Dr. ${appointment.doctor.fullName} starts in 15 minutes`,
+        appointmentId: appointment.id,
+        eventType: 'reminder',
+        eventId: appointment.id,
+      },
+    );
+
+    // Send email reminder
+    await this.mailService.sendAppointmentReminder(
+      appointment.patient.user?.email,
+      {
+        patientName: appointment.patient.fullName,
+        doctorName: appointment.doctor.fullName,
+        appointmentTime: appointment.datetime.toLocaleString(),
+        meetingLink:
+          appointment.mode === AppointmentMode.VIRTUAL
+            ? `https://medic.devalentine.me/call/join/${appointment.videoSessionId}`
+            : undefined,
+      },
+    );
+  }
+
+  // Add this method to AppointmentService
+  async markAppointmentComplete(id: string): Promise<AppointmentResponseDto> {
+    const appointment = await this.appointmentRepository.findOne({
+      where: { id },
+      relations: [
+        'patient',
+        'patient.user',
+        'doctor',
+        'doctor.user',
+        'transactions',
+      ],
+    });
+
+    if (!appointment) {
+      throw new NotFoundException(`Appointment with ID ${id} not found`);
+    }
+
+    // Verify appointment type
+    if (appointment.mode !== AppointmentMode.PHYSICAL) {
+      throw new BadRequestException(
+        'Only physical appointments can be marked complete',
+      );
+    }
+
+    // Check current status
+    if (appointment.status !== AppointmentStatus.SCHEDULED) {
+      throw new BadRequestException(
+        'Only scheduled appointments can be marked complete',
+      );
+    }
+
+    // Verify payment
+    const hasSuccessfulPayment = appointment.transactions?.some(
+      (transaction) => transaction.status === TransactionStatus.SUCCESS,
+    );
+
+    if (!hasSuccessfulPayment) {
+      throw new BadRequestException(
+        'Cannot complete appointment without successful payment',
+      );
+    }
+
+    // Update status
+    appointment.status = AppointmentStatus.COMPLETED;
+    const updatedAppointment =
+      await this.appointmentRepository.save(appointment);
+
+    // Send notifications
+    const patientNotification = {
+      message: `Your appointment with Dr. ${appointment.doctor.fullName} has been marked complete`,
+      appointmentId: appointment.id,
+      eventType: 'appointment' as unknown as 'appointment',
+      eventId: appointment.id,
+      datetime: new Date().toISOString(),
+    };
+
+    const doctorNotification = {
+      message: `Your appointment with ${appointment.patient.fullName} has been marked complete`,
+      appointmentId: appointment.id,
+      eventType: 'appointment' as unknown as 'appointment',
+      eventId: appointment.id,
+      datetime: new Date().toISOString(),
+    };
+
+    await Promise.all([
+      this.notificationService.triggerNotification(
+        appointment.patient.user.id,
+        patientNotification,
+      ),
+      this.notificationService.triggerNotification(
+        appointment.doctor.user.id,
+        doctorNotification,
+      ),
+    ]);
+
+    return this.mapToResponseDto(updatedAppointment);
+  }
+
   async remove(id: string): Promise<void> {
     const result = await this.appointmentRepository.delete(id);
     if (result.affected === 0) {
@@ -391,8 +693,62 @@ export class AppointmentService {
           createdAt: appointment.doctor.user?.createdAt ?? null,
         },
       },
+      transactions: appointment.transactions?.map((transaction) => ({
+        id: transaction.id,
+        reference: transaction.reference,
+        amount: transaction.amount,
+        status: transaction.status,
+        createdAt: transaction.createdAt,
+        updatedAt: transaction.updatedAt,
+        description: transaction.description,
+        gatewayReference: transaction.gatewayReference,
+        gateway: transaction.gateway,
+      })),
+      reviews: appointment.reviews?.map((review) =>
+        this.mapReviewToDto(review),
+      ),
       createdAt: appointment.createdAt,
       updatedAt: appointment.updatedAt,
+    };
+  }
+  private mapReviewToDto(review: Review): ReviewResponseDto {
+    return {
+      id: review.id,
+      comment: review.comment,
+      rating: review.rating,
+      patient: {
+        id: review.patient.id,
+        fullName: review.patient.fullName,
+        phone: review.patient.phone,
+        dateOfBirth: review.patient.dateOfBirth,
+        medicalHistory: review.patient.medicalHistory,
+        user: {
+          id: review.patient.user?.id,
+          email: review.patient.user?.email,
+          role: review.patient.user?.role,
+          isEmailVerified: review.patient.user?.isEmailVerified,
+          profilePicture: review.patient.user?.profilePicture || '',
+          createdAt: review.patient.user?.createdAt,
+        },
+      },
+      doctor: {
+        id: review.doctor.id,
+        fullName: review.doctor.fullName,
+        specialty: review.doctor.specialty,
+        appointmentFee: review.doctor.appointmentFee,
+        licenseNumber: review.doctor.licenseNumber,
+        availability: review.doctor.availability,
+        status: review.doctor.status,
+        user: {
+          id: review.doctor.user?.id ?? null,
+          email: review.doctor.user?.email ?? null,
+          role: review.doctor.user?.role ?? null,
+          isEmailVerified: review.doctor.user?.isEmailVerified ?? false,
+          profilePicture: review.doctor.user?.profilePicture || '',
+          createdAt: review.doctor.user?.createdAt ?? null,
+        },
+      },
+      createdAt: review.createdAt,
     };
   }
 }

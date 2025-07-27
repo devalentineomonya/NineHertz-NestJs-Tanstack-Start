@@ -9,10 +9,8 @@ import { Plus } from "lucide-react";
 import { parseAsArrayOf, parseAsString, useQueryState } from "nuqs";
 import * as React from "react";
 import { appointmentColumns } from "./appointment-table-columns";
-import { CancelAppointmentModal } from "./cancel-appointment-modal";
 import { MarkAsCompleteModal } from "./mark-as-complete";
 import { SendReminderModal } from "./send-reminder-modal";
-
 
 export function AppointmentsTable() {
   const { data, isLoading } = useGetAppointments();
@@ -106,7 +104,6 @@ export function AppointmentsTable() {
       <DataTable table={table}>
         <DataTableToolbar table={table} />
       </DataTable>
-      <CancelAppointmentModal />
       <SendReminderModal />
       <MarkAsCompleteModal />
     </div>
