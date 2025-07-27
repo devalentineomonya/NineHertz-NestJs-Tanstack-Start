@@ -108,6 +108,18 @@ export class DoctorService {
 
     return this.mapToResponseDto(doctor);
   }
+  async findByUserId(id: string): Promise<DoctorResponseDto> {
+    const doctor = await this.doctorRepository.findOne({
+      where: { user: { id } },
+      relations: ['user'],
+    });
+
+    if (!doctor) {
+      throw new NotFoundException(`Doctor with ID ${id} not found`);
+    }
+
+    return this.mapToResponseDto(doctor);
+  }
 
   async update(
     id: string,

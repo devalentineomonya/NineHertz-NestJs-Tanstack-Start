@@ -16,10 +16,18 @@ import { AppointmentStatus } from 'src/enums/appointment.enum';
 import { PatientService } from 'src/patient/patient.service';
 import { PrescriptionService } from 'src/prescription/prescription.service';
 import { CreateChatDto, MessageDto } from './dto/create-chat.dto';
+import { PharmacistService } from 'src/pharmacist/pharmacist.service';
 
 interface PaginationDto {
   page: number;
   limit: number;
+}
+
+interface UserContext {
+  userId: string;
+  role?: 'patient' | 'doctor' | 'admin' | 'pharmacist';
+  patientId?: string;
+  doctorId?: string;
 }
 
 @Injectable()
@@ -41,6 +49,7 @@ export class ChatService {
     private readonly appointmentService: AppointmentService,
     private readonly patientService: PatientService,
     private readonly prescriptionService: PrescriptionService,
+    private readonly pharmacistService: PharmacistService,
   ) {
     const apiKey = this.configService.getOrThrow<string>('GEMINI_API_KEY');
     this.genAI = new GoogleGenAI({ apiKey });
@@ -257,7 +266,10 @@ export class ChatService {
         throw new Error('Invalid or empty messages array');
       }
 
-      const stream = await this.generateMedicalResponse(messages, userId);
+      // Get user context for role-based permissions
+      const userContext = await this.getUserContext(userId);
+
+      const stream = await this.generateMedicalResponse(messages, userContext);
       res.setHeader('X-Accel-Buffering', 'no');
       res.setHeader('Content-Type', 'text/plain; charset=utf-8');
 
@@ -278,6 +290,42 @@ export class ChatService {
       this.handleResponseError(res, error);
     } finally {
       clearInterval(keepAlive);
+    }
+  }
+
+  private async getUserContext(userId: string): Promise<UserContext> {
+    const context: UserContext = { userId };
+
+    try {
+      // Check if user is a patient
+      const patient = await this.patientService.findByUserId(userId);
+      if (patient) {
+        context.role = 'patient';
+        context.patientId = patient.id;
+        return context;
+      }
+
+      // Check if user is a doctor
+      const doctor = await this.doctorService.findByUserId?.(userId);
+      if (doctor) {
+        context.role = 'doctor';
+        context.doctorId = doctor.id;
+        return context;
+      }
+
+      const pharmacist = await this.pharmacistService.findByUserId?.(userId);
+      if (pharmacist) {
+        context.role = 'pharmacist';
+        context.doctorId = pharmacist.id;
+        return context;
+      }
+
+      context.role = 'admin';
+      return context;
+    } catch (error) {
+      this.logger.warn('Error determining user context:', error);
+      context.role = 'patient'; // Default fallback
+      return context;
     }
   }
 
@@ -313,6 +361,10 @@ export class ChatService {
       brain: 'Neurology',
       ortho: 'Orthopedics',
       bone: 'Orthopedics',
+      pediatric: 'Pediatrics',
+      gynecology: 'Gynecology',
+      psychiatry: 'Psychiatry',
+      oncology: 'Oncology',
     };
 
     return specialties[specialty.toLowerCase()] || specialty;
@@ -356,31 +408,31 @@ export class ChatService {
 
   private async generateMedicalResponse(
     messages: MessageDto[],
-    userId: string,
+    userContext: UserContext,
   ) {
     const transformedMessages = this.transformMessages(messages);
     const result = await this.genAI.models.generateContent({
       model: this.modelName,
       contents: transformedMessages,
-      config: this.getModelConfig(userId),
+      config: this.getModelConfig(userContext),
     });
 
     const candidate = result.candidates?.[0];
     const functionCall = candidate?.content?.parts?.[0]?.functionCall;
 
     if (functionCall) {
-      return this.handleFunctionCall(functionCall, userId, messages);
+      return this.handleFunctionCall(functionCall, userContext, messages);
     }
 
-    return this.generateResponseStream(userId, transformedMessages);
+    return this.generateResponseStream(userContext, transformedMessages);
   }
 
-  private getModelConfig(userId: string) {
+  private getModelConfig(userContext: UserContext) {
     return {
       tools: this.tools,
       temperature: 0.7,
       maxOutputTokens: 1024,
-      systemInstruction: this.getDefaultMedicalPrompt(userId),
+      systemInstruction: this.getDefaultMedicalPrompt(userContext),
     };
   }
 
@@ -391,11 +443,14 @@ export class ChatService {
     }));
   }
 
-  private async generateResponseStream(userId: string, messages: any[]) {
+  private async generateResponseStream(
+    userContext: UserContext,
+    messages: any[],
+  ) {
     return this.genAI.models.generateContentStream({
       model: this.modelName,
       contents: messages,
-      config: this.getModelConfig(userId),
+      config: this.getModelConfig(userContext),
     });
   }
 
@@ -408,9 +463,68 @@ export class ChatService {
     };
   }
 
+  private interpretError(
+    error: any,
+    functionName: string,
+    userContext: UserContext,
+  ): string {
+    const errorMessage = error instanceof Error ? error.message : String(error);
+
+    // Role-based error interpretation
+    if (userContext.role === 'admin') {
+      if (functionName === 'book_appointment') {
+        return 'As an admin, you can view appointments but cannot book them. Only patients can book appointments for themselves.';
+      }
+      if (functionName === 'get_my_prescriptions' && !userContext.patientId) {
+        return "As an admin, you can view system data but don't have personal prescriptions. Try specifying a patient ID if you need to view patient prescriptions.";
+      }
+    }
+
+    if (userContext.role === 'doctor') {
+      if (functionName === 'book_appointment') {
+        return "As a doctor, you can view appointments but patients need to book their own appointments. You can check your schedule using 'get_my_appointments'.";
+      }
+    }
+
+    // Common error interpretations
+    if (
+      errorMessage.includes('not found') ||
+      errorMessage.includes('does not exist')
+    ) {
+      return `The requested resource was not found. Please check the details and try again.`;
+    }
+
+    if (
+      errorMessage.includes('permission') ||
+      errorMessage.includes('unauthorized')
+    ) {
+      return `You don't have permission to perform this action. Your current role is '${userContext.role}'.`;
+    }
+
+    if (
+      errorMessage.includes('already exists') ||
+      errorMessage.includes('conflict')
+    ) {
+      return `This action conflicts with existing data. Please check for duplicates or overlapping appointments.`;
+    }
+
+    if (
+      errorMessage.includes('validation') ||
+      errorMessage.includes('invalid')
+    ) {
+      return `The provided information is invalid. Please check the format and try again.`;
+    }
+
+    if (errorMessage.includes('time') || errorMessage.includes('date')) {
+      return `There's an issue with the date or time provided. Please ensure you're using the correct format and selecting future dates.`;
+    }
+
+    return `I encountered an issue: ${errorMessage}. Please try again or contact support if the problem persists.`;
+  }
+
   private async handleFunctionCall(
     functionCall: FunctionCall,
-    userId: string,
+    userContext: UserContext,
     history: MessageDto[],
   ) {
     try {
@@ -440,7 +554,7 @@ export class ChatService {
         case 'book_appointment':
           functionResponse = await this.bookAppointment(
             functionCall.args?.doctorId as string,
-            userId,
+            userContext,
             functionCall.args?.startTime as string,
             functionCall.args?.endTime as string,
             functionCall.args?.type as string,
@@ -450,7 +564,7 @@ export class ChatService {
 
         case 'get_my_appointments':
           functionResponse = await this.getMyAppointments(
-            userId,
+            userContext,
             functionCall.args?.status as AppointmentStatus | undefined,
           );
           break;
@@ -458,13 +572,14 @@ export class ChatService {
         case 'cancel_appointment':
           functionResponse = await this.cancelAppointment(
             functionCall.args?.appointmentId as string,
+            userContext,
             functionCall.args?.reason as string | undefined,
           );
           break;
 
         case 'get_my_prescriptions':
           functionResponse = await this.getMyPrescriptions(
-            userId,
+            userContext,
             functionCall.args?.role as string,
           );
           break;
@@ -472,13 +587,17 @@ export class ChatService {
         case 'get_prescription_details':
           functionResponse = await this.getPrescriptionDetails(
             functionCall.args?.prescriptionId as string,
-            userId,
+            userContext,
             functionCall.args?.role as string,
           );
           break;
 
         default:
-          functionResponse = { error: 'Requested function is not available' };
+          functionResponse = {
+            error: 'Requested function is not available',
+            suggestion:
+              'Please try one of the available functions: list doctors, check availability, book appointments, or manage prescriptions.',
+          };
       }
 
       const functionMessage = {
@@ -486,6 +605,7 @@ export class ChatService {
         parts: [
           this.createFunctionResponsePart(
             functionCall.name || '',
+            // eslint-disable-next-line @typescript-eslint/no-unsafe-argument
             functionResponse,
           ),
         ],
@@ -498,17 +618,21 @@ export class ChatService {
         functionMessage,
       ];
 
-      return this.generateResponseStream(userId, updatedMessages);
+      return this.generateResponseStream(userContext, updatedMessages);
     } catch (error) {
-      this.logger.error('Function call error:', error);
-      return this.generateErrorResponse(
-        error instanceof Error ? error.message : 'Function execution failed',
+      this.logger.error(`Function call error for ${functionCall.name}:`, error);
+
+      const interpretedError = this.interpretError(
+        error,
+        functionCall.name || '',
+        userContext,
       );
+      return this.generateErrorResponse(interpretedError);
     }
   }
 
   private *generateErrorResponse(message: string) {
-    yield { text: `⚠️ Error: ${message}` };
+    yield { text: `⚠️ ${message}` };
   }
 
   private async listDoctors(specialty?: string): Promise<string> {
@@ -633,6 +757,7 @@ export class ChatService {
         specialty,
         total: availableDoctors.length,
         doctors: availableDoctors,
+        // eslint-disable-next-line @typescript-eslint/no-unsafe-return, @typescript-eslint/no-unsafe-member-access
         summary: `Found ${availableDoctors.length} available ${specialty ? specialty + ' ' : ''}doctor${availableDoctors.length > 1 ? 's' : ''} on ${normalizedDay}: ${availableDoctors.map((d) => d.name).join(', ')}`,
       });
     } catch (error) {
@@ -659,16 +784,22 @@ export class ChatService {
 
     try {
       const pagination: PaginationDto = { page: 1, limit: 1 };
-      const { data: doctors } = await this.doctorService.findAll(pagination, {
+      const doctorsResponse = await this.doctorService.findAll(pagination, {
         fullName: doctorName,
       } as DoctorFilterDto);
 
-      if (!doctors.length) {
+      if (
+        !doctorsResponse ||
+        !Array.isArray(doctorsResponse.data) ||
+        doctorsResponse.data.length === 0
+      ) {
         return JSON.stringify({
           success: false,
           message: `No doctor found with name: ${doctorName}`,
         });
       }
+
+      const doctors = doctorsResponse.data;
 
       const doctor = doctors[0];
       const availability = await this.doctorService.getDoctorAvailability(
@@ -710,14 +841,23 @@ export class ChatService {
 
   private async bookAppointment(
     doctorId: string,
-    userId: string,
+    userContext: UserContext,
     startTime: string,
     endTime: string,
     type?: string,
     mode?: string,
   ): Promise<string> {
-    if (!userId) {
-      throw new Error('User authentication required for booking');
+    // Role-based permission check
+    if (userContext.role !== 'patient') {
+      throw new Error(
+        `Only patients can book appointments. Your current role is '${userContext.role}'.`,
+      );
+    }
+
+    if (!userContext.patientId) {
+      throw new Error(
+        'Patient profile not found. Please ensure you have a valid patient account.',
+      );
     }
 
     if (!doctorId || !startTime || !endTime) {
@@ -725,16 +865,13 @@ export class ChatService {
     }
 
     try {
-      const patient = await this.patientService.findByUserId(userId);
-      if (!patient) {
-        throw new Error('Patient profile not found for this user');
-      }
-
       const start = new Date(startTime);
       const end = new Date(endTime);
 
       if (isNaN(start.getTime()) || isNaN(end.getTime())) {
-        throw new Error('Invalid date format provided');
+        throw new Error(
+          'Invalid date format provided. Please use ISO format (YYYY-MM-DDTHH:mm:ss.sssZ)',
+        );
       }
 
       const now = new Date();
@@ -746,8 +883,14 @@ export class ChatService {
         throw new Error('Start time must be before end time');
       }
 
+      // Check if doctor exists
+      const doctor = await this.doctorService.findOne(doctorId);
+      if (!doctor) {
+        throw new Error('Doctor not found');
+      }
+
       const appointment = await this.appointmentService.create({
-        patientId: patient.id,
+        patientId: userContext.patientId,
         doctorId,
         datetime: start,
         endTime: end,
@@ -756,99 +899,118 @@ export class ChatService {
         type: (type as AppointmentType) || AppointmentType.CONSULTATION,
         mode: (mode as AppointmentMode) || AppointmentMode.VIRTUAL,
       });
-      console.log(appointment, patient, doctorId);
 
       return JSON.stringify({
         success: true,
         appointmentId: appointment.id,
         message: `Appointment booked successfully for ${start.toLocaleString()}`,
         details: {
-          doctorName: appointment.doctor?.fullName,
+          doctorName: appointment.doctor?.fullName || doctor.fullName,
           datetime: start.toLocaleString(),
           type: appointment.type,
           mode: appointment.mode,
+          status: appointment.status,
         },
       });
     } catch (error) {
       this.logger.error('Error booking appointment:', error);
-      throw new Error(
-        `Failed to book appointment: ${error instanceof Error ? error.message : 'Unknown error'}`,
-      );
+      throw error; // Re-throw to be handled by interpretError
     }
   }
 
   private async getMyAppointments(
-    userId: string,
+    userContext: UserContext,
     status?: AppointmentStatus,
   ): Promise<string> {
-    if (!userId) {
-      throw new Error('User authentication required');
-    }
-
     try {
       const filter: any = {};
       if (status) {
+        // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access
         filter.status = status;
       }
 
       const pagination: PaginationDto = { page: 1, limit: 50 };
       let appointments;
-      let role = 'patient';
 
-      // Try to find as patient first
-      const patient = await this.patientService.findByUserId(userId);
-
-      if (patient) {
+      if (userContext.role === 'patient' && userContext.patientId) {
         appointments = await this.appointmentService.findAll(
           pagination,
+          // eslint-disable-next-line @typescript-eslint/no-unsafe-argument
           filter,
-          userId,
+          userContext.userId,
           'patient',
         );
-      } else {
-        // Check if user is a doctor
+      } else if (userContext.role === 'doctor' && userContext.doctorId) {
         appointments = await this.appointmentService.findAll(
           pagination,
+          // eslint-disable-next-line @typescript-eslint/no-unsafe-argument
           filter,
-          userId,
+          userContext.userId,
           'doctor',
         );
-        role = 'doctor';
+      } else if (userContext.role === 'admin') {
+        // Admin can view all appointments
+        appointments = await this.appointmentService.findAll(
+          pagination,
+          // eslint-disable-next-line @typescript-eslint/no-unsafe-argument
+          filter,
+          userContext.userId,
+          'admin',
+        );
+      } else {
+        throw new Error(
+          `Unable to retrieve appointments for role: ${userContext.role}`,
+        );
       }
 
+      // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access
       if (!appointments.data?.length) {
         return JSON.stringify({
           success: true,
           message: `No ${status ? status.toLowerCase() + ' ' : ''}appointments found`,
           total: 0,
           appointments: [],
-          role,
+          role: userContext.role,
         });
       }
 
       return JSON.stringify({
         success: true,
+        // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment, @typescript-eslint/no-unsafe-member-access
         total: appointments.total,
-        role,
-        appointments: appointments.data.map((apt) => ({
-          id: apt.id,
-          datetime: apt.datetime,
-          status: apt.status,
-          type: apt.type,
-          mode: apt.mode,
-          doctorName: apt.doctor?.fullName,
-          patientName: apt.patient?.fullName,
-        })),
+        role: userContext.role,
+        // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment, @typescript-eslint/no-unsafe-call, @typescript-eslint/no-unsafe-member-access
+        appointments: appointments.data.map(
+          (apt: {
+            id: string;
+            datetime: Date | string;
+            status: AppointmentStatus;
+            type: AppointmentType;
+            mode: AppointmentMode;
+            doctor: { fullName: string };
+            patient: { fullName: string };
+          }) => ({
+            id: apt.id,
+            datetime: apt.datetime,
+            status: apt.status,
+            type: apt.type,
+            mode: apt.mode,
+            doctorName: apt.doctor?.fullName,
+            patientName: apt.patient?.fullName,
+          }),
+        ),
+        // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access
         summary: `Found ${appointments.total} ${status ? status.toLowerCase() + ' ' : ''}appointment${appointments.total > 1 ? 's' : ''}`,
       });
     } catch (error) {
       this.logger.error('Error getting appointments:', error);
-      throw new Error('Failed to retrieve appointments');
+      throw error; // Re-throw to be handled by interpretError
     }
   }
 
   private async cancelAppointment(
     appointmentId: string,
+    userContext: UserContext,
     reason?: string,
   ): Promise<string> {
     if (!appointmentId) {
@@ -856,6 +1018,32 @@ export class ChatService {
     }
 
     try {
+      // Check if user has permission to cancel this appointment
+      if (userContext.role === 'patient') {
+        // Patients can only cancel their own appointments
+        const appointment =
+          await this.appointmentService.findOne(appointmentId);
+        if (!appointment) {
+          throw new Error('Appointment not found');
+        }
+
+        if (appointment.patient?.user.id !== userContext.userId) {
+          throw new Error('You can only cancel your own appointments');
+        }
+      } else if (userContext.role === 'doctor') {
+        // Doctors can cancel appointments they are assigned to
+        const appointment =
+          await this.appointmentService.findOne(appointmentId);
+        if (!appointment) {
+          throw new Error('Appointment not found');
+        }
+
+        if (appointment.doctor?.user.id !== userContext.userId) {
+          throw new Error('You can only cancel appointments assigned to you');
+        }
+      }
+      // Admin can cancel any appointment
+
       const cancelledAppointment =
         await this.appointmentService.cancelAppointment(appointmentId, reason);
 
@@ -864,27 +1052,37 @@ export class ChatService {
         message: 'Appointment cancelled successfully',
         appointmentId: cancelledAppointment.id,
         reason: reason || 'No reason provided',
+        cancelledBy: userContext.role,
       });
     } catch (error) {
       this.logger.error('Error cancelling appointment:', error);
-      throw new Error(
-        `Failed to cancel appointment: ${error instanceof Error ? error.message : 'Unknown error'}`,
-      );
+      throw error; // Re-throw to be handled by interpretError
     }
   }
 
   private async getMyPrescriptions(
-    userId: string,
+    userContext: UserContext,
     role: string,
   ): Promise<string> {
-    if (!userId || !role) {
-      throw new Error('User ID and role are required');
+    // Use the user's actual role if not specified
+    const effectiveRole = role || userContext.role;
+
+    if (!effectiveRole) {
+      throw new Error('User role is required to retrieve prescriptions');
+    }
+
+    // Role-based permission check
+    if (userContext.role === 'admin' && effectiveRole !== 'admin') {
+      // Admin trying to access other roles' prescriptions
+      throw new Error(
+        'As an admin, you can view system data but cannot access role-specific prescriptions directly. Please specify the correct role parameter.',
+      );
     }
 
     try {
       const prescriptions = await this.prescriptionService.findAll(
-        userId,
-        role,
+        userContext.userId,
+        effectiveRole,
       );
 
       if (!prescriptions?.length) {
@@ -893,14 +1091,14 @@ export class ChatService {
           message: 'No prescriptions found',
           total: 0,
           prescriptions: [],
-          role,
+          role: effectiveRole,
         });
       }
 
       return JSON.stringify({
         success: true,
         total: prescriptions.length,
-        role,
+        role: effectiveRole,
         prescriptions: prescriptions.map((p) => ({
           id: p.id,
           issueDate: p.issueDate,
@@ -915,25 +1113,45 @@ export class ChatService {
       });
     } catch (error) {
       this.logger.error('Error getting prescriptions:', error);
-      throw new Error('Failed to retrieve prescriptions');
+      throw error; // Re-throw to be handled by interpretError
     }
   }
 
   private async getPrescriptionDetails(
     prescriptionId: string,
-    userId: string,
+    userContext: UserContext,
     role: string,
   ): Promise<string> {
-    if (!prescriptionId || !userId || !role) {
-      throw new Error('Prescription ID, user ID, and role are required');
+    if (!prescriptionId) {
+      throw new Error('Prescription ID is required');
+    }
+
+    // Use the user's actual role if not specified
+    const effectiveRole = role || userContext.role;
+
+    if (!effectiveRole) {
+      throw new Error('User role is required to retrieve prescription details');
+    }
+
+    // Role-based permission check
+    if (userContext.role === 'admin' && effectiveRole !== 'admin') {
+      throw new Error(
+        'As an admin, you can view system data but cannot access role-specific prescription details directly. Please specify the correct role parameter.',
+      );
     }
 
     try {
       const prescription = await this.prescriptionService.findOne(
         prescriptionId,
-        userId,
-        role,
+        userContext.userId,
+        effectiveRole,
       );
+
+      if (!prescription) {
+        throw new Error(
+          'Prescription not found or you do not have permission to view it',
+        );
+      }
 
       return JSON.stringify({
         success: true,
@@ -956,16 +1174,15 @@ export class ChatService {
               id: prescription.fulfilledBy.id,
             }
           : null,
+        accessedBy: effectiveRole,
       });
     } catch (error) {
       this.logger.error('Error getting prescription details:', error);
-      throw new Error(
-        `Failed to retrieve prescription details: ${error instanceof Error ? error.message : 'Unknown error'}`,
-      );
+      throw error; // Re-throw to be handled by interpretError
     }
   }
 
-  private getDefaultMedicalPrompt(userId: string) {
+  private getDefaultMedicalPrompt(userContext: UserContext) {
     const currentDate = new Date().toISOString().split('T')[0];
     const currentDay = new Date().toLocaleDateString('en-US', {
       weekday: 'long',
@@ -976,21 +1193,33 @@ export class ChatService {
 You are Krista, an AI medical assistant for NineHertz Medic Application.
 Your role is to help users with medical appointment booking, prescription management, and doctor information.
 
-IMPORTANT:
+IMPORTANT USER CONTEXT:
+- Current user ID: ${userContext.userId}
+- User role: ${userContext.role}
 - Today's date is ${currentDate} (${currentDay})
-- If at any point you need the current user's id it's ${userId}
 - When users ask about doctor availability, use days of the week (Monday, Tuesday, etc.)
-- You can list doctors without requiring specific availability information
+
+ROLE-BASED PERMISSIONS:
+- PATIENTS: Can book appointments, view their own appointments/prescriptions, cancel their own appointments
+- DOCTORS: Can view their assigned appointments, check availability, view prescriptions they've written
+- ADMIN: Can view system data, list all appointments, but cannot perform patient-specific actions
+- PHARMACIST: Can view and manage prescriptions
 
 AVAILABLE FUNCTIONS:
 1. list_doctors - Show all doctors, optionally filtered by specialty
 2. check_doctor_availability - Check doctor availability by day of week
 3. list_available_doctors_by_day - List doctors available on specific days
-4. book_appointment - Book appointments
-5. get_my_appointments - View user's appointments
-6. cancel_appointment - Cancel appointments
-7. get_my_prescriptions - View user's prescriptions
+4. book_appointment - Book appointments (PATIENTS ONLY)
+5. get_my_appointments - View appointments based on user role
+6. cancel_appointment - Cancel appointments (with permission checks)
+7. get_my_prescriptions - View prescriptions based on user role
 8. get_prescription_details - Get detailed prescription information
+
+ERROR HANDLING:
+- If a function fails due to permissions, explain the user's role limitations
+- If data is not found, suggest alternative actions
+- If validation fails, provide clear guidance on correct formats
+- Always be helpful while respecting role-based restrictions
 
 RULES:
 1. Use ONLY provided functions for medical queries
@@ -998,9 +1227,10 @@ RULES:
 3. For day-specific searches, use "list_available_doctors_by_day"
 4. Always use days of the week (Monday, Tuesday, etc.) not specific dates
 5. Responses must be concise (1–3 sentences) and helpful
-6. If no valid function applies, reply: "I can help with doctor listings, appointments, and prescriptions. What would you like to know?"
+6. Always respect role-based permissions
+7. If no valid function applies, reply: "I can help with doctor listings, appointments, and prescriptions based on your role (${userContext.role}). What would you like to know?"
 
-You are helpful, professional, and focused on medical appointment and prescription management.`,
+You are helpful, professional, and focused on medical appointment and prescription management while respecting user permissions.`,
     };
   }
 }

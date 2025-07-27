@@ -82,6 +82,15 @@ export class PharmacistService {
     return this.mapToResponseDto(pharmacist);
   }
 
+  async findByUserId(id: string): Promise<PharmacistResponseDto> {
+    const pharmacist = await this.pharmacistRepository.findOne({
+      where: { user: { id } },
+      relations: ['user'],
+    });
+    if (!pharmacist) throw new NotFoundException('Pharmacist not found');
+    return this.mapToResponseDto(pharmacist);
+  }
+
   async update(
     id: string,
     updateDto: UpdatePharmacistDto,
