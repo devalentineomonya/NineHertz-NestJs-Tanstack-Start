@@ -17,6 +17,7 @@ import { Role } from 'src/auth/enums/role.enum';
 import { TestNotificationDto } from './dto/test-notification.dto';
 import { CreateNotificationDto } from './dto/cerate-notification.dto';
 import { PushSubscriptionDto } from './dto/push-subscription.dto';
+import { Public } from 'src/auth/decorators/public.decorators';
 
 @Roles(Role.ADMIN, Role.PATIENT, Role.PHARMACIST, Role.DOCTOR)
 @Controller('notifications')
@@ -32,22 +33,20 @@ export class NotificationController {
   }
 
   @Post('push/subscribe')
-  async subscribeToPush(
-    @Body() dto: PushSubscriptionDto,
-    @Req() req: RequestWithUser,
-  ) {
+  @Public()
+  async subscribeToPush(@Body() dto: PushSubscriptionDto) {
     return this.notificationService.subscribeToPush({
       ...dto,
-      userId: req.user.sub,
+      userId: dto.userId,
     });
   }
 
+  @Public()
   @Post('push/unsubscribe')
   async unsubscribeFromPush(
-    @Body() { endpoint }: { endpoint: string },
-    @Req() req: RequestWithUser,
+    @Body() { endpoint, userId }: { endpoint: string; userId: string },
   ) {
-    return this.notificationService.unsubscribeFromPush(req.user.sub, endpoint);
+    return this.notificationService.unsubscribeFromPush(userId, endpoint);
   }
 
   // WhatsApp Notification Endpoint

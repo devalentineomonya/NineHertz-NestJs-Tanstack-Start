@@ -1,296 +1,232 @@
 // Service Worker for Push Notifications
-// Place this file in public/sw.js
+// Version: 1.0.0
+// Environment: Production
 
-console.log('Service Worker: Loading...');
+'use strict';
 
+// Configuration
 const CACHE_NAME = 'medic-app-v1';
+let BACKEND_URL = null;
+let VAPID_PUBLIC_KEY = null;
 
-// Environment detection for service workers
-// Option 1: Use hostname to detect environment
-const isDevelopment = self.location.hostname === 'localhost' ||
-                     self.location.hostname === '127.0.0.1' ||
-                     self.location.hostname === 'react.dev.lo';
+// Service Worker Lifecycle Events
+// ==============================
 
-const BACKEND_URL = isDevelopment ? 'https://nest.dev.lo' : 'https://api.mmedic.devalentine.me';
-
-console.log('Service Worker Environment:', {
-  hostname: self.location.hostname,
-  isDevelopment,
-  backendUrl: BACKEND_URL
-});
-
-// Install event
 self.addEventListener('install', (event) => {
-  console.log('Service Worker: Installing...');
-
-  // In development, skip waiting to ensure updates are applied immediately
-  if (isDevelopment) {
-    console.log('🔧 Development mode: Skipping waiting for immediate updates');
-    self.skipWaiting();
-  }
+  console.log('[SW] Installing service worker...');
+  // Skip waiting to activate immediately
+  self.skipWaiting();
 });
 
-// Activate event
 self.addEventListener('activate', (event) => {
-  console.log('Service Worker: Activating...');
-
-  // In development, clear all caches to avoid stale content
-  if (isDevelopment) {
-    console.log('🔧 Development mode: Clearing all caches');
-    event.waitUntil(
-      caches.keys().then((cacheNames) => {
-        return Promise.all(
-          cacheNames.map((cacheName) => {
-            console.log('🗑️ Deleting cache:', cacheName);
-            return caches.delete(cacheName);
+  console.log('[SW] Activating service worker...');
+  event.waitUntil(
+    // Clean up old caches
+    caches.keys().then(cacheNames => {
+      return Promise.all(
+        cacheNames.filter(name => name !== CACHE_NAME)
+          .map(name => {
+            console.log(`[SW] Deleting old cache: ${name}`);
+            return caches.delete(name);
           })
-        );
-      }).then(() => {
-        return self.clients.claim();
-      })
-    );
-  } else {
-    event.waitUntil(self.clients.claim());
-  }
-});
-
-// Add debugging for all service worker events
-self.addEventListener('message', (event) => {
-  console.log('Service Worker: Received message from client:', event.data);
-
-  if (event.data && event.data.type === 'SKIP_WAITING') {
-    self.skipWaiting();
-  } else if (event.data && event.data.type === 'DEBUG_SW') {
-    console.log('Service Worker: Debug info requested');
-    // Send back service worker status
-    event.ports[0].postMessage({
-      type: 'SW_STATUS',
-      status: 'active',
-      registration: self.registration.scope,
-      pushSubscription: 'checking...'
-    });
-  }
-});
-
-// Basic fetch handler for offline support - DISABLED IN DEVELOPMENT
-self.addEventListener('fetch', (event) => {
-  // Skip all fetch handling in development to avoid interfering with HMR
-  if (isDevelopment) {
-    console.log('🔧 Development mode: Skipping fetch interception for HMR compatibility');
-    return;
-  }
-
-  // Only handle GET requests
-  if (event.request.method !== 'GET') return;
-
-  // Skip chrome-extension and other non-http requests
-  if (!event.request.url.startsWith('http')) return;
-
-  // Skip hot-reload and development requests
-  if (event.request.url.includes('__vite') ||
-      event.request.url.includes('hot-update') ||
-      event.request.url.includes('?t=') ||
-      event.request.url.includes('@vite') ||
-      event.request.url.includes('sockjs-node')) {
-    return;
-  }
-
-  event.respondWith(
-    caches.match(event.request)
-      .then((response) => {
-        // Return cached version or fetch from network
-        return response || fetch(event.request).then((fetchResponse) => {
-          // Clone the response before caching
-          const responseClone = fetchResponse.clone();
-
-          // Cache successful responses
-          if (fetchResponse.status === 200) {
-            caches.open(CACHE_NAME).then((cache) => {
-              cache.put(event.request, responseClone);
-            });
-          }
-
-          return fetchResponse;
-        }).catch(() => {
-          // Return offline page for navigation requests
-          if (event.request.mode === 'navigate') {
-            return new Response('App is offline', {
-              headers: { 'Content-Type': 'text/html' }
-            });
-          }
-        });
-      })
+      ).then(() => self.clients.claim());
+    })
   );
 });
 
-// PUSH NOTIFICATION HANDLERS
+// Message Handling
+// ================
 
-// Listen for push events - THIS IS THE CRITICAL PART
+self.addEventListener('message', (event) => {
+  console.log(`[SW] Received message: ${event.data?.type}`);
+
+  switch (event.data?.type) {
+    case 'SET_CONFIG':
+      handleSetConfig(event.data.config);
+      break;
+    case 'SKIP_WAITING':
+      self.skipWaiting();
+      break;
+    case 'DEBUG_SW':
+      handleDebugRequest(event);
+      break;
+    default:
+      console.log(`[SW] Unhandled message type: ${event.data?.type}`);
+  }
+});
+
+function handleSetConfig(config) {
+  BACKEND_URL = config.backendUrl;
+  VAPID_PUBLIC_KEY = config.vapidKey;
+
+  console.log('[SW] Configuration set:', {
+    backendUrl: BACKEND_URL,
+    vapidKey: VAPID_PUBLIC_KEY ? `${VAPID_PUBLIC_KEY.substring(0, 10)}...` : 'null'
+  });
+}
+
+function handleDebugRequest(event) {
+  event.ports[0].postMessage({
+    type: 'SW_STATUS',
+    status: 'active',
+    scope: self.registration.scope,
+    config: {
+      backendUrl: BACKEND_URL,
+      vapidKey: VAPID_PUBLIC_KEY ? 'configured' : 'missing'
+    }
+  });
+}
+
+// Push Notification Handling
+// ==========================
+
 self.addEventListener('push', (event) => {
-  console.log('🔔 Service Worker: Push event received!', event);
-  console.log('🔔 Event type:', event.type);
-  console.log('🔔 Event isTrusted:', event.isTrusted);
-  console.log('🔔 Event data exists:', !!event.data);
+  console.log('[SW] Push event received');
 
-  if (!event.data) {
-    console.log('❌ Service Worker: Push event has no data - this might be the DevTools test push');
-
-    // Show a test notification for DevTools push
-    event.waitUntil(
-      self.registration.showNotification('Test Push from DevTools', {
-        body: 'This is a test push notification from Chrome DevTools',
-        icon: '/pwa-192x192.png',
-        badge: '/pwa-192x192.png',
-        tag: 'test-push',
-        data: { url: '/notifications', source: 'devtools' },
-      })
-    );
+  // Validate configuration
+  if (!VAPID_PUBLIC_KEY) {
+    console.error('[SW] VAPID key not configured. Cannot handle push.');
     return;
   }
 
-  let data;
-  let rawData;
+  const notificationData = parsePushData(event);
+  const options = buildNotificationOptions(notificationData);
 
+  event.waitUntil(
+    showNotification(notificationData.title, options)
+      .then(() => notifyClients(notificationData))
+      .catch(handleNotificationError)
+  );
+});
+
+function parsePushData(event) {
   try {
-    // Get raw data first
-    rawData = event.data.text();
-    console.log('📨 Service Worker: Raw push data (text):', rawData);
-    console.log('📨 Service Worker: Raw push data length:', rawData.length);
-    console.log('📨 Service Worker: Raw push data type:', typeof rawData);
+    if (!event.data) {
+      console.warn('[SW] Empty push payload received');
+      return {
+        title: 'New Notification',
+        message: 'You have a new notification'
+      };
+    }
 
-    // Try to parse as JSON
-    if (rawData.trim()) {
-      try {
-        data = JSON.parse(rawData);
-        console.log('✅ Service Worker: Successfully parsed JSON data:', data);
-      } catch (jsonError) {
-        console.log('⚠️ Service Worker: Not valid JSON, treating as plain text');
-        console.log('⚠️ JSON parse error:', jsonError.message);
-        data = {
-          title: 'New Notification',
-          message: rawData,
-          body: rawData
-        };
-      }
-    } else {
-      console.log('❌ Service Worker: Empty push data received');
-      data = {
-        title: 'Empty Push',
-        message: 'Received empty push notification',
-        body: 'Received empty push notification'
+    const textData = event.data.text();
+    if (!textData.trim()) {
+      return {
+        title: 'Empty Notification',
+        message: 'Received empty notification payload'
+      };
+    }
+
+    try {
+      return JSON.parse(textData);
+    } catch {
+      return {
+        title: 'New Notification',
+        message: textData
       };
     }
   } catch (error) {
-    console.error('❌ Service Worker: Error reading push data:', error);
-    data = {
-      title: 'Push Error',
-      message: 'Error processing push notification',
-      body: 'Error processing push notification'
+    console.error('[SW] Error parsing push data:', error);
+    return {
+      title: 'Notification Error',
+      message: 'Error processing notification'
     };
   }
+}
 
-  console.log('📤 Service Worker: Final notification data:', data);
-
-  const options = {
-    body: data.body || data.message || 'You have a new notification',
+function buildNotificationOptions(data) {
+  return {
+    body: data.message || 'You have a new notification',
     icon: '/pwa-192x192.png',
     badge: '/pwa-192x192.png',
     tag: data.id || `notification-${Date.now()}`,
     data: {
       id: data.id,
-      eventType: data.eventType,
-      appointmentId: data.appointmentId,
       url: data.url || '/notifications',
-      message: data.message || data.body,
-      source: 'backend',
-      timestamp: Date.now(),
-      rawData: rawData,
-      ...data.data,
+      ...data
     },
     requireInteraction: true,
-    actions: data.actions || [
+    actions: [
       { action: 'view', title: 'View' },
-      { action: 'dismiss', title: 'Dismiss' },
+      { action: 'dismiss', title: 'Dismiss' }
     ],
-    silent: false,
     vibrate: [200, 100, 200],
-    timestamp: Date.now(),
+    timestamp: Date.now()
   };
+}
 
-  console.log('📤 Service Worker: Notification options:', options);
+function showNotification(title, options) {
+  return self.registration.showNotification(title, options)
+    .then(() => console.log('[SW] Notification shown successfully'));
+}
 
-  event.waitUntil(
-    self.registration.showNotification(
-      data.title || 'New Notification',
-      options
-    ).then(() => {
-      console.log('✅ Service Worker: Notification shown successfully');
-
-      // Send message to all clients to show toast if app is visible
-      return self.clients.matchAll({ type: 'window', includeUncontrolled: true })
-        .then((clients) => {
-          console.log(`📱 Service Worker: Found ${clients.length} client(s) to notify`);
-
-          clients.forEach(client => {
-            console.log('📱 Sending toast message to client:', client.url);
-            client.postMessage({
-              type: 'SHOW_TOAST',
-              data: {
-                message: data.message || data.body || 'You have a new notification',
-                title: data.title || 'New Notification',
-                id: data.id,
-                source: 'push'
-              }
-            });
-          });
+function notifyClients(data) {
+  return self.clients.matchAll({ type: 'window', includeUncontrolled: true })
+    .then(clients => {
+      clients.forEach(client => {
+        client.postMessage({
+          type: 'SHOW_TOAST',
+          data: {
+            message: data.message || 'You have a new notification',
+            title: data.title || 'New Notification',
+            id: data.id
+          }
         });
-    }).catch((error) => {
-      console.error('❌ Service Worker: Error showing notification:', error);
-    })
-  );
-});
+      });
+    });
+}
 
-// Handle notification clicks
+function handleNotificationError(error) {
+  console.error('[SW] Notification error:', error);
+
+  // Report error to backend
+  if (BACKEND_URL) {
+    fetch(`${BACKEND_URL}/errors`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        type: 'push_error',
+        message: error.message,
+        stack: error.stack
+      })
+    }).catch(console.error);
+  }
+}
+
+// Notification Interaction
+// ========================
+
 self.addEventListener('notificationclick', (event) => {
-  console.log('🖱️ Service Worker: Notification clicked', event.notification);
-  console.log('🖱️ Action:', event.action);
-  console.log('🖱️ Notification data:', event.notification.data);
-
+  console.log(`[SW] Notification clicked: ${event.action}`);
   event.notification.close();
 
-  const action = event.action;
-  const data = event.notification.data;
-
-  if (action === 'dismiss') {
-    console.log('❌ Service Worker: Notification dismissed via action');
+  if (event.action === 'dismiss') {
+    handleDismissal(event.notification.data);
     return;
   }
 
-  const urlToOpen = data?.url || '/notifications';
-  console.log('🔗 Service Worker: Opening URL:', urlToOpen);
+  handleNotificationAction(event);
+});
+
+function handleNotificationAction(event) {
+  const data = event.notification.data;
+  const targetUrl = data.url || '/notifications';
 
   event.waitUntil(
-    self.clients
-      .matchAll({ type: 'window', includeUncontrolled: true })
-      .then((clients) => {
-        console.log(`🖱️ Service Worker: Found ${clients.length} client(s) for click handling`);
-
-        // Check if there's already a window/tab open
+    self.clients.matchAll({ type: 'window', includeUncontrolled: true })
+      .then(clients => {
+        // Try to find existing client to focus
         for (const client of clients) {
-          if (client.url.includes(self.location.origin)) {
-            console.log('🎯 Service Worker: Focusing existing client:', client.url);
-
-            // Send message to existing client
+          if (isSameOrigin(client.url)) {
             client.postMessage({
               type: 'NOTIFICATION_CLICKED',
-              data: data,
+              data: data
             });
 
-            // Navigate to the URL if needed
-            if (urlToOpen !== '/' && !client.url.includes(urlToOpen)) {
+            if (!client.url.includes(targetUrl)) {
               client.postMessage({
                 type: 'NAVIGATE_TO',
-                url: urlToOpen,
+                url: targetUrl
               });
             }
 
@@ -298,83 +234,148 @@ self.addEventListener('notificationclick', (event) => {
           }
         }
 
-        // Open new window if no existing client found
-        console.log('🆕 Service Worker: Opening new window for:', urlToOpen);
+        // Open new window if no client found
         if (self.clients.openWindow) {
-          return self.clients.openWindow(urlToOpen);
+          return self.clients.openWindow(targetUrl);
         }
       })
-      .catch((error) => {
-        console.error('❌ Service Worker: Error handling notification click:', error);
-      })
   );
-});
+}
 
-// Handle notification close
+function handleDismissal(data) {
+  if (!BACKEND_URL || !data?.id) return;
+
+  fetch(`${BACKEND_URL}/notifications/dismissed`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ notificationId: data.id }),
+    keepalive: true // Ensure request completes even if SW terminates
+  }).catch(console.error);
+}
+
 self.addEventListener('notificationclose', (event) => {
-  console.log('🔕 Service Worker: Notification closed', event.notification.data);
-
-  const data = event.notification.data;
-  if (data?.id) {
-    // Track notification dismissal (fire and forget)
-    fetch(`${BACKEND_URL}/notifications/dismissed`, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ notificationId: data.id }),
-    }).catch((err) => console.log('Service Worker: Failed to track dismissal', err));
-  }
+  console.log('[SW] Notification closed');
+  handleDismissal(event.notification.data);
 });
 
-// Handle push subscription changes
+// Push Subscription Management
+// ============================
+
 self.addEventListener('pushsubscriptionchange', (event) => {
-  console.log('🔄 Service Worker: Push subscription changed');
+  console.log('[SW] Push subscription changed');
+
+  if (!VAPID_PUBLIC_KEY) {
+    console.error('[SW] VAPID key missing during subscription change');
+    return;
+  }
 
   event.waitUntil(
-    self.registration.pushManager
-      .subscribe({
-        userVisibleOnly: true,
-        applicationServerKey: urlBase64ToUint8Array(getVapidPublicKey()),
-      })
-      .then((subscription) => {
-        console.log('🔄 Service Worker: Resubscribed to push:', subscription.endpoint);
-        return fetch(`${BACKEND_URL}/notifications/subscribe`, {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({
-            subscription: subscription.toJSON(),
-          }),
-        });
-      })
-      .catch((error) => {
-        console.error('❌ Service Worker: Failed to resubscribe to push notifications', error);
-      })
+    self.registration.pushManager.subscribe({
+      userVisibleOnly: true,
+      applicationServerKey: urlBase64ToUint8Array(VAPID_PUBLIC_KEY)
+    })
+    .then(subscription => {
+      console.log('[SW] Resubscribed to push');
+      return sendSubscriptionToServer(subscription);
+    })
+    .catch(error => {
+      console.error('[SW] Resubscription failed:', error);
+    })
   );
 });
 
-// Get VAPID public key - REPLACE WITH YOUR ACTUAL KEY
-function getVapidPublicKey() {
-  // Replace this with your actual VAPID public key from your environment
-  return 'BGvHI2qy1GtNDPwXhmvsZK43ewLHx95A-2w9FJhL4GauJ-qW5d5CN-AghF800MukJqNC1NcRcdUrWI9XxTAR5t4';
+function sendSubscriptionToServer(subscription) {
+  if (!BACKEND_URL) return Promise.reject('Backend URL not configured');
+
+  return fetch(`${BACKEND_URL}/notifications/subscribe`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({
+      subscription: subscription.toJSON()
+    }),
+    keepalive: true
+  });
 }
 
-// Utility function to convert VAPID key
+// Fetch Handling (Cache-first strategy)
+// =====================================
+
+self.addEventListener('fetch', (event) => {
+  // Skip non-GET requests
+  if (event.request.method !== 'GET') return;
+
+  // Skip non-HTTP requests
+  if (!event.request.url.startsWith('http')) return;
+
+  // Skip Vite-specific requests in development
+  if (isViteRequest(event.request)) return;
+
+  event.respondWith(
+    cacheFirstStrategy(event.request)
+  );
+});
+
+function isViteRequest(request) {
+  return request.url.includes('__vite') ||
+         request.url.includes('@vite') ||
+         request.url.includes('sockjs-node');
+}
+
+function cacheFirstStrategy(request) {
+  return caches.match(request)
+    .then(cachedResponse => {
+      if (cachedResponse) {
+        console.log(`[SW] Serving from cache: ${request.url}`);
+        return cachedResponse;
+      }
+
+      return fetch(request)
+        .then(networkResponse => {
+          // Only cache successful responses
+          if (networkResponse.ok) {
+            const responseClone = networkResponse.clone();
+            caches.open(CACHE_NAME)
+              .then(cache => cache.put(request, responseClone));
+          }
+          return networkResponse;
+        })
+        .catch(() => {
+          // Return offline page for navigation requests
+          if (request.mode === 'navigate') {
+            return caches.match('/offline.html');
+          }
+          return new Response('Network error', { status: 503 });
+        });
+    });
+}
+
+// Utility Functions
+// =================
+
 function urlBase64ToUint8Array(base64String) {
-  if (!base64String) {
-    console.warn('⚠️ Service Worker: No VAPID public key provided');
-    return new Uint8Array();
-  }
+  if (!base64String) throw new Error('VAPID key is required');
 
   const padding = '='.repeat((4 - (base64String.length % 4)) % 4);
-  const base64 = (base64String + padding).replace(/-/g, '+').replace(/_/g, '/');
+  const base64 = (base64String + padding)
+    .replace(/-/g, '+')
+    .replace(/_/g, '/');
 
-  const rawData = self.atob(base64);
-  const outputArray = new Uint8Array(rawData.length);
+  const rawData = atob(base64);
+  const buffer = new Uint8Array(rawData.length);
 
-  for (let i = 0; i < rawData.length; ++i) {
-    outputArray[i] = rawData.charCodeAt(i);
+  for (let i = 0; i < rawData.length; i++) {
+    buffer[i] = rawData.charCodeAt(i);
   }
-  return outputArray;
+
+  return buffer;
 }
 
-// Log when service worker is ready
-console.log('✅ Service Worker: Fully loaded and ready for push notifications');
+function isSameOrigin(url) {
+  try {
+    return new URL(url).origin === self.location.origin;
+  } catch {
+    return false;
+  }
+}
+
+console.log('[SW] Service worker initialized');

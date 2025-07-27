@@ -454,7 +454,7 @@ export class DataServices {
         ),
       }),
       unsubscribe: () => ({
-        post: this.createEndpoint<{ endpoint: string }, void>(
+        post: this.createEndpoint<{ endpoint: string; userId: string }, void>(
           "post",
           "notifications/push/unsubscribe"
         ),
