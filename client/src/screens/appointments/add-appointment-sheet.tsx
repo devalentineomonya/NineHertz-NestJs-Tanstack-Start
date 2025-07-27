@@ -166,6 +166,7 @@ export const AddAppointmentDrawer = () => {
         endTime,
         startTime: data.datetime,
         duration: durationMinutes,
+        status: data.status as AppointmentStatus, // Ensure correct type for status
       });
 
       toast.success("Appointment created successfully");

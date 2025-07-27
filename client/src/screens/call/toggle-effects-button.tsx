@@ -56,8 +56,9 @@ import { Sparkles } from 'lucide-react';
           layoutProps={{
             selectedLayout: layout,
             onMenuItemClick: setLayout,
-          }}
-        />
+          }} open={false} onOpenChange={function (open: boolean): void {
+            throw new Error('Function not implemented.');
+          } }        />
       </MenuToggle>
     );
   };
