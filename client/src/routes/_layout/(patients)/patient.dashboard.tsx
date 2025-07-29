@@ -146,13 +146,13 @@ function PatientDashboard() {
       variants={containerVariants}
       initial="hidden"
       animate="visible"
-      className="min-h-screen p-4 md:p-6 bg-gray-50"
+      className="min-h-screen p-4 md:p-6"
     >
       <div className="max-w-7xl mx-auto space-y-6">
         {/* Header */}
         <motion.div
           variants={itemVariants}
-          className="flex justify-between items-center"
+          className="flex max-md:flex-col justify-between items-center"
         >
           <div>
             <h1 className="text-2xl md:text-3xl font-bold text-gray-900">

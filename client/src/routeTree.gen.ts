@@ -31,6 +31,7 @@ import { Route as LayoutpatientsPatientPrescriptionsRouteImport } from './routes
 import { Route as LayoutpatientsPatientOrdersRouteImport } from './routes/_layout/(patients)/patient.orders'
 import { Route as LayoutpatientsPatientNotificationRouteImport } from './routes/_layout/(patients)/patient.notification'
 import { Route as LayoutpatientsPatientMedicineRouteImport } from './routes/_layout/(patients)/patient.medicine'
+import { Route as LayoutpatientsPatientDoctorsRouteImport } from './routes/_layout/(patients)/patient.doctors'
 import { Route as LayoutpatientsPatientDashboardRouteImport } from './routes/_layout/(patients)/patient.dashboard'
 import { Route as LayoutpatientsPatientChatRouteImport } from './routes/_layout/(patients)/patient.chat'
 import { Route as LayoutpatientsPatientCalendarRouteImport } from './routes/_layout/(patients)/patient.calendar'
@@ -188,6 +189,12 @@ const LayoutpatientsPatientMedicineRoute =
   LayoutpatientsPatientMedicineRouteImport.update({
     id: '/(patients)/patient/medicine',
     path: '/patient/medicine',
+    getParentRoute: () => LayoutRouteRoute,
+  } as any)
+const LayoutpatientsPatientDoctorsRoute =
+  LayoutpatientsPatientDoctorsRouteImport.update({
+    id: '/(patients)/patient/doctors',
+    path: '/patient/doctors',
     getParentRoute: () => LayoutRouteRoute,
   } as any)
 const LayoutpatientsPatientDashboardRoute =
@@ -419,6 +426,7 @@ export interface FileRoutesByFullPath {
   '/patient/calendar': typeof LayoutpatientsPatientCalendarRoute
   '/patient/chat': typeof LayoutpatientsPatientChatRoute
   '/patient/dashboard': typeof LayoutpatientsPatientDashboardRoute
+  '/patient/doctors': typeof LayoutpatientsPatientDoctorsRoute
   '/patient/medicine': typeof LayoutpatientsPatientMedicineRoute
   '/patient/notification': typeof LayoutpatientsPatientNotificationRoute
   '/patient/orders': typeof LayoutpatientsPatientOrdersRoute
@@ -475,6 +483,7 @@ export interface FileRoutesByTo {
   '/patient/calendar': typeof LayoutpatientsPatientCalendarRoute
   '/patient/chat': typeof LayoutpatientsPatientChatRoute
   '/patient/dashboard': typeof LayoutpatientsPatientDashboardRoute
+  '/patient/doctors': typeof LayoutpatientsPatientDoctorsRoute
   '/patient/medicine': typeof LayoutpatientsPatientMedicineRoute
   '/patient/notification': typeof LayoutpatientsPatientNotificationRoute
   '/patient/orders': typeof LayoutpatientsPatientOrdersRoute
@@ -533,6 +542,7 @@ export interface FileRoutesById {
   '/_layout/(patients)/patient/calendar': typeof LayoutpatientsPatientCalendarRoute
   '/_layout/(patients)/patient/chat': typeof LayoutpatientsPatientChatRoute
   '/_layout/(patients)/patient/dashboard': typeof LayoutpatientsPatientDashboardRoute
+  '/_layout/(patients)/patient/doctors': typeof LayoutpatientsPatientDoctorsRoute
   '/_layout/(patients)/patient/medicine': typeof LayoutpatientsPatientMedicineRoute
   '/_layout/(patients)/patient/notification': typeof LayoutpatientsPatientNotificationRoute
   '/_layout/(patients)/patient/orders': typeof LayoutpatientsPatientOrdersRoute
@@ -591,6 +601,7 @@ export interface FileRouteTypes {
     | '/patient/calendar'
     | '/patient/chat'
     | '/patient/dashboard'
+    | '/patient/doctors'
     | '/patient/medicine'
     | '/patient/notification'
     | '/patient/orders'
@@ -647,6 +658,7 @@ export interface FileRouteTypes {
     | '/patient/calendar'
     | '/patient/chat'
     | '/patient/dashboard'
+    | '/patient/doctors'
     | '/patient/medicine'
     | '/patient/notification'
     | '/patient/orders'
@@ -704,6 +716,7 @@ export interface FileRouteTypes {
     | '/_layout/(patients)/patient/calendar'
     | '/_layout/(patients)/patient/chat'
     | '/_layout/(patients)/patient/dashboard'
+    | '/_layout/(patients)/patient/doctors'
     | '/_layout/(patients)/patient/medicine'
     | '/_layout/(patients)/patient/notification'
     | '/_layout/(patients)/patient/orders'
@@ -886,6 +899,13 @@ declare module '@tanstack/react-router' {
       path: '/patient/medicine'
       fullPath: '/patient/medicine'
       preLoaderRoute: typeof LayoutpatientsPatientMedicineRouteImport
+      parentRoute: typeof LayoutRouteRoute
+    }
+    '/_layout/(patients)/patient/doctors': {
+      id: '/_layout/(patients)/patient/doctors'
+      path: '/patient/doctors'
+      fullPath: '/patient/doctors'
+      preLoaderRoute: typeof LayoutpatientsPatientDoctorsRouteImport
       parentRoute: typeof LayoutRouteRoute
     }
     '/_layout/(patients)/patient/dashboard': {
@@ -1155,6 +1175,7 @@ interface LayoutRouteRouteChildren {
   LayoutpatientsPatientCalendarRoute: typeof LayoutpatientsPatientCalendarRoute
   LayoutpatientsPatientChatRoute: typeof LayoutpatientsPatientChatRoute
   LayoutpatientsPatientDashboardRoute: typeof LayoutpatientsPatientDashboardRoute
+  LayoutpatientsPatientDoctorsRoute: typeof LayoutpatientsPatientDoctorsRoute
   LayoutpatientsPatientMedicineRoute: typeof LayoutpatientsPatientMedicineRoute
   LayoutpatientsPatientNotificationRoute: typeof LayoutpatientsPatientNotificationRoute
   LayoutpatientsPatientOrdersRoute: typeof LayoutpatientsPatientOrdersRoute
@@ -1207,6 +1228,7 @@ const LayoutRouteRouteChildren: LayoutRouteRouteChildren = {
   LayoutpatientsPatientCalendarRoute: LayoutpatientsPatientCalendarRoute,
   LayoutpatientsPatientChatRoute: LayoutpatientsPatientChatRoute,
   LayoutpatientsPatientDashboardRoute: LayoutpatientsPatientDashboardRoute,
+  LayoutpatientsPatientDoctorsRoute: LayoutpatientsPatientDoctorsRoute,
   LayoutpatientsPatientMedicineRoute: LayoutpatientsPatientMedicineRoute,
   LayoutpatientsPatientNotificationRoute:
     LayoutpatientsPatientNotificationRoute,

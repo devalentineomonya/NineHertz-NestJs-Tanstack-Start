@@ -189,7 +189,7 @@ function DoctorDashboard() {
         {/* Header */}
         <motion.div
           variants={itemVariants}
-          className="flex justify-between items-center"
+          className="flex max-md:flex-col justify-between items-center"
         >
           <div>
             <h1 className="text-2xl md:text-3xl font-bold text-gray-900">
