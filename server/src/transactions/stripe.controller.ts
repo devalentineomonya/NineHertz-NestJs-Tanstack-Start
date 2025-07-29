@@ -59,7 +59,7 @@ export class StripeVerificationController {
       });
 
       return {
-        url: `${frontendUrl}/patient/rooms?token=${responseToken}`,
+        url: `${frontendUrl}/patient/${transaction.appointment ? 'rooms' : 'orders'}?token=${responseToken}`,
         statusCode: 302,
       };
     } catch (error) {

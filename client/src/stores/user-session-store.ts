@@ -12,7 +12,8 @@ interface JwtPayload {
   sub: string;
   email: string;
   role: "admin" | "patient" | "pharmacist" | "doctor";
-  name?: string;
+  fullName?: string;
+  hasProfile?: boolean;
 }
 
 interface UserSessionStore {
@@ -38,7 +39,8 @@ export const useUserSessionStore = create<UserSessionStore>()(
             id: decoded.sub,
             email: decoded.email,
             role: decoded.role,
-            name: decoded.name || "User",
+            fullName: decoded.fullName || `Unknown ${decoded.role}`,
+            hasProfile: decoded.hasProfile,
           };
         } catch (error) {
           console.error("Token decoding failed:", error);

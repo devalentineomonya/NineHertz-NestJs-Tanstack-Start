@@ -116,13 +116,22 @@ export const Settings = () => {
       </div>
 
       <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
-        <TabsList className="grid grid-cols-4 w-full bg-white shadow-sm">
-          <TabsTrigger value="profile">Profile</TabsTrigger>
-          <TabsTrigger value="notifications">Notifications</TabsTrigger>
-          <TabsTrigger value="push-notifications">
-            Push Notifications
-          </TabsTrigger>
-        </TabsList>
+        <div className="overflow-x-auto">
+          <TabsList className="flex w-max min-w-full bg-white shadow-sm max-w-3xl">
+            <TabsTrigger value="profile" className="whitespace-nowrap">
+              Profile
+            </TabsTrigger>
+            <TabsTrigger value="notifications" className="whitespace-nowrap">
+              Notifications
+            </TabsTrigger>
+            <TabsTrigger
+              value="push-notifications"
+              className="whitespace-nowrap"
+            >
+              Push Notifications
+            </TabsTrigger>
+          </TabsList>
+        </div>
 
         {/* Profile Tab */}
         <TabsContent value="profile">

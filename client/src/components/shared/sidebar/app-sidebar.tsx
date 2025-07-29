@@ -72,7 +72,6 @@ const ALL_NAV_ITEMS = [
     icon: ClipboardCheck,
     roles: ["admin", "doctor", "patient", "pharmacist"],
   },
-
   {
     title: "Medicines",
     url: "medicine",
@@ -130,19 +129,34 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
   const user = getCurrentUser();
   const location = useLocation();
   const userRole = user?.role.toLowerCase() || "guest";
+
   const navItems = React.useMemo(() => {
+    // If user doesn't have a profile, only show settings
+    if (user && !user.hasProfile) {
+      const settingsItem = ALL_NAV_ITEMS.find(item => item.url === "settings");
+      if (settingsItem) {
+        const fullUrl = `/${userRole}/${settingsItem.url}`;
+        return [{
+          ...settingsItem,
+          url: fullUrl,
+          isActive: location.pathname.startsWith(fullUrl),
+        }];
+      }
+      return [];
+    }
+
+    // If user has profile, show all allowed navigation items
     return ALL_NAV_ITEMS.filter((item) => item.roles.includes(userRole)).map(
       (item) => {
         const fullUrl = `/${userRole}/${item.url}`;
         return {
           ...item,
           url: fullUrl,
-
           isActive: location.pathname.startsWith(fullUrl),
         };
       }
     );
-  }, [userRole, location.pathname]);
+  }, [userRole, location.pathname, user?.hasProfile]);
 
   return (
     <Sidebar
@@ -158,6 +172,14 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
           <p className="text-sm text-muted-foreground">
             Medical Management System
           </p>
+          {/* Show profile completion message if no profile */}
+          {user && !user.hasProfile && (
+            <div className="mt-2 p-2 bg-yellow-100 rounded-md">
+              <p className="text-xs text-yellow-800">
+                Complete your profile to access all features
+              </p>
+            </div>
+          )}
         </div>
       </SidebarHeader>
       <SidebarContent>

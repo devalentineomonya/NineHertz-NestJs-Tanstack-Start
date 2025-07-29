@@ -12,10 +12,12 @@ export const Route = createFileRoute("/_layout")({
 });
 
 function RouteComponent() {
-  const { session } = useUserSessionStore();
+  const { session, getCurrentUser } = useUserSessionStore();
   const router = useRouter();
+  const currentUser = getCurrentUser();
 
   useEffect(() => {
+    // First check if user is authenticated
     if (!session) {
       router.navigate({
         to: "/auth/signin",
@@ -23,10 +25,30 @@ function RouteComponent() {
           redirect: router.state.location.href,
         },
       });
+      return;
     }
-  }, [session, router]);
 
-  if (!session) {
+    // Then check if user has completed their profile
+    if (currentUser && !currentUser.hasProfile) {
+      // Redirect to settings page based on user role
+      const settingsPath = `/${currentUser.role}/settings`;
+
+      // Only redirect if not already on the settings page
+      if (router.state.location.pathname !== settingsPath) {
+        router.navigate({
+          to: settingsPath,
+        });
+      }
+    }
+  }, [session, currentUser, router]);
+
+  // Show nothing while redirecting
+  if (
+    !session ||
+    (currentUser &&
+      !currentUser.hasProfile &&
+      router.state.location.pathname !== `/${currentUser.role}/settings`)
+  ) {
     return null;
   }
 

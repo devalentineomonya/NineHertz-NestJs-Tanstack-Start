@@ -65,7 +65,7 @@ function CallRoom() {
       apiKey: import.meta.env.VITE_STREAM_API_KEY,
       user: {
         id: user.id,
-        name: user.name || "",
+        name: user.fullName || "",
       },
       token,
       options: {
@@ -91,7 +91,7 @@ function CallRoom() {
       }
       videoClientInitialized.current = false;
     };
-  }, [token, user?.id, user?.name]); // Use specific user properties instead of entire user object
+  }, [token, user?.id, user?.fullName]); // Use specific user properties instead of entire user object
 
   // Initialize call only once
   useEffect(() => {
