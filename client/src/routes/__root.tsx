@@ -10,7 +10,7 @@ import FooterSection from "@/components/shared/footer/footer";
 import { NuqsAdapter } from "nuqs/adapters/react";
 import { Toaster } from "@/components/ui/sonner";
 import "@stream-io/video-react-sdk/dist/css/styles.css";
-// import "react-big-calendar/lib/sass/styles";
+import { ReactQueryDevtools } from "@tanstack/react-query-devtools";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { InstallPWAButton } from "@/components/common/install-pwa-button";
 import { useOffline } from "@/hooks/use-is-offline";
@@ -77,8 +77,8 @@ function RootDocument({ children }: { children: React.ReactNode }) {
         <HeadContent />
       </head>
       <body>
-        <PusherProvider userId={user?.id || ""}>
-          <QueryClientProvider client={queryClient}>
+        <QueryClientProvider client={queryClient}>
+          <PusherProvider userId={user?.id || ""}>
             <NuqsAdapter>
               {showOfflineAlert && (
                 <div className="fixed top-0 left-0 right-0 z-50">
@@ -103,8 +103,9 @@ function RootDocument({ children }: { children: React.ReactNode }) {
               <Scripts />
               <Analytics />
             </NuqsAdapter>
-          </QueryClientProvider>
-        </PusherProvider>
+            <ReactQueryDevtools initialIsOpen={false} />
+          </PusherProvider>
+        </QueryClientProvider>
       </body>
     </html>
   );

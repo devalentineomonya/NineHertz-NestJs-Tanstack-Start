@@ -74,8 +74,8 @@ export class DoctorController {
   }
 
   /*=======================================================
-                  GET DOCTOR BY ID
-  ========================================================*/
+                    GET DOCTOR BY ID
+    ========================================================*/
   @Get(':id')
   @ApiOperation({ summary: 'Get doctor by ID' })
   @ApiResponse({
@@ -86,6 +86,21 @@ export class DoctorController {
   @ApiResponse({ status: 404, description: 'Doctor not found' })
   findOne(@Param('id') id: string) {
     return this.doctorService.findOne(id);
+  }
+
+  /*=======================================================
+                GET DOCTOR BY USER ID
+    ========================================================*/
+  @Get('user/:userId')
+  @ApiOperation({ summary: 'Get doctor by user ID' })
+  @ApiResponse({
+    status: 200,
+    description: 'Doctor details by user ID',
+    type: DoctorResponseDto,
+  })
+  @ApiResponse({ status: 404, description: 'Doctor not found' })
+  findByUserId(@Param('userId') userId: string) {
+    return this.doctorService.findByUserId(userId);
   }
 
   /*=======================================================

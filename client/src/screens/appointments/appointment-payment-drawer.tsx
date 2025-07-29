@@ -1,5 +1,4 @@
-import { useState, useEffect } from "react";
-import { motion, AnimatePresence } from "framer-motion";
+import { Button } from "@/components/ui/button";
 import {
   Drawer,
   DrawerContent,
@@ -7,15 +6,16 @@ import {
   DrawerHeader,
   DrawerTitle,
 } from "@/components/ui/drawer";
-import { Button } from "@/components/ui/button";
 import { Separator } from "@/components/ui/separator";
-import { CheckCircle, Loader } from "lucide-react";
-import { toast } from "sonner";
-import { format } from "date-fns";
-import { useAppointmentPaymentStore } from "@/stores/use-appointment-payment-store";
 import { useAppointmentPaymentService } from "@/services/payments/use-pay-appointment";
-import Paystack from "@paystack/inline-js";
 import { useVerifyAppointmentPayment } from "@/services/payments/use-verify-appointment-payment";
+import { useAppointmentPaymentStore } from "@/stores/use-appointment-payment-store";
+import Paystack from "@paystack/inline-js";
+import { format } from "date-fns";
+import { AnimatePresence, motion } from "framer-motion";
+import { CheckCircle, Loader } from "lucide-react";
+import { useEffect, useState } from "react";
+import { toast } from "sonner";
 
 enum CheckoutStep {
   REVIEW = "review",
@@ -70,8 +70,8 @@ export function AppointmentPaymentDrawer() {
       };
 
       const response = await appointmentPaymentHandler.mutateAsync(paymentData);
-      if (response.accessCode) {
-        const res = paystackPopup.resumeTransaction(response.accessCode, {
+      if (response.gatewayReference) {
+        const res = paystackPopup.resumeTransaction(response.gatewayReference, {
           onSuccess: (trx) => {
             console.log("Transaction successful:", trx);
             setStep(CheckoutStep.PROCESSING);

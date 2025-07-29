@@ -12,6 +12,7 @@ import { Patient } from '../patient/entities/patient.entity';
 import { Doctor } from '../doctor/entities/doctor.entity';
 import { Pharmacist } from 'src/pharmacist/entities/pharmacist.entity';
 import { NotificationService } from 'src/notification/notification.service';
+import { MailService } from 'src/shared/mail/mail.service';
 
 @Injectable()
 export class PrescriptionService {
@@ -25,19 +26,27 @@ export class PrescriptionService {
     @InjectRepository(Pharmacist)
     private readonly pharmacistRepo: Repository<Pharmacist>,
     private readonly notificationService: NotificationService,
+    private readonly mailService: MailService,
   ) {}
   async create(dto: CreatePrescriptionDto): Promise<Prescription> {
-    const patient = await this.patientRepo.findOneBy({ id: dto.patientId });
+    const patient = await this.patientRepo.findOne({
+      where: { id: dto.patientId },
+      relations: ['user'],
+    });
     if (!patient) throw new NotFoundException('Patient not found');
 
-    const doctor = await this.doctorRepo.findOneBy({ id: dto.doctorId });
+    const doctor = await this.doctorRepo.findOne({
+      where: { id: dto.doctorId },
+      relations: ['user'],
+    });
     if (!doctor) throw new NotFoundException('Doctor not found');
 
-    let pharmacist: Pharmacist | undefined = undefined;
+    let pharmacist: Pharmacist | null = null;
     if (dto.pharmacistId) {
-      pharmacist =
-        (await this.pharmacistRepo.findOneBy({ id: dto.pharmacistId })) ||
-        undefined;
+      pharmacist = await this.pharmacistRepo.findOne({
+        where: { id: dto.pharmacistId },
+        relations: ['user'],
+      });
       if (!pharmacist) throw new NotFoundException('Pharmacist not found');
     }
 
@@ -47,47 +56,39 @@ export class PrescriptionService {
       expiryDate: new Date(dto.expiryDate),
       patient,
       prescribedBy: doctor,
-      fulfilledBy: pharmacist,
+      fulfilledBy: pharmacist ?? undefined,
       isFulfilled: !!dto.pharmacistId,
     });
 
     const savedPrescription = await this.prescriptionRepo.save(prescription);
 
-    // Send real-time notifications to relevant users
-    const userIds = [
-      patient.id,
-      doctor.id,
-      ...(pharmacist ? [pharmacist.id] : []),
-    ];
-
-    for (const userId of userIds) {
-      await this.notificationService.triggerPusherEvent(
-        [`user-${userId}`],
-        'prescription:created',
-        {
-          id: savedPrescription.id,
-          message: 'New prescription created',
-          type: 'prescription',
-        },
-      );
-    }
+    await this.sendPrescriptionNotifications(savedPrescription, 'created');
 
     return savedPrescription;
   }
-  async findAll(userId: string, role: string): Promise<Prescription[]> {
+  async findAll(id: string, role: string): Promise<Prescription[]> {
     const where: FindOptionsWhere<Prescription> = {};
+    console.dir(where, { depth: null });
+    console.log(id, role);
 
     if (role === 'doctor') {
-      where.prescribedBy = { id: userId };
+      where.prescribedBy = { user: { id } };
     } else if (role === 'patient') {
-      where.patient = { id: userId };
+      where.patient = { user: { id } };
     } else if (role === 'pharmacist') {
-      where.fulfilledBy = { id: userId };
+      where.fulfilledBy = { user: { id } };
     }
 
     return this.prescriptionRepo.find({
       where,
-      relations: ['patient', 'prescribedBy', 'fulfilledBy'],
+      relations: [
+        'patient',
+        'patient.user',
+        'prescribedBy.user',
+        'fulfilledBy.user',
+        'prescribedBy',
+        'fulfilledBy',
+      ],
     });
   }
 
@@ -99,16 +100,23 @@ export class PrescriptionService {
     const where: FindOptionsWhere<Prescription> = { id };
 
     if (role === 'doctor') {
-      where.prescribedBy = { id: userId };
+      where.prescribedBy = { user: { id: userId } };
     } else if (role === 'patient') {
-      where.patient = { id: userId };
+      where.patient = { user: { id: userId } };
     } else if (role === 'pharmacist') {
-      where.fulfilledBy = { id: userId };
+      where.fulfilledBy = { user: { id: userId } };
     }
 
     const prescription = await this.prescriptionRepo.findOne({
       where,
-      relations: ['patient', 'prescribedBy', 'fulfilledBy'],
+      relations: [
+        'patient',
+        'patient.user',
+        'prescribedBy.user',
+        'fulfilledBy.user',
+        'prescribedBy',
+        'fulfilledBy',
+      ],
     });
 
     if (!prescription) {
@@ -125,7 +133,14 @@ export class PrescriptionService {
 
     return this.prescriptionRepo.find({
       where: { patient: { id: patientId } },
-      relations: ['patient', 'prescribedBy', 'fulfilledBy'],
+      relations: [
+        'patient',
+        'patient.user',
+        'prescribedBy.user',
+        'fulfilledBy.user',
+        'prescribedBy',
+        'fulfilledBy',
+      ],
       order: { issueDate: 'DESC' },
     });
   }
@@ -161,13 +176,14 @@ export class PrescriptionService {
       prescription.prescribedBy = doctor;
     }
 
+    let isFulfilled = false;
     if (dto.pharmacistId) {
       const pharmacist = await this.pharmacistRepo.findOneBy({
         id: dto.pharmacistId,
       });
       if (!pharmacist) throw new NotFoundException('Pharmacist not found');
       prescription.fulfilledBy = pharmacist;
-      prescription.isFulfilled = true;
+      isFulfilled = true;
     }
 
     // Update direct fields
@@ -180,6 +196,15 @@ export class PrescriptionService {
     }
 
     const updatedPrescription = await this.prescriptionRepo.save(prescription);
+
+    if (isFulfilled) {
+      await this.sendPrescriptionNotifications(
+        updatedPrescription,
+        'fulfilled',
+      );
+    } else if (dto.items || dto.issueDate || dto.expiryDate) {
+      await this.sendPrescriptionNotifications(updatedPrescription, 'updated');
+    }
 
     // Get updated user IDs
     const updatedUserIds = [
@@ -195,7 +220,7 @@ export class PrescriptionService {
 
     for (const userId of allUserIds) {
       await this.notificationService.triggerPusherEvent(
-        [`user-${userId}`],
+        [`${userId}`],
         'prescription:updated',
         {
           id: updatedPrescription.id,
@@ -210,7 +235,7 @@ export class PrescriptionService {
   async remove(id: string): Promise<void> {
     const prescription = await this.prescriptionRepo.findOne({
       where: { id },
-      relations: ['patient', 'prescribedBy', 'fulfilledBy'],
+      relations: ['patient', 'patient.user', 'prescribedBy', 'fulfilledBy'],
     });
 
     if (!prescription) {
@@ -228,7 +253,7 @@ export class PrescriptionService {
     // Send deletion notifications
     for (const userId of userIds) {
       await this.notificationService.triggerPusherEvent(
-        [`user-${userId}`],
+        [`${userId}`],
         'prescription:deleted',
         {
           id: prescription.id,
@@ -237,5 +262,50 @@ export class PrescriptionService {
         },
       );
     }
+  }
+
+  private async sendPrescriptionNotifications(
+    prescription: Prescription,
+    action: 'created' | 'updated' | 'fulfilled',
+  ) {
+    const patient = prescription.patient;
+    const doctor = prescription.prescribedBy;
+
+    // Notification message based on action
+    let message = '';
+    switch (action) {
+      case 'created':
+        message = `New prescription from Dr. ${doctor.fullName}`;
+        break;
+      case 'updated':
+        message = `Your prescription has been updated`;
+        break;
+      case 'fulfilled':
+        message = `Your prescription has been fulfilled`;
+        break;
+    }
+
+    // Trigger push notification for patient
+    await this.notificationService.triggerNotification(patient.user.id, {
+      message,
+      eventType: 'prescription',
+      eventId: prescription.id,
+      datetime: new Date().toISOString(),
+    });
+
+    // Send email to patient
+    await this.mailService.sendPrescriptionEmail(patient.user.email, {
+      patientName: patient.fullName,
+      doctorName: doctor.fullName,
+      items: prescription.items.map((item) => ({
+        name: item.medicineId,
+        dosage: item.dosage,
+        frequency: item.frequency,
+        instructions: item.note,
+      })),
+      issueDate: prescription.issueDate.toLocaleDateString(),
+      expiryDate: prescription.expiryDate.toLocaleDateString(),
+      action,
+    });
   }
 }

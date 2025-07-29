@@ -1,9 +1,9 @@
 import { useUserSessionStore } from "@/stores/user-session-store";
 import { redirect } from "@tanstack/react-router";
 import axios, {
+  AxiosError,
   AxiosInstance,
   AxiosResponse,
-  AxiosError,
   InternalAxiosRequestConfig,
 } from "axios";
 
@@ -74,6 +74,9 @@ export class DataServices {
           "/patients/{userId}",
           { userId }
         ),
+        get: this.createEndpoint<void, void>("get", "/patients/{userId}", {
+          userId,
+        }),
       }),
       get: this.createEndpoint<void, PatientResponseDto[]>("get", "/patients"),
       _id: (id: string) => ({
@@ -91,15 +94,6 @@ export class DataServices {
           id,
         }),
       }),
-      user: {
-        _userId: (userId: string) => ({
-          get: this.createEndpoint<void, PatientResponseDto>(
-            "get",
-            "/patients/user/{userId}",
-            { userId }
-          ),
-        }),
-      },
     },
     doctors: {
       post: this.createEndpoint<CreateDoctorDto, DoctorResponseDto>(
@@ -132,6 +126,15 @@ export class DataServices {
           { id }
         ),
       }),
+      user: {
+        _userId: (userId: string) => ({
+          get: this.createEndpoint<void, PatientResponseDto>(
+            "get",
+            "/doctors/user/{userId}",
+            { userId }
+          ),
+        }),
+      },
     },
     admin: {
       post: this.createEndpoint<CreateAdminDto, AdminResponseDto>(
@@ -152,6 +155,15 @@ export class DataServices {
           id,
         }),
       }),
+      user: {
+        _userId: (userId: string) => ({
+          get: this.createEndpoint<void, PatientResponseDto>(
+            "get",
+            "/admin/user/{userId}",
+            { userId }
+          ),
+        }),
+      },
     },
     pharmacists: {
       post: this.createEndpoint<CreatePharmacistDto, PharmacistResponseDto>(
@@ -177,6 +189,15 @@ export class DataServices {
           id,
         }),
       }),
+      user: {
+        _userId: (userId: string) => ({
+          get: this.createEndpoint<void, PatientResponseDto>(
+            "get",
+            "/pharmacists/user/{userId}",
+            { userId }
+          ),
+        }),
+      },
     },
     appointments: {
       post: this.createEndpoint<CreateAppointmentDto, AppointmentResponseDto>(
@@ -428,7 +449,57 @@ export class DataServices {
           "/dashboard/admin"
         ),
       },
+      patient: {
+        get: this.createEndpoint<void, PatientDashboardResponse>(
+          "get",
+          "/dashboard/patient"
+        ),
+      },
+      doctor: {
+        get: this.createEndpoint<void, DoctorDashboardResponse>(
+          "get",
+          "/dashboard/doctor"
+        ),
+      },
+      pharmacist: {
+        get: this.createEndpoint<void, PharmacistDashboardResponse>(
+          "get",
+          "/dashboard/pharmacist"
+        ),
+      },
     },
+    messaging: {
+      appointment: {
+        post: this.createEndpoint<{ appointmentId: string }, any>(
+          "post",
+          "messaging/appointment"
+        ),
+      },
+
+      _user_profile: (userId: string) => ({
+        get: this.createEndpoint<void, any>(
+          "get",
+          "messaging/user/{userId}/profile",
+          { userId }
+        ),
+      }),
+
+      _chatId_mark_read: (chatId: string) => ({
+        post: this.createEndpoint<void, { success: boolean }>(
+          "post",
+          "messaging/{chatId}/mark-read",
+          { chatId }
+        ),
+      }),
+
+      user_my_chats: {
+        get: this.createEndpoint<void, any[]>(
+          "get",
+          "messaging/user/my-chats"
+        ),
+      },
+    },
+
     notifications: {
       get: this.createEndpoint<void, NotificationResponse>(
         "get",
@@ -472,7 +543,7 @@ export class DataServices {
         {
           transaction: TransactionResponseDto;
           checkoutUrl?: string;
-          accessCode?: string;
+          gatewayReference?: string;
         }
       >("post", "/transactions/initiate"),
 

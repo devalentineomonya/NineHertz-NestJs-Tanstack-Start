@@ -78,6 +78,18 @@ export class AdminService {
 
     return this.mapToResponseDto(admin);
   }
+  async findByUserId(id: string): Promise<AdminResponseDto> {
+    const admin = await this.adminRepository.findOne({
+      where: { user: { id } },
+      relations: ['user'],
+    });
+
+    if (!admin) {
+      throw new NotFoundException(`Admin with ID ${id} not found`);
+    }
+
+    return this.mapToResponseDto(admin);
+  }
 
   async update(
     id: string,

@@ -20,6 +20,7 @@ import { useDoctorAvailabilityStore } from "@/stores/use-doctor-availability-sto
 import { useUpdateDoctorAvailabilityStore } from "@/stores/use-update-doctor-availability-store";
 import { useUpdateDoctorStore } from "@/stores/use-update-doctor-store";
 import { useDeleteDoctorStore } from "@/stores/use-delete-doctor-store";
+import { useUserSessionStore } from "@/stores/user-session-store";
 
 export const doctorColumns: ColumnDef<DoctorResponseDto>[] = [
   {
@@ -205,7 +206,10 @@ export const doctorColumns: ColumnDef<DoctorResponseDto>[] = [
         useUpdateDoctorAvailabilityStore();
       const { onOpen: onUpdateDoctorProfile } = useUpdateDoctorStore();
       const { openModal: onDeleteModalOpen } = useDeleteDoctorStore();
+      const { getCurrentUser } = useUserSessionStore();
+      const currentUser = getCurrentUser();
       const doctorId = row.original.id;
+
       return (
         <DropdownMenu>
           <DropdownMenuTrigger asChild>
@@ -220,22 +224,26 @@ export const doctorColumns: ColumnDef<DoctorResponseDto>[] = [
             >
               View Schedule
             </DropdownMenuItem>
-            <DropdownMenuItem
-              onClick={() => onUpdateDoctorProfile(row.original)}
-            >
-              Edit Profile
-            </DropdownMenuItem>
-            <DropdownMenuItem
-              onClick={() => openUpdateDoctorAvailability(row.original)}
-            >
-              Update Availability
-            </DropdownMenuItem>
-            <DropdownMenuItem
-              onClick={() => onDeleteModalOpen(row.original.id)}
-              variant="destructive"
-            >
-              Suspend Account
-            </DropdownMenuItem>
+            {currentUser?.role === "admin" && (
+              <>
+                <DropdownMenuItem
+                  onClick={() => onUpdateDoctorProfile(row.original)}
+                >
+                  Edit Profile
+                </DropdownMenuItem>
+                <DropdownMenuItem
+                  onClick={() => openUpdateDoctorAvailability(row.original)}
+                >
+                  Update Availability
+                </DropdownMenuItem>
+                <DropdownMenuItem
+                  onClick={() => onDeleteModalOpen(row.original.id)}
+                  variant="destructive"
+                >
+                  Suspend Account
+                </DropdownMenuItem>
+              </>
+            )}
           </DropdownMenuContent>
         </DropdownMenu>
       );

@@ -228,24 +228,33 @@ export const prescriptionColumns: ColumnDef<PrescriptionResponseDto>[] = [
             </DropdownMenuItem>
             {currentUser?.role !== "patient" && (
               <>
-                <DropdownMenuItem
-                  onClick={() => onEditPrescription(row.original.id)}
-                >
-                  Edit Prescription
-                </DropdownMenuItem>
-                {!row.original.isFulfilled && (
-                  <DropdownMenuItem
-                    onClick={() => onFulfillPrescription(row.original.id)}
-                  >
-                    Mark as Fulfilled
-                  </DropdownMenuItem>
+                {!row.original.isFulfilled &&
+                  (currentUser?.role === "pharmacist" ||
+                    currentUser?.role === "admin") && (
+                    <DropdownMenuItem
+                      onClick={() => onFulfillPrescription(row.original.id)}
+                    >
+                      Mark as Fulfilled
+                    </DropdownMenuItem>
+                  )}
+                {currentUser?.role !== "pharmacist" && (
+                  <>
+                    <DropdownMenuItem
+                      onClick={() => onEditPrescription(row.original.id)}
+                    >
+                      Edit Prescription
+                    </DropdownMenuItem>
+                    {(currentUser?.role === "admin" ||
+                      currentUser?.role === "doctor") && (
+                      <DropdownMenuItem
+                        onClick={() => onDeletePrescription(row.original.id)}
+                        variant="destructive"
+                      >
+                        Void Prescription
+                      </DropdownMenuItem>
+                    )}
+                  </>
                 )}
-                <DropdownMenuItem
-                  onClick={() => onDeletePrescription(row.original.id)}
-                  variant="destructive"
-                >
-                  Void Prescription
-                </DropdownMenuItem>
               </>
             )}
           </DropdownMenuContent>

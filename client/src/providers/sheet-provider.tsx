@@ -32,6 +32,7 @@ import { AddUserDrawer } from "@/screens/users/add-user-sheet";
 import { EditUserDrawer } from "@/screens/users/update-user-drawer";
 import { ViewUserSheet } from "@/screens/users/view-user-sheet";
 import { ReviewModal } from "@/screens/appointments/review-modal";
+import { ViewTransactionDrawer } from "@/screens/transactions/view-transaction-drawer";
 
 export const SheetProvider = () => (
   <>
@@ -79,5 +80,7 @@ export const SheetProvider = () => (
 
     <CancelAppointmentModal />
     <ReviewModal />
+
+    <ViewTransactionDrawer />
   </>
 );

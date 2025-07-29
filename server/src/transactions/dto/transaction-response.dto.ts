@@ -50,4 +50,6 @@ export class TransactionResponseDto {
 
   @ApiPropertyOptional()
   userId?: string;
+  @ApiPropertyOptional()
+  checkoutUrl: string;
 }

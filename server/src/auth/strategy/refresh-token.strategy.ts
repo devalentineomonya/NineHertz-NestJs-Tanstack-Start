@@ -29,7 +29,6 @@ export class RefreshTokenStrategy extends PassportStrategy(
       throw new Error('No refresh token provided');
     }
     const refreshToken = authHeader.replace('Bearer ', '').trim();
-    console.log(refreshToken);
     if (!refreshToken) {
       throw new Error('Invalid refresh token format');
     }

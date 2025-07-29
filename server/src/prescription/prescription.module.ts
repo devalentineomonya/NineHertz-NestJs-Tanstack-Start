@@ -9,6 +9,7 @@ import { Pharmacist } from 'src/pharmacist/entities/pharmacist.entity';
 import { Notification } from 'src/notification/entities/notification.entity';
 import { NotificationService } from 'src/notification/notification.service';
 import { PushSubscription } from 'src/notification/entities/push-subscription.entity';
+import { MailService } from 'src/shared/mail/mail.service';
 
 @Module({
   imports: [
@@ -22,7 +23,7 @@ import { PushSubscription } from 'src/notification/entities/push-subscription.en
     ]),
   ],
   controllers: [PrescriptionController],
-  providers: [PrescriptionService, NotificationService],
+  providers: [PrescriptionService, NotificationService, MailService],
   exports: [PrescriptionService],
 })
 export class PrescriptionModule {}

@@ -7,7 +7,7 @@
 // Configuration
 const CACHE_NAME = 'medic-app-v1';
 let BACKEND_URL = null;
-let VAPID_PUBLIC_KEY = null;
+let VAPID_PUBLIC_KEY = 'BGvHI2qy1GtNDPwXhmvsZK43ewLHx95A-2w9FJhL4GauJ-qW5d5CN-AghF800MukJqNC1NcRcdUrWI9XxTAR5t4';
 
 // Service Worker Lifecycle Events
 // ==============================
@@ -100,6 +100,7 @@ self.addEventListener('push', (event) => {
 });
 
 function parsePushData(event) {
+  console.log(event)
   try {
     if (!event.data) {
       console.warn('[SW] Empty push payload received');
@@ -297,23 +298,42 @@ function sendSubscriptionToServer(subscription) {
   });
 }
 
-// Fetch Handling (Cache-first strategy)
-// =====================================
+// Fetch Handling (Cache-first strategy for same-origin only)
+// ==========================================================
 
 self.addEventListener('fetch', (event) => {
-  // Skip non-GET requests
   if (event.request.method !== 'GET') return;
-
-  // Skip non-HTTP requests
   if (!event.request.url.startsWith('http')) return;
 
-  // Skip Vite-specific requests in development
-  if (isViteRequest(event.request)) return;
+  const url = new URL(event.request.url);
+  const isSameOrigin = url.origin === self.location.origin;
 
-  event.respondWith(
-    cacheFirstStrategy(event.request)
-  );
+  const excludedOrigins = [
+    'https://nest.dev.lo',
+    'http://localhost',
+    'https://localhost',
+    'http://127.0.0.1',
+    'https://127.0.0.1',
+    'https://api.medic.devalentine.me',
+    'http://api.medic.devalentine.me',
+    'https://lrutuciffubddbacxfki.supabase.co'
+  ];
+
+  if (
+    !isSameOrigin &&
+    url.origin !== 'https://avatar.vercel.sh' &&
+    excludedOrigins.some((origin) => url.origin.startsWith(origin))
+  ) {
+    console.log(`[SW] Skipping excluded request: ${event.request.url}`);
+    return;
+  }
+
+  // Skip Vite HMR requests in dev
+  if (url.pathname.startsWith('/@vite')) return;
+
+  event.respondWith(cacheFirstStrategy(event.request));
 });
+
 
 function isViteRequest(request) {
   return request.url.includes('__vite') ||

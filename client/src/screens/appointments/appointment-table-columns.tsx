@@ -26,9 +26,12 @@ import {
   XCircle,
   Video,
   Monitor,
+  Copy,
+  Check,
 } from "lucide-react";
 import { useUserSessionStore } from "@/stores/user-session-store";
 import { useEditAppointmentStore } from "@/stores/use-edit-appointment-store";
+import React from "react";
 
 enum AppointmentStatus {
   SCHEDULED = "scheduled",
@@ -207,6 +210,54 @@ export const appointmentColumns: ColumnDef<AppointmentResponseDto>[] = [
     },
     enableColumnFilter: true,
     enableSorting: true,
+  },
+  // Add to your appointmentColumns array
+  {
+    id: "videoSessionId",
+    accessorKey: "videoSessionId",
+    header: ({ column }) => (
+      <DataTableColumnHeader column={column} title="Video Session ID" />
+    ),
+    cell: ({ cell }) => {
+      const sessionId = cell.getValue<string>();
+      const [copied, setCopied] = React.useState(false);
+
+      const handleCopy = () => {
+        if (!sessionId) return;
+
+        navigator.clipboard.writeText(sessionId);
+        setCopied(true);
+        setTimeout(() => setCopied(false), 1500);
+      };
+
+      return sessionId ? (
+        <div className="flex items-center gap-2">
+          <span className="font-mono text-xs">{sessionId}</span>
+          <Button
+            variant="ghost"
+            size="icon"
+            className="w-6 h-6"
+            onClick={handleCopy}
+            disabled={copied}
+          >
+            {copied ? (
+              <Check className="h-3 w-3 text-green-500" />
+            ) : (
+              <Copy className="h-3 w-3" />
+            )}
+          </Button>
+        </div>
+      ) : (
+        <span className="text-gray-400">N/A</span>
+      );
+    },
+    enableColumnFilter: true,
+    filterFn: textFilterFn,
+    meta: {
+      label: "Session ID",
+      placeholder: "Search IDs...",
+      variant: "text",
+    },
   },
   {
     id: "patient",

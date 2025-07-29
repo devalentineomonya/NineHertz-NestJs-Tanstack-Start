@@ -21,7 +21,7 @@ import {
   SortingState,
   PaginationState,
 } from "@tanstack/react-table";
-import { PatientStatsCards } from "./patient-statistics";
+
 
 export function PatientsTable() {
   const { getCurrentUser } = useUserSessionStore();
@@ -185,14 +185,10 @@ export function PatientsTable() {
           </Button>
         </div>
       )}
-      {!isLoading && !error && (
-        <PatientStatsCards patients={patients} isLoading={isLoading} />
-      )}
 
       <DataTable table={table}>
         <DataTableToolbar table={table} />
       </DataTable>
-
       <DeletePatientConfirmModal />
     </div>
   );

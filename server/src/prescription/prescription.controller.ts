@@ -117,7 +117,7 @@ export class PrescriptionController {
               DELETE PRESCRIPTION BY ID
   ========================================================*/
   @Delete(':id')
-  @Roles(Role.ADMIN)
+  @Roles(Role.ADMIN, Role.DOCTOR)
   @HttpCode(HttpStatus.NO_CONTENT)
   @ApiOperation({ summary: 'Delete prescription by ID' })
   @ApiResponse({

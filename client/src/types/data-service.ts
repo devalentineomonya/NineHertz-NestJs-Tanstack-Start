@@ -218,7 +218,7 @@ interface OrderResponseDto extends Omit<CreateOrderDto, "items" | "patientId"> {
   orderDate: string;
   stripePaymentId: string;
   paystackReference: string;
-  paymentStatus: string;
+  transactions: TransactionResponseDto[];
   patient: PatientResponseDto;
   items: OrderItemResponseDto[];
   createdAt: string;
@@ -276,6 +276,7 @@ interface TransactionResponseDto {
   updatedAt: Date;
   paidAt?: Date;
   refundReason?: string;
+  checkoutUrl?: string;
   metadata?: Record<string, any>;
   orderId?: string;
   appointmentId?: string;
@@ -360,14 +361,213 @@ interface DepartmentInfo {
   count: string;
 }
 
+interface AdminRecentActivities extends Notification {
+  channels: string[];
+  type?: string;
+}
 interface AdminDashboardResponse {
   stats: DashboardStats[];
   departments: {
     departments: DepartmentInfo[];
   };
   appointments: AppointmentResponseDto[];
+  recentActivities: AdminRecentActivities[];
+  topDoctors: Array<{
+    doctor_id: string;
+    doctor_fullName: string;
+    doctor_specialty: string;
+    rating: string | null;
+    patients: string;
+  }>;
+
+  patientSatisfaction: Array<{
+    month: string;
+    score: string;
+  }>;
+  upcomingAppointments: AppointmentResponseDto[];
+  footerStats: Array<{
+    label: string;
+    value: number;
+    change: string;
+  }>;
 }
 
+// ================== Patient Dashboard Types ==================
+interface PatientDashboardStats {
+  upcomingAppointments: number;
+  pendingPrescriptions: number;
+  unreadNotifications: number;
+  virtualAppointments: number;
+}
+
+// Using existing AppointmentResponseDto but making doctor optional
+type DashboardAppointment = Omit<AppointmentResponseDto, "doctor"> & {
+  doctor: Pick<
+    DoctorResponseDto,
+    | "id"
+    | "fullName"
+    | "specialty"
+    | "availability"
+    | "appointmentFee"
+    | "licenseNumber"
+    | "status"
+    | "createdAt"
+  >;
+};
+
+// Simplified prescription type for dashboard
+interface DashboardPrescription {
+  id: string;
+  items: {
+    note: string;
+    dosage: string;
+    frequency: string;
+    medicineId: string;
+  }[];
+  issueDate: string;
+  expiryDate: string;
+  isFulfilled: boolean;
+  createdAt: string;
+  updatedAt: string;
+  fulfillmentDate: string | null;
+}
+
+// Extending existing Notification type with channels
+interface DashboardNotification
+  extends Omit<Notification, "data" | "channels"> {
+  channels: string[];
+}
+
+// Main dashboard response type
+interface PatientDashboardResponse {
+  stats: PatientDashboardStats;
+  appointments: DashboardAppointment[];
+  prescriptions: DashboardPrescription[];
+  medicines: MedicineResponseDto[];
+  notifications: DashboardNotification[];
+}
+
+// ================== Doctor Dashboard Types ==================
+interface DoctorDashboardDoctor {
+  id: string;
+  name: string;
+  specialization: string;
+}
+
+interface DoctorDashboardStats {
+  todaysAppointments: number;
+  waitingPatients: number;
+  unreadMessages: number;
+  pendingPrescriptions: number;
+}
+
+interface DoctorDashboardAppointment {
+  id: string;
+  time: string;
+  patient: string;
+  status: "Cancelled" | "Waiting" | "Completed";
+  duration: string;
+  avatar: string;
+  patientId: string;
+  mode: "virtual" | "physical";
+}
+
+interface DashboardPatient {
+  id: string;
+  name: string;
+  lastVisit: string; // Date string
+  condition: string;
+  status: Record<string, never>; // Empty object
+}
+
+interface DashboardResource {
+  id: number;
+  title: string;
+  category: string;
+  icon: string;
+  url: string;
+}
+
+interface DashboardNotification {
+  id: string;
+  title: string;
+  description: string;
+  time: string;
+  read: boolean;
+}
+
+interface DoctorDashboardResponse {
+  doctor: DoctorDashboardDoctor;
+  stats: DoctorDashboardStats;
+  appointments: DoctorDashboardAppointment[];
+  patients: DashboardPatient[];
+  resources: DashboardResource[];
+  notifications: DashboardNotification[];
+}
+
+// ================== Pharmacist Dashboard Types ==================
+interface PharmacistInfo {
+  id: string;
+  name: string;
+  licenseNumber: string;
+}
+
+interface PharmacistDashboardStats {
+  prescriptionsToFill: number;
+  pendingOrders: number;
+  inventoryAlerts: number;
+  readyForPickup: number;
+}
+
+interface DashboardPrescription {
+  id: string;
+  patient: string;
+  medication: string;
+  isFulFilled: boolean; // Note: Typo in JSON ("isFulFilled")
+  date: string; // ISO date string
+  avatar: string;
+  prescribedBy: string;
+  itemCount: number;
+}
+
+interface DashboardOrder {
+  id: string;
+  patient: string;
+  items: number; // Count of items in order
+  total: number; // Total amount
+  status: string; // Could be "Pending", "Processing", "Completed", etc.
+  orderDate: string; // ISO date string
+  patientId: string;
+}
+
+// Reusing the InventoryDashboardItem from earlier
+interface InventoryDashboardItem {
+  id: string;
+  name: string;
+  stock: number;
+  threshold: number;
+  status: string;
+  lastRestocked: string;
+  medicineId: string;
+}
+
+// Reusing the DashboardNotification from doctor dashboard
+interface DashboardNotification {
+  id: string;
+  title: string;
+  description: string;
+  time: string;
+  read: boolean;
+}
+
+interface PharmacistDashboardResponse {
+  pharmacist: PharmacistInfo;
+  stats: PharmacistDashboardStats;
+  prescriptions: DashboardPrescription[];
+  inventory: InventoryDashboardItem[];
+  orders: DashboardOrder[];
+  notifications: DashboardNotification[];
+}
 // ================== Notification Types ==================
 interface Notification {
   id: string;

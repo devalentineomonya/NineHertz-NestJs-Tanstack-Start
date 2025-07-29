@@ -23,6 +23,8 @@ import { PrescriptionService } from 'src/prescription/prescription.service';
 import { Prescription } from 'src/prescription/entities/prescription.entity';
 import { Pharmacist } from 'src/pharmacist/entities/pharmacist.entity';
 import { Review } from 'src/appointment/entities/review.entity';
+import { PharmacistService } from 'src/pharmacist/pharmacist.service';
+import { MessagingService } from 'src/messaging/messaging.service';
 
 @Module({
   imports: [
@@ -63,6 +65,8 @@ import { Review } from 'src/appointment/entities/review.entity';
     StreamService,
     NotificationService,
     PrescriptionService,
+    PharmacistService,
+    MessagingService,
   ],
   exports: [ChatService],
   controllers: [ChatController],

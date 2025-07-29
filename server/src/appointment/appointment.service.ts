@@ -22,6 +22,7 @@ import { TransactionStatus } from 'src/transactions/entities/transaction.entity'
 import { CreateReviewDto } from './dto/create-review.dto';
 import { Review } from './entities/review.entity';
 import { ReviewResponseDto } from './dto/review-response.dto';
+import { MessagingService } from 'src/messaging/messaging.service';
 
 @Injectable()
 export class AppointmentService {
@@ -37,6 +38,7 @@ export class AppointmentService {
     private streamService: StreamService,
     private notificationService: NotificationService,
     private mailService: MailService,
+    private readonly messagingService: MessagingService,
   ) {}
 
   async create(
@@ -95,6 +97,19 @@ export class AppointmentService {
     });
 
     const savedAppointment = await this.appointmentRepository.save(appointment);
+
+    // Create chat for the appointment
+    try {
+      const { chatId } = await this.messagingService.createChatForAppointment(
+        savedAppointment.id,
+      );
+      console.log(
+        `Chat created for appointment ${savedAppointment.id}: ${chatId}`,
+      );
+    } catch (error) {
+      console.error('Failed to create chat for appointment:', error);
+      // Don't fail the appointment creation if chat creation fails
+    }
 
     await this.mailService.sendAppointmentCreated(patient.user.email, {
       patientName: patient.fullName,
@@ -702,6 +717,7 @@ export class AppointmentService {
         updatedAt: transaction.updatedAt,
         description: transaction.description,
         gatewayReference: transaction.gatewayReference,
+        checkoutUrl: transaction.checkoutUrl,
         gateway: transaction.gateway,
       })),
       reviews: appointment.reviews?.map((review) =>

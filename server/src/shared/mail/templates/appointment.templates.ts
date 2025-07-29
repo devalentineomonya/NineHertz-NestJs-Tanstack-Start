@@ -196,3 +196,119 @@ export function appointmentCancelledEmail({
     content,
   });
 }
+export function prescriptionEmail({
+  patientName,
+  doctorName,
+  items,
+  issueDate,
+  expiryDate,
+  action = 'created',
+  companyName = 'NineHertz Medic',
+}: {
+  patientName: string;
+  doctorName: string;
+  items: Array<{
+    name: string;
+    dosage: string;
+    frequency: string;
+    instructions?: string;
+  }>;
+  issueDate: string;
+  expiryDate: string;
+  action?: 'created' | 'updated' | 'fulfilled';
+  companyName?: string;
+}) {
+  // Map action to subject line
+  const actionMap = {
+    created: 'New Prescription',
+    updated: 'Prescription Updated',
+    fulfilled: 'Prescription Fulfilled',
+  };
+
+  const subject = actionMap[action] || 'Prescription Update';
+
+  // Create table rows for prescription items
+  const itemsRows = items
+    .map(
+      (item) => `
+    <tr>
+      <td style="${baseStyles.valueCell}">${item.name}</td>
+      <td style="${baseStyles.valueCell}">${item.dosage}</td>
+      <td style="${baseStyles.valueCell}">${item.frequency}</td>
+      <td style="${baseStyles.valueCell}">${item.instructions || 'As directed'}</td>
+    </tr>
+  `,
+    )
+    .join('');
+
+  const content = `
+    <h1 style="${baseStyles.heading}">${subject}</h1>
+
+    <div style="margin-bottom: 20px;">
+      <p style="${baseStyles.contentText}">
+        Hello ${patientName},
+        ${
+          action === 'created'
+            ? `Dr. ${doctorName} has prescribed the following medications.`
+            : action === 'updated'
+              ? 'your prescription has been updated.'
+              : 'your prescription has been fulfilled and is ready for pickup.'
+        }
+      </p>
+
+      <h2 style="${baseStyles.subHeading}">Prescription Details</h2>
+      <table style="${baseStyles.table}">
+        <thead>
+          <tr>
+            <th style="${baseStyles.headerCell}">Medication</th>
+            <th style="${baseStyles.headerCell}">Dosage</th>
+            <th style="${baseStyles.headerCell}">Frequency</th>
+            <th style="${baseStyles.headerCell}">Instructions</th>
+          </tr>
+        </thead>
+        <tbody>
+          ${itemsRows}
+        </tbody>
+      </table>
+
+      <table style="${baseStyles.table}">
+        <tr>
+          <td style="${baseStyles.labelCell}">Issue Date:</td>
+          <td style="${baseStyles.valueCell}">${issueDate}</td>
+        </tr>
+        <tr>
+          <td style="${baseStyles.labelCell}">Expiry Date:</td>
+          <td style="${baseStyles.valueCell}">${expiryDate}</td>
+        </tr>
+        ${
+          action === 'fulfilled'
+            ? `
+        <tr>
+          <td style="${baseStyles.labelCell}">Status:</td>
+          <td style="${baseStyles.valueCell}">Ready for pickup</td>
+        </tr>
+        `
+            : ''
+        }
+      </table>
+    </div>
+
+    <div style="${baseStyles.messageBox}">
+      <p style="${baseStyles.messageText}">
+        ${
+          action === 'created'
+            ? 'This prescription can be fulfilled at any pharmacy. If you have any questions, contact your doctor.'
+            : action === 'fulfilled'
+              ? 'Your medication is ready for pickup. Please bring your ID when collecting.'
+              : 'If you have any questions about these changes, contact your doctor.'
+        }
+      </p>
+    </div>
+  `;
+
+  return baseEmailTemplate({
+    companyName,
+    title: subject,
+    content,
+  });
+}

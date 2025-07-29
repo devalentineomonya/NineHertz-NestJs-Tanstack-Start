@@ -25,6 +25,7 @@ import {
   User,
   Users,
   Video,
+  Wallet,
 } from "lucide-react";
 import * as React from "react";
 
@@ -41,7 +42,12 @@ const ALL_NAV_ITEMS = [
     icon: User,
     roles: ["admin", "doctor"],
   },
-  { title: "Doctors", url: "doctors", icon: Stethoscope, roles: ["admin"] },
+  {
+    title: "Doctors",
+    url: "doctors",
+    icon: Stethoscope,
+    roles: ["admin", "patient"],
+  },
   {
     title: "Pharmacist",
     url: "pharmacist",
@@ -83,6 +89,12 @@ const ALL_NAV_ITEMS = [
     title: "Orders",
     url: "orders",
     icon: ShoppingCart,
+    roles: ["admin", "pharmacist", "patient"],
+  },
+  {
+    title: "Transactions",
+    url: "transactions",
+    icon: Wallet,
     roles: ["admin", "pharmacist", "patient"],
   },
   { title: "Admin", url: "admins", icon: Users, roles: ["admin"] },

@@ -54,11 +54,8 @@ export class Transaction {
   @Column({ nullable: true })
   gatewayFees: number;
 
-  @Column({ nullable: true })
-  accessCode?: string;
-
-  @Column({ nullable: true })
-  checkoutUrl?: string;
+  @Column({ unique: true })
+  checkoutUrl: string;
 
   @Column({ nullable: true })
   processedAt?: Date;

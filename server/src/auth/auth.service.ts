@@ -70,8 +70,6 @@ export class AuthService {
       .where('user.email = :email', { email })
       .getOne();
 
-    console.log(user);
-
     if (!user) {
       throw new NotFoundException('User not found');
     }
@@ -90,6 +88,7 @@ export class AuthService {
     await this.userService.save(user);
     return this.login(user);
   }
+
   async signUp(createUserDto: SignUpDto): Promise<User> {
     const existingUser = await this.userService.findByEmail(
       createUserDto.email,
@@ -120,11 +119,57 @@ export class AuthService {
       );
     }
 
+    // Fetch user with profile relations to check if profile exists
+    const userWithProfile = await this.userRepository.findOne({
+      where: { id: user.id },
+      relations: [
+        'patientProfile',
+        'doctorProfile',
+        'adminProfile',
+        'pharmacistProfile',
+      ],
+    });
+
+    let hasProfile = false;
+    let fullName = '';
+
+    // Check which profile exists based on user role and extract full name
+    switch (user.role) {
+      case 'patient':
+        if (userWithProfile?.patientProfile) {
+          hasProfile = true;
+          fullName = `${userWithProfile.patientProfile.fullName || ''}`.trim();
+        }
+        break;
+      case 'doctor':
+        if (userWithProfile?.doctorProfile) {
+          hasProfile = true;
+          fullName = `${userWithProfile.doctorProfile.fullName || ''}`.trim();
+        }
+        break;
+      case 'admin':
+        if (userWithProfile?.adminProfile) {
+          hasProfile = true;
+          fullName = `${userWithProfile.adminProfile.fullName || ''}`.trim();
+        }
+        break;
+      case 'pharmacist':
+        if (userWithProfile?.pharmacistProfile) {
+          hasProfile = true;
+          fullName =
+            `${userWithProfile.pharmacistProfile.fullName || ''} `.trim();
+        }
+        break;
+    }
+
     const tokens = await this.generateTokens(
       user.id,
       user.email,
       user.role as UserRole,
+      hasProfile,
+      fullName,
     );
+
     return {
       accessToken: tokens.accessToken,
       refreshToken: tokens.refreshToken,
@@ -133,6 +178,8 @@ export class AuthService {
         email: user.email,
         role: user.role,
         isEmailVerified: user.isEmailVerified,
+        hasProfile,
+        fullName,
       },
     };
   }
@@ -143,15 +190,63 @@ export class AuthService {
         secret: this.configService.get<string>('JWT_REFRESH_SECRET'),
       });
 
-      const user = await this.userService.findOne(payload.sub);
+      const user = await this.userRepository.findOne({
+        where: { id: payload.sub },
+        relations: [
+          'patientProfile',
+          'doctorProfile',
+          'adminProfile',
+          'pharmacistProfile',
+        ],
+      });
+
       if (!user) throw new UnauthorizedException('User not found');
+
+      // Get updated profile info
+      let hasProfile = false;
+      let fullName = '';
+
+      switch (user.role) {
+        case 'patient':
+          if (user.patientProfile) {
+            hasProfile = true;
+            fullName = `${user.patientProfile.fullName || ''}`.trim();
+          }
+          break;
+        case 'doctor':
+          if (user.doctorProfile) {
+            hasProfile = true;
+            fullName = `${user.doctorProfile.fullName || ''}`.trim();
+          }
+          break;
+        case 'admin':
+          if (user.adminProfile) {
+            hasProfile = true;
+            fullName = `${user.adminProfile.fullName || ''}`.trim();
+          }
+          break;
+        case 'pharmacist':
+          if (user.pharmacistProfile) {
+            hasProfile = true;
+            fullName = `${user.pharmacistProfile.fullName || ''}`.trim();
+          }
+          break;
+      }
+
       const { accessToken: newAccessToken, refreshToken: newRefreshToken } =
-        await this.generateTokens(user.id, user.email, user.role as UserRole);
+        await this.generateTokens(
+          user.id,
+          user.email,
+          user.role as UserRole,
+          hasProfile,
+          fullName,
+        );
       return { accessToken: newAccessToken, refreshToken: newRefreshToken };
     } catch {
       throw new UnauthorizedException('Invalid refresh token');
     }
   }
+
   async verifyTokens(
     accessToken: string,
     refreshToken: string,
@@ -241,10 +336,16 @@ export class AuthService {
     return this.login(user);
   }
 
-  private async generateTokens(userId: string, email: string, role: UserRole) {
+  private async generateTokens(
+    userId: string,
+    email: string,
+    role: UserRole,
+    hasProfile: boolean = false,
+    fullName: string = '',
+  ) {
     const [accessToken, refreshToken] = await Promise.all([
-      this.generateAccessToken(userId, email, role),
-      this.generateRefreshToken(userId, email, role),
+      this.generateAccessToken(userId, email, role, hasProfile, fullName),
+      this.generateRefreshToken(userId, email, role, hasProfile, fullName),
     ]);
 
     return { accessToken, refreshToken };
@@ -254,9 +355,17 @@ export class AuthService {
     userId: string,
     email: string,
     role: UserRole,
+    hasProfile: boolean = false,
+    fullName: string = '',
   ): string {
     return this.jwtService.sign(
-      { sub: userId, email, role },
+      {
+        sub: userId,
+        email,
+        role,
+        hasProfile,
+        fullName,
+      },
       {
         secret: this.configService.get<string>('JWT_ACCESS_SECRET'),
         expiresIn: '15m',
@@ -268,9 +377,17 @@ export class AuthService {
     userId: string,
     email: string,
     role: UserRole,
+    hasProfile: boolean = false,
+    fullName: string = '',
   ): string {
     return this.jwtService.sign(
-      { sub: userId, email, role },
+      {
+        sub: userId,
+        email,
+        role,
+        hasProfile,
+        fullName,
+      },
       {
         secret: this.configService.get<string>('JWT_REFRESH_SECRET'),
         expiresIn: '7d',
@@ -298,6 +415,7 @@ export class AuthService {
       throw new UnauthorizedException('Invalid password reset token');
     }
   }
+
   private generateSecureOtp(length = 6): string {
     const digits = '0123456789';
     let otp = '';
@@ -321,6 +439,7 @@ export class AuthService {
 
     return otp;
   }
+
   async verifyOtp(
     otpExpiry: Date | undefined,
     otpHash: string | undefined,

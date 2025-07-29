@@ -52,6 +52,7 @@ import { useGetPatients } from "@/services/patients/use-get-patients";
 import { useGetPharmacists } from "@/services/pharmacists/use-get-pharmacists";
 import { useAddPrescriptionService } from "@/services/prescriptions/use-add-prescription";
 import { useAddPrescriptionStore } from "@/stores/use-add-prescription-store";
+import { useUserSessionStore } from "@/stores/user-session-store";
 
 export const frequencyOptions = [
   { value: "once", label: "Once daily" },
@@ -108,7 +109,8 @@ export const AddPrescriptionDrawer = () => {
   const { data: pharmacists, isLoading: loadingPharmacists } =
     useGetPharmacists();
   const { data: medicines, isLoading: loadingMedicines } = useGetMedicines();
-
+  const { getCurrentUser } = useUserSessionStore();
+  const currentUser = getCurrentUser();
   // Filter only prescription medicines
   const prescriptionMedicines = medicines?.data.filter(
     (medicine) => medicine.type === "prescribed"
@@ -356,7 +358,10 @@ export const AddPrescriptionDrawer = () => {
                           >
                             <FormControl>
                               <SelectTrigger className="w-full">
-                                <SelectValue placeholder="Select medicine" />
+                                <SelectValue
+                                  className="truncate"
+                                  placeholder="Select medicine"
+                                />
                               </SelectTrigger>
                             </FormControl>
                             <SelectContent>
@@ -367,6 +372,7 @@ export const AddPrescriptionDrawer = () => {
                               ) : (
                                 prescriptionMedicines?.map((medicine) => (
                                   <SelectItem
+                                    className="truncate"
                                     key={medicine.id}
                                     value={medicine.id}
                                   >
@@ -381,7 +387,7 @@ export const AddPrescriptionDrawer = () => {
                       )}
                     />
 
-                    <div className="grid grid-cols-2 gap-4">
+                    <div className="grid sm:grid-cols-2 gap-4">
                       {/* Dosage */}
                       <FormField
                         control={form.control}
@@ -469,7 +475,7 @@ export const AddPrescriptionDrawer = () => {
               </div>
 
               {/* Dates Section */}
-              <div className="grid grid-cols-2 gap-4">
+              <div className="grid sm:grid-cols-2 gap-4">
                 {/* Issue Date */}
                 <FormField
                   control={form.control}
@@ -553,23 +559,25 @@ export const AddPrescriptionDrawer = () => {
 
               {/* Fulfillment Section */}
               <div className="space-y-4">
-                <FormField
-                  control={form.control}
-                  name="isFulfilled"
-                  render={({ field }) => (
-                    <FormItem className="flex flex-row items-start space-x-3 space-y-0">
-                      <FormControl>
-                        <Checkbox
-                          checked={field.value}
-                          onCheckedChange={field.onChange}
-                        />
-                      </FormControl>
-                      <div className="space-y-1 leading-none">
-                        <FormLabel>Prescription fulfilled?</FormLabel>
-                      </div>
-                    </FormItem>
-                  )}
-                />
+                {currentUser?.role === "admin" && (
+                  <FormField
+                    control={form.control}
+                    name="isFulfilled"
+                    render={({ field }) => (
+                      <FormItem className="flex flex-row items-start space-x-3 space-y-0">
+                        <FormControl>
+                          <Checkbox
+                            checked={field.value}
+                            onCheckedChange={field.onChange}
+                          />
+                        </FormControl>
+                        <div className="space-y-1 leading-none">
+                          <FormLabel>Prescription fulfilled?</FormLabel>
+                        </div>
+                      </FormItem>
+                    )}
+                  />
+                )}
 
                 {isFulfilled && (
                   <FormField

@@ -71,7 +71,6 @@ export class AppointmentController {
     @Query() filters: AppointmentFilter,
     @Req() req: RequestWithUser,
   ) {
-    console.log(req.user);
     return this.appointmentService.findAll(
       pagination,
       filters,

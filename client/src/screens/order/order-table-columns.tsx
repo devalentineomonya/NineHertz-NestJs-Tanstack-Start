@@ -8,6 +8,7 @@ import {
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
+import { useCancelOrderStore } from "@/stores/use-cancel-order-store";
 import { useEditOrderStore } from "@/stores/use-edit-order-store";
 import { useProceedToCheckoutStore } from "@/stores/use-proceed-to-checkout-store";
 import { useViewOrderStore } from "@/stores/use-view-order-store";
@@ -35,6 +36,15 @@ enum OrderStatus {
   CANCELLED = "cancelled",
   RETURNED = "returned",
 }
+
+enum TransactionStatus {
+  PENDING = "pending",
+  SUCCESS = "success",
+  FAILED = "failed",
+  REFUNDED = "refunded",
+  ABANDONED = "abandoned",
+}
+
 export const orderColumns: ColumnDef<OrderResponseDto>[] = [
   {
     id: "select",
@@ -204,26 +214,36 @@ export const orderColumns: ColumnDef<OrderResponseDto>[] = [
     enableColumnFilter: true,
   },
   {
-    id: "paymentStatus",
-    accessorKey: "paymentStatus",
+    id: "transactions",
+    accessorKey: "transactions",
     header: ({ column }) => (
       <DataTableColumnHeader column={column} title="Payment" />
     ),
-    cell: ({ cell }) => {
-      const status = cell.getValue<string>();
+    cell: ({ row }) => {
+      // Safely get status: empty array or undefined -> "pending"
+      const status =
+        row.original.transactions?.length > 0
+          ? row.original.transactions[0].status
+          : TransactionStatus.PENDING;
+
       let variant: "default" | "warning" | "success" | "destructive";
       let icon: React.ReactNode;
 
       switch (status) {
-        case "paid":
+        case TransactionStatus.SUCCESS:
           variant = "success";
           icon = <CheckCircle className="size-4" />;
           break;
-        case "unpaid":
+        case TransactionStatus.PENDING:
+          variant = "warning";
+          icon = <Clock className="size-4" />;
+          break;
+        case TransactionStatus.FAILED:
+        case TransactionStatus.ABANDONED:
           variant = "destructive";
           icon = <XCircle className="size-4" />;
           break;
-        case "refunded":
+        case TransactionStatus.REFUNDED:
           variant = "default";
           icon = <RefreshCw className="size-4" />;
           break;
@@ -243,19 +263,21 @@ export const orderColumns: ColumnDef<OrderResponseDto>[] = [
       variant: "multiSelect",
       options: [
         {
-          label: "Paid",
-          value: "paid",
+          label: "Success",
+          value: TransactionStatus.SUCCESS,
           icon: CheckCircle,
         },
-        {
-          label: "Unpaid",
-          value: "unpaid",
-          icon: XCircle,
-        },
+        { label: "Pending", value: TransactionStatus.PENDING, icon: Clock },
+        { label: "Failed", value: TransactionStatus.FAILED, icon: XCircle },
         {
           label: "Refunded",
-          value: "refunded",
+          value: TransactionStatus.REFUNDED,
           icon: RefreshCw,
+        },
+        {
+          label: "Abandoned",
+          value: TransactionStatus.ABANDONED,
+          icon: XCircle,
         },
       ],
     },
@@ -270,9 +292,36 @@ export const orderColumns: ColumnDef<OrderResponseDto>[] = [
       const { getCurrentUser } = useUserSessionStore();
       const currentUser = getCurrentUser();
       const { open: onProceedToCheckout } = useProceedToCheckoutStore();
+      const { onOpen: onOrderCancel } = useCancelOrderStore();
+
       const isPatient = currentUser?.role === "patient";
       const isAdminOrPharmacist =
         currentUser?.role === "admin" || currentUser?.role === "pharmacist";
+
+      // First transaction and status
+      const firstTransaction =
+        order.transactions?.length > 0 ? order.transactions[0] : null;
+      const transactionStatus =
+        firstTransaction?.status || TransactionStatus.PENDING;
+
+      // Checks
+      const shouldShowPayButton =
+        !firstTransaction ||
+        [
+          TransactionStatus.PENDING,
+          TransactionStatus.FAILED,
+          TransactionStatus.ABANDONED,
+        ].includes(transactionStatus);
+
+      const isPaid =
+        transactionStatus === TransactionStatus.SUCCESS ||
+        transactionStatus === TransactionStatus.REFUNDED;
+
+      const isOrderClosed =
+        order.status === OrderStatus.CANCELLED ||
+        order.status === OrderStatus.DELIVERED;
+
+      const canEditOrder = !isPaid && !isOrderClosed;
 
       return (
         <DropdownMenu>
@@ -286,15 +335,18 @@ export const orderColumns: ColumnDef<OrderResponseDto>[] = [
             <DropdownMenuItem onClick={() => onViewOrder(order)}>
               View Order Details
             </DropdownMenuItem>
-            <DropdownMenuItem onClick={() => onEditOrder(order.id)}>
-              Edit Order
-            </DropdownMenuItem>
+
+            {canEditOrder && (
+              <DropdownMenuItem onClick={() => onEditOrder(order.id)}>
+                Edit Order
+              </DropdownMenuItem>
+            )}
 
             {order.status !== OrderStatus.CANCELLED && (
               <>
                 {order.status === OrderStatus.PENDING && (
                   <>
-                    {isPatient && (
+                    {isPatient && shouldShowPayButton && (
                       <DropdownMenuItem
                         onClick={() => onProceedToCheckout(order)}
                       >
@@ -306,21 +358,29 @@ export const orderColumns: ColumnDef<OrderResponseDto>[] = [
                     )}
                   </>
                 )}
+
                 {order.status === OrderStatus.PROCESSING &&
                   isAdminOrPharmacist && (
                     <DropdownMenuItem>Mark as Shipped</DropdownMenuItem>
                   )}
+
                 {order.status === OrderStatus.SHIPPED &&
                   isAdminOrPharmacist && (
                     <DropdownMenuItem>Mark as Delivered</DropdownMenuItem>
                   )}
-                <DropdownMenuItem variant="destructive">
-                  Cancel Order
-                </DropdownMenuItem>
+
+                {!isPaid && (
+                  <DropdownMenuItem
+                    onClick={() => onOrderCancel(order.id)}
+                    variant="destructive"
+                  >
+                    Cancel Order
+                  </DropdownMenuItem>
+                )}
               </>
             )}
 
-            {order.paymentStatus === "paid" &&
+            {transactionStatus === TransactionStatus.SUCCESS &&
               order.status !== OrderStatus.CANCELLED &&
               isAdminOrPharmacist && (
                 <DropdownMenuItem>Issue Refund</DropdownMenuItem>

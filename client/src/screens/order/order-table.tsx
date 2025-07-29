@@ -9,10 +9,20 @@ import { PlusSquare } from "lucide-react";
 import { parseAsArrayOf, parseAsString, useQueryState } from "nuqs";
 import * as React from "react";
 import { orderColumns } from "./order-table-columns";
+import { CancelOrderModal } from "./cancel-order-modal";
+
+enum TransactionStatus {
+  PENDING = "pending",
+  SUCCESS = "success",
+  FAILED = "failed",
+  REFUNDED = "refunded",
+  ABANDONED = "abandoned",
+}
 
 export function OrdersTable() {
   const { onOpen } = useAddOrderStore();
   const { data, isLoading } = useGetOrders();
+
   const [patientName] = useQueryState(
     "patientName",
     parseAsString.withDefault("")
@@ -36,10 +46,14 @@ export function OrdersTable() {
 
       const matchesOrderStatus =
         orderStatus.length === 0 || orderStatus.includes(order.orderDate);
+      const orderPaymentStatus =
+        order.transactions?.length > 0
+          ? order.transactions[0].status
+          : TransactionStatus.PENDING;
 
       const matchesPaymentStatus =
         paymentStatus.length === 0 ||
-        paymentStatus.includes(order.paymentStatus);
+        paymentStatus.includes(orderPaymentStatus);
 
       return matchesPatient && matchesOrderStatus && matchesPaymentStatus;
     });
@@ -86,6 +100,7 @@ export function OrdersTable() {
       </div>
     );
   }
+
   return (
     <div className="data-table-container">
       <div className="w-fit min-w-56 mb-2">
@@ -97,6 +112,7 @@ export function OrdersTable() {
       <DataTable table={table}>
         <DataTableToolbar table={table} />
       </DataTable>
+      <CancelOrderModal />
     </div>
   );
 }

@@ -3,10 +3,9 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import {
   Drawer,
   DrawerContent,
+  DrawerFooter,
   DrawerHeader,
-  DrawerTitle,
 } from "@/components/ui/drawer";
-import { ScrollArea } from "@/components/ui/scroll-area";
 import { useViewOrderStore } from "@/stores/use-view-order-store";
 import { OrderStatus } from "./order-schema";
 import {
@@ -19,6 +18,16 @@ import {
   CheckCircle,
   XCircle,
 } from "lucide-react";
+import { Button } from "@/components/ui/button";
+import { Link } from "@tanstack/react-router";
+
+enum TransactionStatus {
+  PENDING = "pending",
+  SUCCESS = "success",
+  FAILED = "failed",
+  REFUNDED = "refunded",
+  ABANDONED = "abandoned",
+}
 
 const statusIcons = {
   pending: <ShoppingCart className="h-5 w-5 text-yellow-500" />,
@@ -111,6 +120,19 @@ export const ViewOrderDrawer = () => {
 
   if (!order) return null;
 
+  const firstTransaction =
+    order.transactions?.length > 0 ? order.transactions[0] : null;
+  const transactionStatus =
+    firstTransaction?.status || TransactionStatus.PENDING;
+
+  const shouldShowPayButton =
+    !firstTransaction ||
+    [
+      TransactionStatus.PENDING,
+      TransactionStatus.FAILED,
+      TransactionStatus.ABANDONED,
+    ].includes(transactionStatus);
+
   return (
     <Drawer direction="right" open={isOpen} onOpenChange={onClose}>
       <DrawerContent className="right-2 top-2 bottom-2 fixed flex data-[vaul-drawer-direction=right]:sm:max-w-lg bg-gradient-to-b from-white to-gray-50">
@@ -130,115 +152,110 @@ export const ViewOrderDrawer = () => {
           </Badge>
         </DrawerHeader>
 
-        <ScrollArea className="px-6 py-4 h-[calc(100dvh-160px)]">
-          <div className="space-y-4">
-            {/* Order Overview Card */}
-            <Card>
-              <CardHeader>
-                <CardTitle className="flex items-center gap-2 text-gray-700">
-                  <FileText className="h-5 w-5" />
-                  Order Overview
-                </CardTitle>
-              </CardHeader>
-              <CardContent className="grid grid-cols-2 gap-4">
-                <div>
-                  <p className="text-sm text-muted-foreground">Patient</p>
-                  <p className="font-medium">{order.patient.fullName}</p>
-                </div>
-                <div>
-                  <p className="text-sm text-muted-foreground">Total Amount</p>
-                  <p className="font-medium">Kes {order.totalAmount}</p>
-                </div>
-              </CardContent>
-            </Card>
+        <div className="px-6 py-4 overflow-y-auto space-y-4">
+          <Card>
+            <CardHeader>
+              <CardTitle className="flex items-center gap-2 text-gray-700">
+                <FileText className="h-5 w-5" />
+                Order Overview
+              </CardTitle>
+            </CardHeader>
+            <CardContent className="grid grid-cols-2 gap-4">
+              <div>
+                <p className="text-sm text-muted-foreground">Patient</p>
+                <p className="font-medium">{order.patient.fullName}</p>
+              </div>
+              <div>
+                <p className="text-sm text-muted-foreground">Total Amount</p>
+                <p className="font-medium">Kes {order.totalAmount}</p>
+              </div>
+            </CardContent>
+          </Card>
 
-            {/* Order Items Card */}
-            <Card>
-              <CardHeader>
-                <CardTitle className="flex items-center gap-2 text-gray-700">
-                  <ShoppingCart className="h-5 w-5" />
-                  Order Items
-                </CardTitle>
-              </CardHeader>
-              <CardContent>
-                <div className="space-y-3">
-                  {order.items.map((item) => (
-                    <div
-                      key={item.id}
-                      className="flex items-center justify-between border-b pb-2"
-                    >
-                      <div className="flex items-center gap-3">
-                        <div className="bg-blue-100 p-2 rounded">
-                          <Pill className="h-4 w-4 text-blue-600" />
-                        </div>
-                        <div>
-                          <p className="font-medium">{item.medicine.name}</p>
-                          <Badge
-                            variant={
-                              item.medicine.type === "otc"
-                                ? "default"
-                                : "success"
-                            }
-                            className="text-xs"
-                          >
-                            {item.medicine.type}
-                          </Badge>
-                        </div>
+          {/* Order Items Card */}
+          <Card>
+            <CardHeader>
+              <CardTitle className="flex items-center gap-2 text-gray-700">
+                <ShoppingCart className="h-5 w-5" />
+                Order Items
+              </CardTitle>
+            </CardHeader>
+            <CardContent>
+              <div className="space-y-3">
+                {order.items.map((item) => (
+                  <div
+                    key={item.id}
+                    className="flex items-center justify-between border-b pb-2"
+                  >
+                    <div className="flex items-center gap-3">
+                      <div className="bg-blue-100 p-2 rounded">
+                        <Pill className="h-4 w-4 text-blue-600" />
                       </div>
-                      <div className="text-right">
-                        <p className="font-medium">
-                          {item.quantity} × Kes {item.pricePerUnit}
-                        </p>
-                        <p className="text-sm font-semibold">
-                          Kes {item.quantity * item.pricePerUnit}
-                        </p>
+                      <div>
+                        <p className="font-medium">{item.medicine.name}</p>
+                        <Badge
+                          variant={
+                            item.medicine.type === "otc" ? "default" : "success"
+                          }
+                          className="text-xs"
+                        >
+                          {item.medicine.type}
+                        </Badge>
                       </div>
                     </div>
-                  ))}
-                </div>
-              </CardContent>
-            </Card>
+                    <div className="text-right">
+                      <p className="font-medium">
+                        {item.quantity} × Kes {item.pricePerUnit}
+                      </p>
+                      <p className="text-sm font-semibold">
+                        Kes {item.quantity * item.pricePerUnit}
+                      </p>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </CardContent>
+          </Card>
 
-            {/* Status Timeline Card */}
-            <Card>
-              <CardHeader>
-                <CardTitle className="flex items-center gap-2 text-gray-700">
-                  <Truck className="h-5 w-5" />
-                  Order Status
-                </CardTitle>
-              </CardHeader>
-              <CardContent>
-                <div className="relative pl-2">
-                  <StatusTimeline status={order.status} />
-                </div>
-              </CardContent>
-            </Card>
+          {/* Status Timeline Card */}
+          <Card>
+            <CardHeader>
+              <CardTitle className="flex items-center gap-2 text-gray-700">
+                <Truck className="h-5 w-5" />
+                Order Status
+              </CardTitle>
+            </CardHeader>
+            <CardContent>
+              <div className="relative pl-2">
+                <StatusTimeline status={order.status} />
+              </div>
+            </CardContent>
+          </Card>
 
-            {/* System Information Card */}
-            <Card>
-              <CardHeader>
-                <CardTitle className="flex items-center gap-2 text-gray-700">
-                  <Calendar className="h-5 w-5" />
-                  System Information
-                </CardTitle>
-              </CardHeader>
-              <CardContent className="grid grid-cols-2 gap-4">
-                <div>
-                  <p className="text-sm text-muted-foreground">Created At</p>
-                  <p className="font-medium">
-                    {new Date(order.createdAt).toLocaleString()}
-                  </p>
-                </div>
-                <div>
-                  <p className="text-sm text-muted-foreground">Updated At</p>
-                  <p className="font-medium">
-                    {new Date(order.updatedAt).toLocaleString()}
-                  </p>
-                </div>
-              </CardContent>
-            </Card>
-          </div>
-        </ScrollArea>
+          {/* System Information Card */}
+          <Card>
+            <CardHeader>
+              <CardTitle className="flex items-center gap-2 text-gray-700">
+                <Calendar className="h-5 w-5" />
+                System Information
+              </CardTitle>
+            </CardHeader>
+            <CardContent className="grid grid-cols-2 gap-4">
+              <div>
+                <p className="text-sm text-muted-foreground">Created At</p>
+                <p className="font-medium">
+                  {new Date(order.createdAt).toLocaleString()}
+                </p>
+              </div>
+              <div>
+                <p className="text-sm text-muted-foreground">Updated At</p>
+                <p className="font-medium">
+                  {new Date(order.updatedAt).toLocaleString()}
+                </p>
+              </div>
+            </CardContent>
+          </Card>
+        </div>
       </DrawerContent>
     </Drawer>
   );

@@ -93,7 +93,7 @@ export class TransactionService {
     initiateDto: InitiatePaymentDto,
   ): Promise<{
     transaction: Transaction;
-    accessCode?: string;
+    gatewayReference?: string;
     checkoutUrl?: string;
   }> {
     // Validate required associations
@@ -138,7 +138,7 @@ export class TransactionService {
         // Return the existing transaction with accessCode/checkoutUrl
         return {
           transaction: existingTransaction,
-          accessCode: existingTransaction.accessCode,
+          gatewayReference: existingTransaction.gatewayReference,
           checkoutUrl: existingTransaction.checkoutUrl,
         };
       } else {
@@ -152,7 +152,6 @@ export class TransactionService {
     const reference = this.generateReference(initiateDto.gateway);
 
     try {
-      let accessCode: string | undefined;
       let checkoutUrl: string | undefined;
       let gatewayReference: string;
       const baseUrl =
@@ -186,8 +185,9 @@ export class TransactionService {
               reference,
             },
           );
-          accessCode = paystackInit?.access_code || undefined;
-          gatewayReference = reference;
+          gatewayReference = paystackInit?.access_code || '';
+          checkoutUrl = `https://checkout.paystack.com/${paystackInit?.access_code}`;
+
           break;
         }
         default:
@@ -200,7 +200,6 @@ export class TransactionService {
         description: restDto.description,
         reference,
         gatewayReference,
-        accessCode,
         checkoutUrl,
         status: TransactionStatus.PENDING,
         user,
@@ -211,7 +210,7 @@ export class TransactionService {
       const savedTransaction =
         await this.transactionRepository.save(transaction);
 
-      return { transaction: savedTransaction, accessCode, checkoutUrl };
+      return { transaction: savedTransaction, gatewayReference, checkoutUrl };
     } catch (error) {
       const message =
         error instanceof Error
@@ -458,6 +457,7 @@ export class TransactionService {
       gateway: transaction.gateway,
       gatewayReference: transaction.gatewayReference,
       gatewayFees: transaction.gatewayFees,
+      checkoutUrl: transaction.checkoutUrl,
       createdAt: transaction.createdAt,
       updatedAt: transaction.updatedAt,
       paidAt: transaction.paidAt,
@@ -468,7 +468,6 @@ export class TransactionService {
       appointmentId: transaction.appointment?.id,
     };
   }
-
   private generateReference(gateway: Gateway): string {
     const prefix = gateway === Gateway.STRIPE ? 'STRP' : 'PSTK';
     const timestamp = Date.now();

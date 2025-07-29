@@ -1,13 +1,36 @@
-import { Controller, Get, Query, BadRequestException } from '@nestjs/common';
+import {
+  Controller,
+  Get,
+  Query,
+  BadRequestException,
+  Redirect,
+} from '@nestjs/common';
 import { ApiTags, ApiOperation, ApiExcludeEndpoint } from '@nestjs/swagger';
 import { TransactionService } from './transaction.service';
 import { Public } from 'src/auth/decorators/public.decorators';
+import { ConfigService } from '@nestjs/config';
+import { JwtService } from '@nestjs/jwt';
 
 @ApiTags('Stripe Callbacks')
 @Public()
 @Controller('stripe')
 export class StripeVerificationController {
-  constructor(private readonly transactionService: TransactionService) {}
+  constructor(
+    private readonly transactionService: TransactionService,
+    private readonly configService: ConfigService,
+    private readonly jwtService: JwtService,
+  ) {}
+
+  /** Helper to sign redirect tokens */
+  private signRedirectToken(payload: Record<string, any>): string {
+    return this.jwtService.sign(payload, {
+      secret: this.configService.getOrThrow<string>(
+        'STRIPE_REDIRECT_JWT_SECRET',
+      ),
+      expiresIn: '10m',
+      algorithm: 'HS256',
+    });
+  }
 
   @Get('success')
   @ApiOperation({
@@ -15,36 +38,42 @@ export class StripeVerificationController {
     description:
       'This endpoint is called by Stripe after successful payment completion',
   })
+  @Redirect()
   async handleStripeSuccess(@Query('token') token: string) {
+    const frontendUrl = this.configService.getOrThrow<string>('FRONTEND_URL');
+
     try {
       if (!token) {
         throw new BadRequestException('Missing verification token');
       }
 
-      // Verify the transaction using the JWT token
       const transaction =
         await this.transactionService.verifyStripePaymentWithToken(token);
 
-      return {
+      const responseToken = this.signRedirectToken({
         success: true,
-        message: 'Payment verified successfully',
-        transaction: {
-          id: transaction.id,
-          reference: transaction.reference,
-          status: transaction.status,
-          amount: transaction.amount,
-          gateway: transaction.gateway,
-          paidAt: transaction.paidAt,
-        },
+        transactionId: transaction.id,
+        reference: transaction.reference,
+        amount: transaction.amount,
+        paidAt: transaction.paidAt,
+      });
+
+      return {
+        url: `${frontendUrl}/patient/rooms?token=${responseToken}`,
+        statusCode: 302,
       };
     } catch (error) {
-      return {
+      const errorToken = this.signRedirectToken({
         success: false,
-        message:
+        error:
           error instanceof Error
             ? error.message
             : 'Payment verification failed',
-        error: true,
+      });
+
+      return {
+        url: `${frontendUrl}/patient/rooms?error=true&token=${errorToken}`,
+        statusCode: 302,
       };
     }
   }
@@ -54,20 +83,28 @@ export class StripeVerificationController {
     summary: 'Stripe cancel callback endpoint',
     description: 'This endpoint is called by Stripe when payment is cancelled',
   })
-  handleStripeCancel(@Query('token') token?: string) {
-    return {
+  @Redirect()
+  async handleStripeCancel(@Query('token') token: string) {
+    const frontendUrl = this.configService.getOrThrow<string>('FRONTEND_URL');
+
+    // optional: verify token belongs to the same transaction, ignore result
+    await this.transactionService.verifyStripePaymentWithToken(token);
+
+    const cancelToken = this.signRedirectToken({
       success: false,
-      message: 'Payment was cancelled by user',
       cancelled: true,
-      token,
+      message: 'Payment was cancelled by user',
+    });
+
+    return {
+      url: `${frontendUrl}/patient/rooms?cancelled=true&token=${cancelToken}`,
+      statusCode: 302,
     };
   }
 
   @Get('webhook')
   @ApiExcludeEndpoint()
   handleStripeWebhook() {
-    // Placeholder for webhook implementation if needed in the future
-    // This would require proper webhook signature verification
     throw new BadRequestException(
       'Webhook endpoint not implemented. Use JWT token verification instead.',
     );

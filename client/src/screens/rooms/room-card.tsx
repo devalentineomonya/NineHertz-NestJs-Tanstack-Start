@@ -13,7 +13,14 @@ import {
 } from "@/components/ui/card";
 import { Avatar, AvatarImage, AvatarFallback } from "@/components/ui/avatar";
 import { useAppointmentPaymentStore } from "@/stores/use-appointment-payment-store";
-import { Clock, LucideLaugh, Trash2, Video } from "lucide-react";
+import {
+  Clock,
+  LucideLaugh,
+  Trash2,
+  Video,
+  User,
+  Stethoscope,
+} from "lucide-react";
 import { useRescheduleAppointmentStore } from "@/stores/use-reschedule-appointment";
 import { useCancelAppointmentStore } from "@/stores/use-cancel-appointment-store";
 import { useReviewStore } from "@/stores/use-create-review";
@@ -94,8 +101,8 @@ const RoomCard = ({ appointment }: { appointment: AppointmentResponseDto }) => {
 
   const buttonVariants: Variants = {
     hover: {
-      scale: 1.05,
-      boxShadow: "0px 5px 15px rgba(5, 150, 105, 0.4)",
+      scale: 1.02,
+      boxShadow: "0px 3px 10px rgba(5, 150, 105, 0.3)",
     },
     tap: { scale: 0.98 },
   };
@@ -106,28 +113,33 @@ const RoomCard = ({ appointment }: { appointment: AppointmentResponseDto }) => {
   const isScheduled = appointment.status === AppointmentStatus.SCHEDULED;
 
   return (
-    <>
-      <motion.div
-        initial="hidden"
-        animate="visible"
-        variants={cardVariants}
-        className="max-w-2xl w-full"
-      >
-        <Card className="relative overflow-hidden border-0 rounded-2xl shadow-xl shadow-green-600/25">
-          {/* Decorative elements */}
-          <div className="absolute top-0 right-0 w-32 h-32 bg-gradient-to-r from-green-400 to-emerald-600 rounded-bl-full opacity-20"></div>
-          <div className="absolute bottom-0 left-0 w-48 h-48 bg-gradient-to-r from-emerald-400 to-green-500 rounded-tr-full opacity-10"></div>
+    <motion.div
+      initial="hidden"
+      animate="visible"
+      variants={cardVariants}
+      className="w-full max-w-4xl"
+    >
+      <Card className="relative overflow-hidden border-0 rounded-xl shadow-lg shadow-green-600/20">
+        {/* Decorative gradient background */}
+        <div className="absolute inset-0 bg-gradient-to-br from-green-50 to-emerald-50 dark:from-gray-900 dark:to-gray-800"></div>
+        <div className="absolute top-0 right-0 w-24 h-24 bg-gradient-to-l from-green-400/20 to-transparent rounded-bl-full"></div>
 
-          <CardHeader className="relative z-10">
-            <div className="flex justify-between items-start">
-              <div>
-                <CardTitle className="text-2xl font-bold text-gray-800 dark:text-white">
-                  {appointment.doctor.specialty} Consultation
-                </CardTitle>
-                <CardDescription className="text-gray-600 dark:text-gray-300 mt-1">
+        <div className="relative z-10">
+          {/* Header Section */}
+          <CardHeader className="pb-3">
+            <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
+              <div className="flex-1">
+                <div className="flex items-center gap-2 mb-1">
+                  <Stethoscope className="h-5 w-5 text-green-600" />
+                  <CardTitle className="text-lg font-bold text-gray-800 dark:text-white">
+                    {appointment.doctor.specialty} Consultation
+                  </CardTitle>
+                </div>
+                <CardDescription className="text-sm text-gray-600 dark:text-gray-300">
                   {format(appointmentTime, "MMM d, h:mm a")} •{" "}
                   {appointment.mode.charAt(0).toUpperCase() +
-                    appointment.mode.slice(1)}
+                    appointment.mode.slice(1)}{" "}
+                  • 30 min
                 </CardDescription>
               </div>
               <Badge
@@ -138,7 +150,7 @@ const RoomCard = ({ appointment }: { appointment: AppointmentResponseDto }) => {
                     ? "secondary"
                     : "destructive"
                 }
-                className={`text-sm px-3 py-1 ${
+                className={`text-xs px-2 py-1 ${
                   appointment.status === "scheduled"
                     ? "bg-gradient-to-r from-green-500 to-emerald-600 text-white"
                     : appointment.status === "completed"
@@ -152,309 +164,292 @@ const RoomCard = ({ appointment }: { appointment: AppointmentResponseDto }) => {
             </div>
           </CardHeader>
 
-          <CardContent className="relative z-10 pb-4">
-            <div className="space-y-6">
-              {/* Doctor Info */}
-              <div className="bg-white dark:bg-gray-800 p-4 rounded-xl shadow-sm">
-                <div className="flex items-center mb-3">
-                  <Avatar className="w-12 h-12 border-2 border-green-500">
-                    <AvatarImage src="" alt={appointment.doctor.fullName} />
-                    <AvatarFallback className="bg-gradient-to-r from-green-500 to-emerald-600 text-white">
-                      {appointment.doctor.fullName
-                        .split(" ")
-                        .map((n) => n[0])
-                        .join("")}
-                    </AvatarFallback>
-                  </Avatar>
-                  <div className="ml-3">
-                    <h4 className="font-semibold text-gray-800 dark:text-white">
-                      Dr. {appointment.doctor.fullName}
-                    </h4>
-                    <p className="text-sm text-gray-600 dark:text-gray-300">
-                      {appointment.doctor.specialty}
-                    </p>
+          <CardContent className="py-3">
+            {/* Main Content Grid */}
+            <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">
+              {/* Doctor & Patient Info - Combined Section */}
+              <div className="lg:col-span-2 space-y-3">
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                  {/* Doctor Info */}
+                  <div className="bg-white dark:bg-gray-800 p-3 rounded-lg shadow-sm border border-green-100 dark:border-gray-700">
+                    <div className="flex items-center mb-2">
+                      <Avatar className="w-10 h-10 border-2 border-green-500">
+                        <AvatarImage src="" alt={appointment.doctor.fullName} />
+                        <AvatarFallback className="bg-gradient-to-r from-green-500 to-emerald-600 text-white text-sm">
+                          {appointment.doctor.fullName
+                            .split(" ")
+                            .map((n) => n[0])
+                            .join("")}
+                        </AvatarFallback>
+                      </Avatar>
+                      <div className="ml-2 flex-1 min-w-0">
+                        <h4 className="font-semibold text-sm text-gray-800 dark:text-white truncate">
+                          Dr. {appointment.doctor.fullName}
+                        </h4>
+                        <p className="text-xs text-gray-600 dark:text-gray-300">
+                          {appointment.doctor.specialty}
+                        </p>
+                      </div>
+                    </div>
+                    <div className="text-xs text-gray-600 dark:text-gray-300 space-y-1">
+                      <p>
+                        Fee:{" "}
+                        <span className="font-medium text-gray-800 dark:text-white">
+                          {fee.toLocaleString("en-US")} KES
+                        </span>
+                      </p>
+                      <p>License: {appointment.doctor.licenseNumber}</p>
+                    </div>
+                  </div>
+
+                  {/* Patient Info */}
+                  <div className="bg-white dark:bg-gray-800 p-3 rounded-lg shadow-sm border border-emerald-100 dark:border-gray-700">
+                    <div className="flex items-center mb-2">
+                      <Avatar className="w-10 h-10 border-2 border-emerald-500">
+                        <AvatarImage
+                          src=""
+                          alt={appointment.patient.fullName}
+                        />
+                        <AvatarFallback className="bg-gradient-to-r from-emerald-500 to-green-600 text-white text-sm">
+                          {appointment.patient.fullName
+                            .split(" ")
+                            .map((n) => n[0])
+                            .join("")}
+                        </AvatarFallback>
+                      </Avatar>
+                      <div className="ml-2 flex-1 min-w-0">
+                        <h4 className="font-semibold text-sm text-gray-800 dark:text-white truncate">
+                          {appointment.patient.fullName}
+                        </h4>
+                        <p className="text-xs text-gray-600 dark:text-gray-300">
+                          Patient
+                        </p>
+                      </div>
+                    </div>
+                    <div className="text-xs text-gray-600 dark:text-gray-300 space-y-1">
+                      <p>Phone: {appointment.patient.phone}</p>
+                      <p>
+                        DOB:{" "}
+                        {format(
+                          new Date(appointment.patient.dateOfBirth),
+                          "MMM d, yyyy"
+                        )}
+                      </p>
+                    </div>
                   </div>
                 </div>
-                <div className="text-sm text-gray-600 dark:text-gray-300">
-                  <p>
-                    Fee:{" "}
-                    <span className="font-medium text-gray-800 dark:text-white">
-                      {fee.toLocaleString("en-US")} KES
+              </div>
+
+              {/* Status & Timer Section */}
+              <div className="lg:col-span-1 h-full">
+                <div
+                  className={`p-4 rounded-lg shadow-sm text-white text-center h-full grid place-content-center ${
+                    isCanceled
+                      ? "bg-gradient-to-br from-rose-500 to-red-600"
+                      : isCompleted
+                      ? "bg-gradient-to-br from-blue-500 to-indigo-600"
+                      : "bg-gradient-to-br from-green-500 to-emerald-600"
+                  }`}
+                >
+                  <div className="flex items-center justify-center mb-2">
+                    <Clock className="h-4 w-4 mr-1" />
+                    <span className="font-semibold text-sm">
+                      Session Status
                     </span>
-                  </p>
-                  <p className="mt-1">
-                    License: {appointment.doctor.licenseNumber}
-                  </p>
-                </div>
-              </div>
-
-              {/* Patient Info */}
-              <div className="bg-white dark:bg-gray-800 p-4 rounded-xl shadow-sm">
-                <div className="flex items-center mb-3">
-                  <Avatar className="w-12 h-12 border-2 border-emerald-500">
-                    <AvatarImage src="" alt={appointment.patient.fullName} />
-                    <AvatarFallback className="bg-gradient-to-r from-emerald-500 to-green-600 text-white">
-                      {appointment.patient.fullName
-                        .split(" ")
-                        .map((n) => n[0])
-                        .join("")}
-                    </AvatarFallback>
-                  </Avatar>
-                  <div className="ml-3">
-                    <h4 className="font-semibold text-gray-800 dark:text-white">
-                      {appointment.patient.fullName}
-                    </h4>
-                    <p className="text-sm text-gray-600 dark:text-gray-300">
-                      Patient
-                    </p>
                   </div>
-                </div>
-                <div className="text-sm text-gray-600 dark:text-gray-300">
-                  <p>Phone: {appointment.patient.phone}</p>
-                  <p className="mt-1">
-                    DOB:{" "}
-                    {format(
-                      new Date(appointment.patient.dateOfBirth),
-                      "MMM d, yyyy"
+
+                  <div className="text-xs">
+                    {isCanceled ? (
+                      <p className="font-medium bg-white/20 px-2 py-1 rounded-md">
+                        Appointment Canceled
+                      </p>
+                    ) : isCompleted ? (
+                      <p className="font-medium bg-white/20 px-2 py-1 rounded-md">
+                        Consultation Completed
+                      </p>
+                    ) : timeRemaining ? (
+                      <div>
+                        <p className="mb-1">Joinable in:</p>
+                        <p className="font-mono font-bold bg-white/20 px-2 py-1 rounded-md">
+                          {timeRemaining}
+                        </p>
+                      </div>
+                    ) : canJoin ? (
+                      <p className="font-bold bg-white/20 px-2 py-1 rounded-md animate-pulse">
+                        🟢 Join Now Available!
+                      </p>
+                    ) : (
+                      <p className="font-medium bg-white/20 px-2 py-1 rounded-md">
+                        Starts {formatDistanceToNow(appointmentTime)}
+                      </p>
                     )}
-                  </p>
-                </div>
-              </div>
-
-              {/* Appointment Details */}
-              <div
-                className={`p-4 rounded-xl shadow-lg ${
-                  isCanceled
-                    ? "bg-gradient-to-br from-rose-500 to-red-600"
-                    : isCompleted
-                    ? "bg-gradient-to-br from-blue-500 to-indigo-600"
-                    : "bg-gradient-to-br from-green-500 to-emerald-600"
-                } text-white ${
-                  isCanceled
-                    ? "shadow-rose-500/25"
-                    : isCompleted
-                    ? "shadow-blue-500/25"
-                    : "shadow-green-600/25"
-                }`}
-              >
-                <h4 className="font-semibold mb-3 flex items-center">
-                  <svg
-                    xmlns="http://www.w3.org/2000/svg"
-                    className="h-5 w-5 mr-2"
-                    viewBox="0 0 20 20"
-                    fill="currentColor"
-                  >
-                    <path
-                      fillRule="evenodd"
-                      d="M10 18a8 8 0 100-16 8 8 0 000 16zm1-12a1 1 0 10-2 0v4a1 1 0 00.293.707l2.828 2.829a1 1 0 101.415-1.415L11 9.586V6z"
-                      clipRule="evenodd"
-                    />
-                  </svg>
-                  Session Details
-                </h4>
-                <div className="text-sm">
-                  <p>
-                    Mode:{" "}
-                    {appointment.mode.charAt(0).toUpperCase() +
-                      appointment.mode.slice(1)}
-                  </p>
-                  <p className="mt-1">Duration: 30 minutes</p>
-
-                  {isCanceled ? (
-                    <p className="mt-2 font-medium bg-white/20 px-2 py-1 rounded-md inline-block">
-                      Appointment Canceled
-                    </p>
-                  ) : isCompleted ? (
-                    <p className="mt-2 font-medium bg-white/20 px-2 py-1 rounded-md inline-block">
-                      Consultation Completed
-                    </p>
-                  ) : timeRemaining ? (
-                    <p className="mt-2 font-medium bg-white/20 px-2 py-1 rounded-md inline-block">
-                      Joinable in: {timeRemaining}
-                    </p>
-                  ) : canJoin ? (
-                    <p className="mt-2 font-medium bg-white/20 px-2 py-1 rounded-md inline-block">
-                      Join now available!
-                    </p>
-                  ) : (
-                    <p className="mt-2 font-medium bg-white/20 px-2 py-1 rounded-md inline-block">
-                      Session starts {formatDistanceToNow(appointmentTime)}
-                    </p>
-                  )}
+                  </div>
                 </div>
               </div>
             </div>
           </CardContent>
 
-          <CardFooter className="relative z-10 pt-0  grid grid-cols-2 gap-x-3">
-            {/* PATIENT-SPECIFIC BUTTONS */}
-            {isPatient && (
-              <>
-                {/* Payment Button */}
-                {!hasSuccessfulPayment &&
-                  fee > 0 &&
-                  isFutureAppointment &&
+          {/* Footer Actions */}
+          <CardFooter className="pt-3 pb-4">
+            <div className="w-full">
+              {/* Payment Status for Doctor/Admin */}
+              {(isDoctor || isAdmin) &&
+                isScheduled &&
+                !hasSuccessfulPayment &&
+                !isCanceled && (
+                  <div className="mb-3 p-2 bg-yellow-100 dark:bg-yellow-900/30 rounded-lg text-center">
+                    <p className="text-yellow-700 dark:text-yellow-300 text-sm font-medium">
+                      <Clock className="inline mr-1 h-3 w-3" />
+                      Waiting for patient payment
+                    </p>
+                  </div>
+                )}
+
+              {/* Confirmed Status for Doctor/Admin */}
+              {(isDoctor || isAdmin) &&
+                isScheduled &&
+                isFutureAppointment &&
+                !isCanceled &&
+                hasSuccessfulPayment && (
+                  <div className="mb-3 p-2 bg-green-100 dark:bg-green-900/30 rounded-lg text-center">
+                    <p className="text-green-700 dark:text-green-300 text-sm font-medium">
+                      <Clock className="inline mr-1 h-3 w-3" />
+                      Appointment confirmed - waiting for session time
+                    </p>
+                  </div>
+                )}
+
+              {/* Action Buttons */}
+              <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-2">
+                {/* Patient-specific buttons */}
+                {isPatient && (
+                  <>
+                    {/* Payment Button */}
+                    {!hasSuccessfulPayment &&
+                      fee > 0 &&
+                      isFutureAppointment &&
+                      !isCanceled && (
+                        <motion.div
+                          variants={buttonVariants}
+                          whileHover="hover"
+                          whileTap="tap"
+                          className="col-span-2 sm:col-span-1"
+                        >
+                          <Button
+                            onClick={() => onAppointmentPayment(appointment)}
+                            size="sm"
+                            className="w-full bg-gradient-to-r from-amber-500 to-orange-500 hover:from-amber-600 hover:to-orange-600 text-white font-bold shadow-sm text-xs"
+                          >
+                            Pay {fee.toLocaleString("en-US")} KES
+                          </Button>
+                        </motion.div>
+                      )}
+
+                    {/* Cancel Button */}
+                    {hasSuccessfulPayment &&
+                      isScheduled &&
+                      isFutureAppointment && (
+                        <motion.div
+                          variants={buttonVariants}
+                          whileHover="hover"
+                          whileTap="tap"
+                        >
+                          <Button
+                            onClick={() => onCancelAppointment(appointment.id)}
+                            size="sm"
+                            variant="destructive"
+                            className="w-full font-bold shadow-sm text-xs"
+                          >
+                            <Trash2 className="h-3 w-3 mr-1" />
+                            Cancel
+                          </Button>
+                        </motion.div>
+                      )}
+
+                    {/* Reschedule Button */}
+                    {isScheduled && isFutureAppointment && !isCanceled && (
+                      <motion.div
+                        variants={buttonVariants}
+                        whileHover="hover"
+                        whileTap="tap"
+                      >
+                        <Button
+                          onClick={() =>
+                            onRescheduleAppointment(appointment.id)
+                          }
+                          size="sm"
+                          variant="secondary"
+                          className="w-full font-bold shadow-sm text-xs"
+                        >
+                          <Clock className="h-3 w-3 mr-1" />
+                          Reschedule
+                        </Button>
+                      </motion.div>
+                    )}
+
+                    {/* Review Button */}
+                    {isCompleted && (
+                      <motion.div
+                        variants={buttonVariants}
+                        whileHover="hover"
+                        whileTap="tap"
+                      >
+                        <Button
+                          onClick={() => onReviewAppointment(appointment.id)}
+                          size="sm"
+                          className="w-full bg-gradient-to-r from-blue-500 to-indigo-600 text-white font-bold shadow-sm text-xs"
+                        >
+                          <LucideLaugh className="h-3 w-3 mr-1" />
+                          Review
+                        </Button>
+                      </motion.div>
+                    )}
+                  </>
+                )}
+
+                {/* Join Button (visible to all roles) */}
+                {appointment.mode !== "physical" &&
+                  isScheduled &&
+                  canJoin &&
                   !isCanceled && (
                     <motion.div
                       variants={buttonVariants}
                       whileHover="hover"
                       whileTap="tap"
-                      className="w-full"
+                      className="col-span-2 sm:col-span-1"
                     >
                       <Button
-                        onClick={() => onAppointmentPayment(appointment)}
-                        size="lg"
-                        className="w-full bg-gradient-to-r from-amber-500 to-orange-500 hover:from-amber-600 hover:to-orange-600 text-white font-bold shadow-lg shadow-amber-500/25"
+                        size="sm"
+                        className="w-full font-bold shadow-sm bg-gradient-to-r from-green-600 to-emerald-700 hover:from-green-700 hover:to-emerald-800 text-white text-xs"
                       >
-                        Pay KES {fee.toLocaleString("en-US")}
+                        🎥 Join Session
                       </Button>
                     </motion.div>
                   )}
 
-                {/* Cancel Button */}
-                {hasSuccessfulPayment && isScheduled && isFutureAppointment && (
-                  <motion.div
-                    variants={buttonVariants}
-                    whileHover="hover"
-                    whileTap="tap"
-                    className="w-full"
-                  >
-                    <Button
-                      onClick={() => onCancelAppointment(appointment.id)}
-                      size="lg"
-                      variant="destructive"
-                      className="w-full font-bold shadow-lg shadow-red-500/25"
-                    >
-                      <Trash2 />
-                      Cancel
-                    </Button>
-                  </motion.div>
-                )}
-
-                {/* Reschedule Button */}
-                {isScheduled && isFutureAppointment && !isCanceled && (
-                  <motion.div
-                    variants={buttonVariants}
-                    whileHover="hover"
-                    whileTap="tap"
-                    className="w-full"
-                  >
-                    <Button
-                      onClick={() => onRescheduleAppointment(appointment.id)}
-                      size="lg"
-                      variant="secondary"
-                      className="w-full font-bold shadow-lg shadow-gray-500/10 bg-white dark:bg-gray-800 text-gray-800 dark:text-white hover:bg-gray-50 dark:hover:bg-gray-700"
-                    >
-                      <Clock />
-                      Reschedule
-                    </Button>
-                  </motion.div>
-                )}
-
-                {/* Review Button */}
+                {/* Recordings Button */}
                 {isCompleted && (
                   <motion.div
                     variants={buttonVariants}
                     whileHover="hover"
                     whileTap="tap"
-                    className="w-full"
                   >
                     <Button
-                      onClick={() => onReviewAppointment(appointment.id)}
-                      size="lg"
-                      className="w-full bg-gradient-to-r from-blue-500 to-indigo-600 text-white font-bold shadow-lg shadow-blue-500/25"
+                      size="sm"
+                      variant="outline"
+                      className="w-full font-bold border-emerald-500 text-emerald-600 hover:bg-emerald-50 dark:hover:bg-emerald-900/20 text-xs"
                     >
-                      <LucideLaugh />
-                      Your Review
+                      <Video className="h-3 w-3 mr-1" />
+                      Recordings
                     </Button>
                   </motion.div>
                 )}
-              </>
-            )}
-
-            {/* JOIN BUTTON (VISIBLE TO ALL ROLES) */}
-            {appointment.mode !== "physical" &&
-              isScheduled &&
-              canJoin &&
-              !isCanceled && (
-                <motion.div
-                  variants={buttonVariants}
-                  whileHover="hover"
-                  whileTap="tap"
-                  className="w-full"
-                >
-                  <Button
-                    size="lg"
-                    className="w-full font-bold shadow-lg bg-gradient-to-r from-green-600 to-emerald-700 hover:from-green-700 hover:to-emerald-800 text-white shadow-green-600/25"
-                  >
-                    <div className="flex items-center">
-                      <svg
-                        xmlns="http://www.w3.org/2000/svg"
-                        className="h-5 w-5 mr-2"
-                        viewBox="0 0 20 20"
-                        fill="currentColor"
-                      >
-                        <path
-                          fillRule="evenodd"
-                          d="M10 3a1 1 0 011 1v5h5a1 1 0 110 2h-5v5a1 1 0 11-2 0v-5H4a1 1 0 110-2h5V4a1 1 0 011-1z"
-                          clipRule="evenodd"
-                        />
-                      </svg>
-                      Join Session
-                    </div>
-                  </Button>
-                </motion.div>
-              )}
-
-            {/* DOCTOR/ADMIN VIEW FOR PAYMENT STATUS */}
-            {(isDoctor || isAdmin) &&
-              isScheduled &&
-              !hasSuccessfulPayment &&
-              !isCanceled && (
-                <div className="w-full col-span-2 p-3 bg-yellow-100 dark:bg-yellow-900/30 rounded-lg text-center">
-                  <p className="text-yellow-700 dark:text-yellow-300 font-medium">
-                    <Clock className="inline mr-2 h-4 w-4" />
-                    Waiting for patient payment
-                  </p>
-                </div>
-              )}
-
-            {/* RECORDINGS BUTTON (VISIBLE TO ALL ROLES) */}
-            {isCompleted && (
-              <motion.div
-                variants={buttonVariants}
-                whileHover="hover"
-                whileTap="tap"
-                className="w-full"
-              >
-                <Button
-                  size="lg"
-                  variant="outline"
-                  className="w-full font-bold border-emerald-500 text-emerald-600 hover:bg-emerald-50 dark:hover:bg-emerald-900/20"
-                >
-                  <Video />
-                  Recordings
-                </Button>
-              </motion.div>
-            )}
-
-            {/* DOCTOR/ADMIN VIEW FOR FUTURE APPOINTMENTS */}
-            {(isDoctor || isAdmin) &&
-              isScheduled &&
-              isFutureAppointment &&
-              !isCanceled &&
-              hasSuccessfulPayment && (
-                <div className="w-full col-span-2 p-3 bg-green-100 dark:bg-green-900/30 rounded-lg text-center">
-                  <p className="text-green-700 dark:text-green-300 font-medium">
-                    <Clock className="inline mr-2 h-4 w-4" />
-                    Appointment confirmed - waiting for session time
-                  </p>
-                </div>
-              )}
+              </div>
+            </div>
           </CardFooter>
-        </Card>
-      </motion.div>
-    </>
+        </div>
+      </Card>
+    </motion.div>
   );
 };
 

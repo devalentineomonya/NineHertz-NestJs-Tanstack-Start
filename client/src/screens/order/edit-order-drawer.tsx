@@ -493,38 +493,43 @@ export function EditOrderDrawer() {
               </div>
 
               {/* Order Status */}
-              <FormField
-                control={form.control}
-                name="status"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>Order Status</FormLabel>
-                    <Select onValueChange={field.onChange} value={field.value}>
-                      <FormControl>
-                        <SelectTrigger className="w-full">
-                          <SelectValue placeholder="Select status" />
-                        </SelectTrigger>
-                      </FormControl>
-                      <SelectContent>
-                        {Object.values(OrderStatus).map((status) => (
-                          <SelectItem
-                            key={status}
-                            value={status}
-                            disabled={
-                              currentUser?.role === "patient" &&
-                              status !== OrderStatus.CANCELLED
-                            }
-                          >
-                            {status.charAt(0).toUpperCase() +
-                              status.slice(1).toLowerCase()}
-                          </SelectItem>
-                        ))}
-                      </SelectContent>
-                    </Select>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
+              {currentUser?.role !== "patient" && (
+                <FormField
+                  control={form.control}
+                  name="status"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Order Status</FormLabel>
+                      <Select
+                        onValueChange={field.onChange}
+                        value={field.value}
+                      >
+                        <FormControl>
+                          <SelectTrigger className="w-full">
+                            <SelectValue placeholder="Select status" />
+                          </SelectTrigger>
+                        </FormControl>
+                        <SelectContent>
+                          {Object.values(OrderStatus).map((status) => (
+                            <SelectItem
+                              key={status}
+                              value={status}
+                              disabled={
+                                currentUser?.role === "patient" &&
+                                status !== OrderStatus.CANCELLED
+                              }
+                            >1
+                              {status.charAt(0).toUpperCase() +
+                                status.slice(1).toLowerCase()}
+                            </SelectItem>
+                          ))}
+                        </SelectContent>
+                      </Select>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+              )}
 
               {/* Total Amount */}
               <div className="flex justify-between items-center p-4 bg-muted rounded-lg">

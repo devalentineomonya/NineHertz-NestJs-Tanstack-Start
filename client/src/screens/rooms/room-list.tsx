@@ -1,26 +1,51 @@
-import React from "react";
-import { motion,Variant } from "framer-motion";
+import React, { useEffect } from "react";
+import { motion, Variant } from "framer-motion";
 import RoomCard from "./room-card";
 import { useGetAppointments } from "@/services/appointments/use-get-appointments";
 import RoomCardSkeleton from "./room-card-skeleton";
+import { useQueryState } from "nuqs";
+import { jwtDecode } from "jwt-decode";
+import { toast } from "sonner";
 
 export const RoomsList = () => {
   const { data: appointments, isLoading, isError } = useGetAppointments();
 
-  // Filter virtual appointments
+  const [token] = useQueryState("token");
+  const [error] = useQueryState("error");
+  const [cancelled] = useQueryState("cancelled");
+
+  useEffect(() => {
+    if (token) {
+      try {
+        const decoded = jwtDecode<any>(token);
+
+        if (decoded.success) {
+          toast.success(`Payment successful! Reference: ${decoded.reference}`);
+        } else if (decoded.cancelled) {
+          toast.info("Payment was cancelled by the user.");
+        } else {
+          toast.error(decoded.error || "Payment verification failed.");
+        }
+      } catch (err) {
+        toast.error("Invalid or expired token.");
+      }
+    } else if (error) {
+      toast.error("Payment verification failed.");
+    } else if (cancelled) {
+      toast.info("Payment was cancelled by the user.");
+    }
+  }, [token, error, cancelled]);
+
   const virtualAppointments =
     appointments?.data?.filter(
       (appointment) => appointment.mode === "virtual"
     ) || [];
 
-  // Animation variants
   const containerVariants = {
     hidden: { opacity: 0 },
     visible: {
       opacity: 1,
-      transition: {
-        staggerChildren: 0.1,
-      },
+      transition: { staggerChildren: 0.1 },
     },
   };
 
@@ -29,19 +54,16 @@ export const RoomsList = () => {
     visible: {
       y: 0,
       opacity: 1,
-      transition: {
-        duration: 0.5,
-        ease: "easeOut",
-      },
+      transition: { duration: 0.5, ease: "easeOut" },
     } as Variant,
   };
 
   if (isLoading) {
     return (
-      <div className="w-full max-w-6xl mx-auto px-4 py-8">
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+      <div className="w-full max-w-7xl mx-auto px-4 py-8">
+        <div className="space-y-4">
           {[...Array(3)].map((_, index) => (
-            <RoomCardSkeleton />
+            <RoomCardSkeleton key={index} />
           ))}
         </div>
       </div>
@@ -53,13 +75,13 @@ export const RoomsList = () => {
       <motion.div
         initial={{ opacity: 0 }}
         animate={{ opacity: 1 }}
-        className="w-full max-w-6xl mx-auto px-4 py-12 text-center"
+        className="w-full max-w-4xl mx-auto px-4 py-12 text-center"
       >
-        <div className="bg-gradient-to-r from-red-50 to-orange-50 dark:from-red-900/20 dark:to-orange-900/20 rounded-2xl p-8 border border-red-100 dark:border-red-900/50">
-          <div className="bg-red-100 dark:bg-red-900/30 w-20 h-20 rounded-full flex items-center justify-center mx-auto mb-6">
+        <div className="bg-gradient-to-r from-red-50 to-orange-50 dark:from-red-900/20 dark:to-orange-900/20 rounded-xl p-6 border border-red-100 dark:border-red-900/50">
+          <div className="bg-red-100 dark:bg-red-900/30 w-16 h-16 rounded-full flex items-center justify-center mx-auto mb-4">
             <svg
               xmlns="http://www.w3.org/2000/svg"
-              className="h-12 w-12 text-red-500"
+              className="h-8 w-8 text-red-500"
               fill="none"
               viewBox="0 0 24 24"
               stroke="currentColor"
@@ -72,15 +94,15 @@ export const RoomsList = () => {
               />
             </svg>
           </div>
-          <h2 className="text-2xl font-bold text-gray-800 dark:text-white mb-3">
+          <h2 className="text-xl font-bold text-gray-800 dark:text-white mb-2">
             Error Loading Appointments
           </h2>
-          <p className="text-gray-600 dark:text-gray-300 mb-6">
+          <p className="text-gray-600 dark:text-gray-300 mb-4 text-sm">
             We encountered an issue while fetching your virtual appointments.
             Please try again later.
           </p>
           <button
-            className="bg-gradient-to-r from-red-500 to-orange-500 text-white font-medium px-6 py-3 rounded-full hover:opacity-90 transition-opacity"
+            className="bg-gradient-to-r from-red-500 to-orange-500 text-white font-medium px-4 py-2 rounded-lg hover:opacity-90 transition-opacity text-sm"
             onClick={() => window.location.reload()}
           >
             Retry
@@ -97,11 +119,11 @@ export const RoomsList = () => {
         animate={{ opacity: 1, y: 0 }}
         className="max-w-2xl mx-auto px-4 py-12 text-center"
       >
-        <div className="bg-gradient-to-r from-indigo-50 to-cyan-50 dark:from-gray-800 dark:to-gray-900 rounded-2xl p-10 border border-indigo-100 dark:border-gray-700">
-          <div className="bg-indigo-100 dark:bg-indigo-900/30 w-20 h-20 rounded-full flex items-center justify-center mx-auto mb-6">
+        <div className="bg-gradient-to-r from-indigo-50 to-cyan-50 dark:from-gray-800 dark:to-gray-900 rounded-xl p-8 border border-indigo-100 dark:border-gray-700">
+          <div className="bg-indigo-100 dark:bg-indigo-900/30 w-16 h-16 rounded-full flex items-center justify-center mx-auto mb-4">
             <svg
               xmlns="http://www.w3.org/2000/svg"
-              className="h-12 w-12 text-indigo-500"
+              className="h-8 w-8 text-green-500"
               fill="none"
               viewBox="0 0 24 24"
               stroke="currentColor"
@@ -114,15 +136,15 @@ export const RoomsList = () => {
               />
             </svg>
           </div>
-          <h2 className="text-2xl font-bold text-gray-800 dark:text-white mb-3">
+          <h2 className="text-xl font-bold text-gray-800 dark:text-white mb-2">
             No Virtual Appointments Scheduled
           </h2>
-          <p className="text-gray-600 dark:text-gray-300 mb-6">
+          <p className="text-gray-600 dark:text-gray-300 mb-4 text-sm">
             You don't have any upcoming virtual consultations. Schedule an
             appointment to get started.
           </p>
           <div className="flex justify-center gap-3">
-            <button className="bg-gradient-to-r from-indigo-500 to-purple-500 text-white font-medium px-6 py-3 rounded-full hover:opacity-90 transition-opacity">
+            <button className="bg-gradient-to-r from-green-500 to-lime-500 text-white font-medium px-4 py-2 rounded-lg hover:opacity-90 transition-opacity text-sm">
               Schedule Appointment
             </button>
           </div>
@@ -138,12 +160,12 @@ export const RoomsList = () => {
       animate="visible"
       className="w-full max-w-7xl mx-auto px-4 py-8"
     >
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+      <div className="space-y-4">
         {virtualAppointments.map((appointment) => (
           <motion.div
             key={appointment.id}
             variants={itemVariants}
-            whileHover={{ y: -5, transition: { duration: 0.2 } }}
+            whileHover={{ y: -2, transition: { duration: 0.2 } }}
           >
             <RoomCard appointment={appointment} />
           </motion.div>

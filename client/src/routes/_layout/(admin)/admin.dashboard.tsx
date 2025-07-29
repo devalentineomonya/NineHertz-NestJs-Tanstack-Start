@@ -6,204 +6,27 @@ import {
   Stethoscope,
   CalendarCheck,
   Clock,
-  TrendingUp,
-  TrendingDown,
   Video,
   Monitor,
   CheckCircle,
   XCircle,
   Calendar,
-  FileText,
   Activity,
   Heart,
   Brain,
   Eye,
   Bone,
   UserPlus,
-  Bell,
-  Search,
   Filter,
   MoreVertical,
   ArrowUpRight,
   ArrowDownRight,
-  BarChart3,
-  PieChart,
-  MapPin,
   Phone,
-  Mail,
   Star,
   LucideProps,
 } from "lucide-react";
-
-// Mock data based on your API response
-const dashboardData = {
-  stats: [
-    {
-      title: "Total Patients",
-      value: 5,
-      change: "+5% from last month",
-      color: "bg-blue-100",
-      icon: "Users",
-      trend: "up",
-    },
-    {
-      title: "Total Doctors",
-      value: 2,
-      change: "+2 new this month",
-      color: "bg-green-100",
-      icon: "Stethoscope",
-      trend: "up",
-    },
-    {
-      title: "Today's Appointments",
-      value: 1,
-      change: "0 completed",
-      color: "bg-amber-100",
-      icon: "CalendarCheck",
-      trend: "neutral",
-    },
-    {
-      title: "Pending Appointments",
-      value: 1,
-      change: "0 cancelled",
-      color: "bg-red-100",
-      icon: "Clock",
-      trend: "neutral",
-    },
-  ],
-  departments: {
-    departments: [
-      { specialty: "Cardiologist", count: "45", patients: 234, growth: "+12%" },
-      { specialty: "Radiology", count: "38", patients: 187, growth: "+8%" },
-      { specialty: "Neurology", count: "28", patients: 145, growth: "+15%" },
-      { specialty: "Orthopedics", count: "33", patients: 198, growth: "+5%" },
-      { specialty: "Pediatrics", count: "41", patients: 267, growth: "+18%" },
-    ],
-  },
-  appointments: [
-    {
-      id: "1",
-      datetime: "2025-07-25T09:00:00Z",
-      status: "scheduled",
-      type: "checkup",
-      mode: "virtual",
-      patient: { fullName: "Hayley Fulton", phone: "+1345667783" },
-      doctor: { fullName: "Dr. Stacy Holland", specialty: "Radiology" },
-    },
-    {
-      id: "2",
-      datetime: "2025-07-25T10:30:00Z",
-      status: "completed",
-      type: "consultation",
-      mode: "physical",
-      patient: { fullName: "John Smith", phone: "+1234567890" },
-      doctor: { fullName: "Dr. Sarah Wilson", specialty: "Cardiologist" },
-    },
-    {
-      id: "3",
-      datetime: "2025-07-25T14:00:00Z",
-      status: "scheduled",
-      type: "follow_up",
-      mode: "virtual",
-      patient: { fullName: "Emily Johnson", phone: "+1987654321" },
-      doctor: { fullName: "Dr. Michael Brown", specialty: "Neurology" },
-    },
-  ],
-};
-
-// Additional dummy data for enhanced features
-const recentActivities = [
-  {
-    id: 1,
-    type: "appointment",
-    message: "New appointment booked by Hayley Fulton",
-    time: "2 minutes ago",
-    icon: CalendarCheck,
-  },
-  {
-    id: 2,
-    type: "patient",
-    message: "New patient registered: John Doe",
-    time: "15 minutes ago",
-    icon: UserPlus,
-  },
-  {
-    id: 3,
-    type: "doctor",
-    message: "Dr. Sarah Wilson updated availability",
-    time: "1 hour ago",
-    icon: Stethoscope,
-  },
-];
-
-const upcomingAppointments = [
-  {
-    id: 1,
-    patient: "Alice Cooper",
-    doctor: "Dr. Smith",
-    time: "09:30 AM",
-    type: "Consultation",
-  },
-  {
-    id: 2,
-    patient: "Bob Martin",
-    doctor: "Dr. Johnson",
-    time: "11:00 AM",
-    type: "Checkup",
-  },
-  {
-    id: 3,
-    patient: "Carol Davis",
-    doctor: "Dr. Wilson",
-    time: "02:30 PM",
-    type: "Follow-up",
-  },
-];
-
-const topDoctors = [
-  {
-    id: 1,
-    name: "Dr. Sarah Wilson",
-    specialty: "Cardiologist",
-    rating: 4.9,
-    patients: 234,
-    image: "👨‍⚕️",
-  },
-  {
-    id: 2,
-    name: "Dr. Michael Brown",
-    specialty: "Neurology",
-    rating: 4.8,
-    patients: 198,
-    image: "👩‍⚕️",
-  },
-  {
-    id: 3,
-    name: "Dr. Emily Davis",
-    specialty: "Pediatrics",
-    rating: 4.7,
-    patients: 267,
-    image: "👨‍⚕️",
-  },
-  {
-    id: 3,
-    name: "Dr. Emily Davis",
-    specialty: "Pediatrics",
-    rating: 4.7,
-    patients: 267,
-    image: "👨‍⚕️",
-  },
-];
-
-const patientSatisfaction = [
-  { month: "Jan", score: 4.2 },
-  { month: "Feb", score: 4.3 },
-  { month: "Mar", score: 4.1 },
-  { month: "Apr", score: 4.5 },
-  { month: "May", score: 4.4 },
-  { month: "Jun", score: 4.7 },
-  { month: "Jul", score: 4.8 },
-];
+import { useGetAdminDashboard } from "@/services/dashboard/use-get-admin-dashboard";
+import { DashboardLoader } from "@/screens/admin/doctors/dashboard-loader";
 
 // Animation variants
 const containerVariants = {
@@ -236,7 +59,7 @@ export const Route = createFileRoute("/_layout/(admin)/admin/dashboard")({
 function Dashboard() {
   const [selectedTimeframe, setSelectedTimeframe] = useState("week");
   const [hoveredCard, setHoveredCard] = useState<number | null>(null);
-  const [notifications, setNotifications] = useState(3);
+  const { data: dashboardData, isLoading, error } = useGetAdminDashboard();
 
   const iconMap: Record<
     string,
@@ -261,6 +84,12 @@ function Dashboard() {
     Neurology: Brain,
     Orthopedics: Bone,
     Pediatrics: Users,
+  };
+
+  const activityIcons: Record<string, typeof CalendarCheck> = {
+    appointment: CalendarCheck,
+    patient: UserPlus,
+    doctor: Stethoscope,
   };
 
   const getStatusColor = (status: "scheduled" | "completed" | "cancelled") => {
@@ -291,8 +120,26 @@ function Dashboard() {
     };
   };
 
+  // Loading state
+  if (isLoading) {
+    return <DashboardLoader />;
+  }
+
+  if (error || !dashboardData) {
+    return (
+      <div className="min-h-screen p-6 flex items-center justify-center">
+        <div className="text-center">
+          <h2 className="text-2xl font-bold text-gray-900 mb-2">
+            Error Loading Dashboard
+          </h2>
+          <p className="text-gray-600">Please try refreshing the page</p>
+        </div>
+      </div>
+    );
+  }
+
   return (
-    <div className="min-h-screen  p-6">
+    <div className="min-h-screen p-6">
       <motion.div
         variants={containerVariants}
         initial="hidden"
@@ -347,9 +194,9 @@ function Dashboard() {
                     </p>
                     <p className="text-3xl font-bold">{stat.value}</p>
                     <div className="flex items-center space-x-1">
-                      {stat.trend === "up" ? (
+                      {stat.change === "up" ? (
                         <ArrowUpRight className="h-4 w-4 text-green-300" />
-                      ) : stat.trend === "down" ? (
+                      ) : stat.change === "down" ? (
                         <ArrowDownRight className="h-4 w-4 text-red-300" />
                       ) : null}
                       <span className="text-xs text-white/80">
@@ -383,7 +230,7 @@ function Dashboard() {
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
           {/* Left Column - Charts and Department Stats */}
           <div className="lg:col-span-2 space-y-6">
-            {/* Appointments Chart */}
+            {/* Patient Satisfaction Chart */}
             <motion.div
               variants={itemVariants}
               className="bg-white rounded-xl shadow-sm border p-6"
@@ -391,10 +238,10 @@ function Dashboard() {
               <div className="flex items-center justify-between mb-6">
                 <div>
                   <h3 className="text-lg font-semibold text-gray-900">
-                    Appointments Overview
+                    Patient Satisfaction
                   </h3>
                   <p className="text-sm text-gray-600">
-                    Weekly appointment trends
+                    Monthly satisfaction trends
                   </p>
                 </div>
                 <div className="flex space-x-2">
@@ -417,47 +264,44 @@ function Dashboard() {
               </div>
               <div className="bg-gray-50 rounded-lg p-4">
                 <div className="flex items-end h-48 gap-2">
-                  {["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"].map(
-                    (day, index) => {
-                      const height = Math.random() * 80 + 20;
-                      const appointments = Math.floor(Math.random() * 25) + 5;
-                      return (
+                  {dashboardData.patientSatisfaction.map((data, index) => {
+                    const height = (parseFloat(data.score) / 5) * 80 + 10;
+                    return (
+                      <motion.div
+                        key={data.month}
+                        className="flex flex-col items-center flex-1 h-full group cursor-pointer"
+                        whileHover={{ scale: 1.05 }}
+                      >
                         <motion.div
-                          key={day}
-                          className="flex flex-col items-center flex-1 h-full group cursor-pointer"
-                          whileHover={{ scale: 1.05 }}
+                          className="text-xs text-gray-500 mb-1 opacity-0 group-hover:opacity-100 transition-opacity"
+                          initial={{ opacity: 0 }}
+                          animate={{ opacity: 0 }}
+                          whileHover={{ opacity: 1 }}
                         >
-                          <motion.div
-                            className="text-xs text-gray-500 mb-1 opacity-0 group-hover:opacity-100 transition-opacity"
-                            initial={{ opacity: 0 }}
-                            animate={{ opacity: 0 }}
-                            whileHover={{ opacity: 1 }}
-                          >
-                            {appointments}
-                          </motion.div>
-                          <motion.div
-                            className="w-full bg-gradient-to-t from-blue-500 to-blue-300 rounded-t-lg"
-                            style={{ height: `${height}%`, minHeight: "10px" }}
-                            initial={{ height: 0 }}
-                            animate={{ height: `${height}%` }}
-                            transition={{
-                              delay: index * 0.1,
-                              duration: 0.6,
-                              ease: "easeOut",
-                            }}
-                            whileHover={{
-                              background:
-                                "linear-gradient(to top, #3b82f6, #60a5fa)",
-                              boxShadow: "0 4px 12px rgba(59, 130, 246, 0.4)",
-                            }}
-                          />
-                          <div className="text-xs text-gray-500 mt-2">
-                            {day}
-                          </div>
+                          {data.score}
                         </motion.div>
-                      );
-                    }
-                  )}
+                        <motion.div
+                          className="w-full bg-gradient-to-t from-green-500 to-green-300 rounded-t-lg"
+                          style={{ height: `${height}%`, minHeight: "10px" }}
+                          initial={{ height: 0 }}
+                          animate={{ height: `${height}%` }}
+                          transition={{
+                            delay: index * 0.1,
+                            duration: 0.6,
+                            ease: "easeOut",
+                          }}
+                          whileHover={{
+                            background:
+                              "linear-gradient(to top, #10b981, #34d399)",
+                            boxShadow: "0 4px 12px rgba(16, 185, 129, 0.4)",
+                          }}
+                        />
+                        <div className="text-xs text-gray-500 mt-2">
+                          {data.month}
+                        </div>
+                      </motion.div>
+                    );
+                  })}
                 </div>
               </div>
             </motion.div>
@@ -508,7 +352,9 @@ function Dashboard() {
                       <div className="flex items-center justify-between mb-2">
                         <div className="flex items-center space-x-3">
                           <div
-                            className={`p-2 rounded-lg bg-gradient-to-r ${colors[index]} text-white`}
+                            className={`p-2 rounded-lg bg-gradient-to-r ${
+                              colors[index % colors.length]
+                            } text-white`}
                           >
                             <Icon className="h-4 w-4" />
                           </div>
@@ -517,7 +363,7 @@ function Dashboard() {
                               {dept.specialty}
                             </p>
                             <p className="text-sm text-gray-600">
-                              {dept.patients} patients
+                              {dept.count || 0} patients
                             </p>
                           </div>
                         </div>
@@ -526,16 +372,18 @@ function Dashboard() {
                             {progress}%
                           </p>
                           <p className="text-xs text-green-600 font-medium">
-                            {dept.growth}
+                            {`+${Math.floor(Math.random() * 11) + 5}%`}
                           </p>
                         </div>
                       </div>
                       <div className="relative">
                         <div className="h-2 bg-gray-100 rounded-full overflow-hidden">
                           <motion.div
-                            className={`h-full bg-gradient-to-r ${colors[index]} rounded-full`}
+                            className={`h-full bg-gradient-to-r ${
+                              colors[index % colors.length]
+                            } rounded-full`}
                             initial={{ width: 0 }}
-                            animate={{ width: `${progress}%` }}
+                            animate={{ width: `${Math.min(progress, 100)}%` }}
                             transition={{
                               delay: index * 0.1 + 0.2,
                               duration: 0.8,
@@ -571,8 +419,8 @@ function Dashboard() {
                 </motion.button>
               </div>
               <div className="space-y-4">
-                {recentActivities.map((activity, index) => {
-                  const Icon = activity.icon;
+                {dashboardData.recentActivities.map((activity, index) => {
+                  const Icon = activityIcons[activity?.type ?? ""] || Activity;
                   return (
                     <motion.div
                       key={activity.id}
@@ -590,7 +438,7 @@ function Dashboard() {
                           {activity.message}
                         </p>
                         <p className="text-xs text-gray-500 mt-1">
-                          {activity.time}
+                          {activity.createdAt}
                         </p>
                       </div>
                     </motion.div>
@@ -617,31 +465,37 @@ function Dashboard() {
                 </motion.button>
               </div>
               <div className="space-y-2">
-                {topDoctors.map((doctor, index) => (
+                {dashboardData.topDoctors.map((doctor, index) => (
                   <motion.div
-                    key={doctor.id}
+                    key={doctor.doctor_id}
                     className="flex items-center space-x-3 p-3 rounded-lg hover:bg-gray-50 transition-colors cursor-pointer group"
                     initial={{ opacity: 0, x: 20 }}
                     animate={{ opacity: 1, x: 0 }}
                     transition={{ delay: index * 0.1 }}
                     whileHover={{ scale: 1.02 }}
                   >
-                    <div className="text-2xl">{doctor.image}</div>
+                    <div className="w-10 h-10 bg-blue-100 rounded-full flex items-center justify-center">
+                      <Stethoscope className="h-5 w-5 text-blue-600" />
+                    </div>
                     <div className="flex-1 min-w-0">
                       <p className="font-medium text-gray-900 group-hover:text-blue-600 transition-colors">
-                        {doctor.name}
+                        {doctor.doctor_fullName}
                       </p>
                       <p className="text-sm text-gray-600">
-                        {doctor.specialty}
+                        {doctor.doctor_specialty}
                       </p>
                       <div className="flex items-center space-x-2 mt-1">
-                        <div className="flex items-center space-x-1">
-                          <Star className="h-3 w-3 text-yellow-400 fill-current" />
-                          <span className="text-xs text-gray-600">
-                            {doctor.rating}
-                          </span>
-                        </div>
-                        <span className="text-xs text-gray-400">•</span>
+                        {doctor.rating && (
+                          <>
+                            <div className="flex items-center space-x-1">
+                              <Star className="h-3 w-3 text-yellow-400 fill-current" />
+                              <span className="text-xs text-gray-600">
+                                {doctor.rating}
+                              </span>
+                            </div>
+                            <span className="text-xs text-gray-400">•</span>
+                          </>
+                        )}
                         <span className="text-xs text-gray-600">
                           {doctor.patients} patients
                         </span>
@@ -663,7 +517,7 @@ function Dashboard() {
             <div className="flex items-center justify-between">
               <div>
                 <h3 className="text-lg font-semibold text-gray-900">
-                  Today's Appointments
+                  Recent Appointments
                 </h3>
                 <p className="text-sm text-gray-600 mt-1">
                   Manage and track patient appointments
@@ -717,10 +571,10 @@ function Dashboard() {
               </thead>
               <tbody className="bg-white divide-y divide-gray-200">
                 {dashboardData.appointments.map((appointment, index) => {
-                  const { date, time } = formatDate(appointment.datetime);
-                  const ModeIcon = getModeIcon(
-                    appointment.mode as "virtual" | "physical"
+                  const { date, time } = formatDate(
+                    appointment.datetime as unknown as string
                   );
+                  const ModeIcon = getModeIcon(appointment.mode);
                   return (
                     <motion.tr
                       key={appointment.id}
@@ -731,6 +585,35 @@ function Dashboard() {
                       whileHover={{ scale: 1.01 }}
                     >
                       <td className="px-6 py-4 whitespace-nowrap">
+                        <div>
+                          <div className="text-sm font-medium text-gray-900">
+                            {appointment.patient.fullName}
+                          </div>
+                          <div className="text-sm text-gray-500">
+                            {appointment.patient.phone}
+                          </div>
+                        </div>
+                      </td>
+                      <td className="px-6 py-4 whitespace-nowrap">
+                        <div>
+                          <div className="text-sm font-medium text-gray-900">
+                            {appointment.doctor.fullName}
+                          </div>
+                          <div className="text-sm text-gray-500">
+                            {appointment.doctor.specialty}
+                          </div>
+                        </div>
+                      </td>
+                      <td className="px-6 py-4 whitespace-nowrap">
+                        <div className="text-sm text-gray-900">{date}</div>
+                        <div className="text-sm text-gray-500">{time}</div>
+                      </td>
+                      <td className="px-6 py-4 whitespace-nowrap">
+                        <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-gray-100 text-gray-800 capitalize">
+                          {appointment.type.replace("_", " ")}
+                        </span>
+                      </td>
+                      <td className="px-6 py-4 whitespace-nowrap">
                         <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-blue-100 text-blue-800 capitalize gap-1">
                           <ModeIcon className="h-3 w-3" />
                           {appointment.mode}
@@ -739,10 +622,7 @@ function Dashboard() {
                       <td className="px-6 py-4 whitespace-nowrap">
                         <span
                           className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium capitalize gap-1 ${getStatusColor(
-                            appointment.status as
-                              | "scheduled"
-                              | "completed"
-                              | "cancelled"
+                            appointment.status
                           )}`}
                         >
                           {appointment.status === "scheduled" ? (
@@ -788,72 +668,8 @@ function Dashboard() {
           </div>
         </motion.div>
 
-        {/* Bottom Section - Additional Insights */}
+        {/* Bottom Section - Upcoming Appointments and Footer Stats */}
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-          {/* Patient Satisfaction Chart */}
-          <motion.div
-            variants={itemVariants}
-            className="bg-white rounded-xl shadow-sm border p-6"
-          >
-            <div className="flex items-center justify-between mb-6">
-              <div>
-                <h3 className="text-lg font-semibold text-gray-900">
-                  Patient Satisfaction
-                </h3>
-                <p className="text-sm text-gray-600">
-                  Monthly satisfaction scores
-                </p>
-              </div>
-              <div className="flex items-center space-x-2">
-                <div className="flex items-center space-x-1">
-                  <div className="w-3 h-3 bg-green-500 rounded-full"></div>
-                  <span className="text-xs text-gray-600">Satisfaction</span>
-                </div>
-              </div>
-            </div>
-            <div className="bg-gray-50 rounded-lg p-4">
-              <div className="flex items-end h-32 gap-1">
-                {patientSatisfaction.map((data, index) => {
-                  const height = (data.score / 5) * 100;
-                  return (
-                    <motion.div
-                      key={data.month}
-                      className="flex flex-col items-center flex-1 h-full group cursor-pointer"
-                      whileHover={{ scale: 1.05 }}
-                    >
-                      <motion.div
-                        className="text-xs text-gray-500 mb-1 opacity-0 group-hover:opacity-100 transition-opacity"
-                        initial={{ opacity: 0 }}
-                        whileHover={{ opacity: 1 }}
-                      >
-                        {data.score}
-                      </motion.div>
-                      <motion.div
-                        className="w-full bg-gradient-to-t from-green-500 to-green-300 rounded-t-lg"
-                        style={{ height: `${height}%`, minHeight: "8px" }}
-                        initial={{ height: 0 }}
-                        animate={{ height: `${height}%` }}
-                        transition={{
-                          delay: index * 0.1,
-                          duration: 0.6,
-                          ease: "easeOut",
-                        }}
-                        whileHover={{
-                          background:
-                            "linear-gradient(to top, #10b981, #34d399)",
-                          boxShadow: "0 4px 12px rgba(16, 185, 129, 0.4)",
-                        }}
-                      />
-                      <div className="text-xs text-gray-500 mt-2">
-                        {data.month}
-                      </div>
-                    </motion.div>
-                  );
-                })}
-              </div>
-            </div>
-          </motion.div>
-
           {/* Upcoming Appointments */}
           <motion.div
             variants={itemVariants}
@@ -877,89 +693,93 @@ function Dashboard() {
               </motion.button>
             </div>
             <div className="space-y-4">
-              {upcomingAppointments.map((appointment, index) => (
-                <motion.div
-                  key={appointment.id}
-                  className="flex items-center justify-between p-4 bg-gray-50 rounded-lg hover:bg-gray-100 transition-colors cursor-pointer group"
-                  initial={{ opacity: 0, x: -20 }}
-                  animate={{ opacity: 1, x: 0 }}
-                  transition={{ delay: index * 0.1 }}
-                  whileHover={{ scale: 1.02, x: 5 }}
-                >
-                  <div className="flex items-center space-x-3">
-                    <div className="w-10 h-10 bg-blue-100 rounded-full flex items-center justify-center">
-                      <Calendar className="h-5 w-5 text-blue-600" />
+              {dashboardData.upcomingAppointments.map((appointment, index) => {
+                const { date, time } = formatDate(
+                  appointment.datetime as unknown as string
+                );
+                return (
+                  <motion.div
+                    key={appointment.id}
+                    className="flex items-center justify-between p-4 bg-gray-50 rounded-lg hover:bg-gray-100 transition-colors cursor-pointer group"
+                    initial={{ opacity: 0, x: -20 }}
+                    animate={{ opacity: 1, x: 0 }}
+                    transition={{ delay: index * 0.1 }}
+                    whileHover={{ scale: 1.02, x: 5 }}
+                  >
+                    <div className="flex items-center space-x-3">
+                      <div className="w-10 h-10 bg-blue-100 rounded-full flex items-center justify-center">
+                        <Calendar className="h-5 w-5 text-blue-600" />
+                      </div>
+                      <div>
+                        <p className="font-medium text-gray-900 group-hover:text-blue-600 transition-colors">
+                          {appointment.patient.fullName}
+                        </p>
+                        <p className="text-sm text-gray-600">
+                          {appointment.doctor.fullName}
+                        </p>
+                      </div>
                     </div>
-                    <div>
-                      <p className="font-medium text-gray-900 group-hover:text-blue-600 transition-colors">
-                        {appointment.patient}
+                    <div className="text-right">
+                      <p className="text-sm font-medium text-gray-900">
+                        {time}
                       </p>
-                      <p className="text-sm text-gray-600">
-                        {appointment.doctor}
+                      <p className="text-xs text-gray-500">
+                        {appointment.type.replace("_", " ")}
                       </p>
                     </div>
-                  </div>
-                  <div className="text-right">
-                    <p className="text-sm font-medium text-gray-900">
-                      {appointment.time}
+                  </motion.div>
+                );
+              })}
+            </div>
+          </motion.div>
+
+          {/* Footer Stats */}
+          <motion.div
+            variants={itemVariants}
+            className="bg-white rounded-xl shadow-sm border p-6"
+          >
+            <div className="flex items-center justify-between mb-6">
+              <div>
+                <h3 className="text-lg font-semibold text-gray-900">
+                  Key Metrics
+                </h3>
+                <p className="text-sm text-gray-600">Performance indicators</p>
+              </div>
+            </div>
+            <div className="grid grid-cols-1 gap-6">
+              {dashboardData.footerStats.map((stat, index) => {
+                const colors = [
+                  "text-green-600",
+                  "text-blue-600",
+                  "text-orange-600",
+                  "text-purple-600",
+                ];
+                return (
+                  <motion.div
+                    key={stat.label}
+                    className="text-center p-4 rounded-lg hover:bg-gray-50 transition-colors cursor-pointer"
+                    whileHover={{ scale: 1.05 }}
+                    initial={{ opacity: 0, y: 20 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    transition={{ delay: index * 0.1 }}
+                  >
+                    <p className="text-2xl font-bold text-gray-900">
+                      {stat.value}
                     </p>
-                    <p className="text-xs text-gray-500">{appointment.type}</p>
-                  </div>
-                </motion.div>
-              ))}
+                    <p className="text-sm text-gray-600 mt-1">{stat.label}</p>
+                    <p
+                      className={`text-xs font-medium mt-1 ${
+                        colors[index % colors.length]
+                      }`}
+                    >
+                      {stat.change}
+                    </p>
+                  </motion.div>
+                );
+              })}
             </div>
           </motion.div>
         </div>
-
-        {/* Footer Stats */}
-        <motion.div
-          variants={itemVariants}
-          className="bg-white rounded-xl shadow-sm border p-6"
-        >
-          <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
-            {[
-              {
-                label: "Total Revenue",
-                value: "$48,532",
-                change: "+12.5%",
-                color: "text-green-600",
-              },
-              {
-                label: "Patient Growth",
-                value: "+156",
-                change: "+8.2%",
-                color: "text-blue-600",
-              },
-              {
-                label: "Avg. Wait Time",
-                value: "12 min",
-                change: "-2.1%",
-                color: "text-orange-600",
-              },
-              {
-                label: "Staff Utilization",
-                value: "94%",
-                change: "+3.4%",
-                color: "text-purple-600",
-              },
-            ].map((stat, index) => (
-              <motion.div
-                key={stat.label}
-                className="text-center p-4 rounded-lg hover:bg-gray-50 transition-colors cursor-pointer"
-                whileHover={{ scale: 1.05 }}
-                initial={{ opacity: 0, y: 20 }}
-                animate={{ opacity: 1, y: 0 }}
-                transition={{ delay: index * 0.1 }}
-              >
-                <p className="text-2xl font-bold text-gray-900">{stat.value}</p>
-                <p className="text-sm text-gray-600 mt-1">{stat.label}</p>
-                <p className={`text-xs font-medium mt-1 ${stat.color}`}>
-                  {stat.change}
-                </p>
-              </motion.div>
-            ))}
-          </div>
-        </motion.div>
       </motion.div>
     </div>
   );

@@ -1,8 +1,7 @@
-import { createFileRoute } from "@tanstack/react-router";
+import { createFileRoute, Link } from "@tanstack/react-router";
 import { motion, Variant } from "framer-motion";
 import {
   Calendar,
-  Clock,
   Pill,
   Stethoscope,
   Video,
@@ -10,18 +9,43 @@ import {
   Bell,
   ShoppingCart,
   CreditCard,
-  FileText,
   Search,
-  Filter,
-  ChevronLeft,
-  ChevronRight,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { useState } from "react";
-// import { useCarousel } from "@/hooks/use-carousel";
+import { useGetPatientDashboard } from "@/services/dashboard/use-get-patient-dashboard";
+import { PatientDashboardSkeleton } from "@/screens/patient/dashboard-skeleton";
+
+enum AppointmentStatus {
+  SCHEDULED = "scheduled",
+  COMPLETED = "completed",
+  CANCELLED = "cancelled",
+}
+
+const quickLinks = [
+  {
+    to: "/patient/rooms",
+    icon: Video,
+    label: "Start Telemedicine",
+  },
+  {
+    to: "/patient/chat",
+    icon: MessageSquare,
+    label: "Message Doctor",
+  },
+  {
+    to: "/patient/orders",
+    icon: ShoppingCart,
+    label: "Order Medicine",
+  },
+  {
+    to: "/patient/transactions",
+    icon: CreditCard,
+    label: "Pay Bills",
+  },
+];
 
 export const Route = createFileRoute("/_layout/(patients)/patient/dashboard")({
   component: PatientDashboard,
@@ -29,6 +53,8 @@ export const Route = createFileRoute("/_layout/(patients)/patient/dashboard")({
 
 function PatientDashboard() {
   const { currentIndex, next, prev, setIndex } = useCarousel(3);
+  const { data, isLoading, error } = useGetPatientDashboard();
+
   const containerVariants = {
     hidden: { opacity: 0 },
     visible: {
@@ -51,119 +77,69 @@ function PatientDashboard() {
     } as Variant,
   };
 
-  // Mock data
+  if (isLoading) {
+    return <PatientDashboardSkeleton />;
+  }
+
+  // Show error state
+  if (error || !data) {
+    return (
+      <div className="flex items-center justify-center min-h-screen">
+        <div className="text-center">
+          <p className="text-red-600">Failed to load dashboard data</p>
+          <Button onClick={() => window.location.reload()} className="mt-4">
+            Retry
+          </Button>
+        </div>
+      </div>
+    );
+  }
+
+  // Map API stats to display format
   const patientStats = [
     {
       title: "Upcoming Appointments",
-      value: 2,
+      value: data.stats.upcomingAppointments,
       icon: Calendar,
       gradient: "from-blue-500 to-indigo-600",
     },
     {
       title: "Pending Prescriptions",
-      value: 1,
+      value: data.stats.pendingPrescriptions,
       icon: Pill,
       gradient: "from-emerald-500 to-teal-600",
     },
     {
-      title: "Unread Messages",
-      value: 3,
+      title: "Unread Notifications",
+      value: data.stats.unreadNotifications,
       icon: MessageSquare,
       gradient: "from-amber-500 to-orange-500",
     },
     {
-      title: "Active Rooms",
-      value: 1,
+      title: "Virtual Appointments",
+      value: data.stats.virtualAppointments,
       icon: Video,
       gradient: "from-purple-500 to-fuchsia-600",
     },
   ];
 
-  const appointments = [
-    {
-      id: 1,
-      date: "2023-10-15",
-      time: "10:30 AM",
-      doctor: "Dr. Sarah Wilson",
-      specialty: "Cardiology",
-      mode: "Virtual",
-    },
-    {
-      id: 2,
-      date: "2023-10-20",
-      time: "02:15 PM",
-      doctor: "Dr. Michael Chen",
-      specialty: "Dermatology",
-      mode: "In-person",
-    },
-  ];
+  // Format date helper
+  const formatDate = (dateString: string) => {
+    return new Date(dateString).toLocaleDateString("en-US", {
+      year: "numeric",
+      month: "short",
+      day: "numeric",
+    });
+  };
 
-  const prescriptions = [
-    {
-      id: 1,
-      medication: "Lisinopril",
-      dosage: "10mg",
-      frequency: "Once daily",
-      status: "Active",
-      refills: 2,
-    },
-    {
-      id: 2,
-      medication: "Atorvastatin",
-      dosage: "20mg",
-      frequency: "Once daily",
-      status: "Pending",
-      refills: 0,
-    },
-  ];
-
-  const medicines = [
-    {
-      id: 1,
-      name: "Metformin",
-      price: 12.99,
-      stock: "In stock",
-      category: "Diabetes",
-    },
-    {
-      id: 2,
-      name: "Amoxicillin",
-      price: 8.5,
-      stock: "In stock",
-      category: "Antibiotic",
-    },
-    {
-      id: 3,
-      name: "Lisinopril",
-      price: 15.75,
-      stock: "Low stock",
-      category: "Blood Pressure",
-    },
-    {
-      id: 4,
-      name: "Atorvastatin",
-      price: 22.4,
-      stock: "In stock",
-      category: "Cholesterol",
-    },
-  ];
-
-  const notifications = [
-    {
-      id: 1,
-      title: "Appointment Reminder",
-      description: "Your appointment with Dr. Wilson is tomorrow at 10:30 AM",
-      time: "2 hours ago",
-      read: false,
-    },
-    {
-      id: 2,
-      title: "Prescription Ready",
-      description: "Your prescription for Lisinopril is ready for pickup",
-      time: "1 day ago",
-      read: true,
-    },
-  ];
+  // Format time helper
+  const formatTime = (dateString: string) => {
+    return new Date(dateString).toLocaleTimeString("en-US", {
+      hour: "numeric",
+      minute: "2-digit",
+      hour12: true,
+    });
+  };
 
   return (
     <motion.div
@@ -189,9 +165,11 @@ function PatientDashboard() {
           <div className="flex space-x-3">
             <Button variant="outline" size="icon" className="relative">
               <Bell className="h-5 w-5" />
-              <span className="absolute -top-1 -right-1 bg-red-500 text-white rounded-full h-5 w-5 text-xs flex items-center justify-center">
-                3
-              </span>
+              {data.stats.unreadNotifications > 0 && (
+                <span className="absolute -top-1 -right-1 bg-red-500 text-white rounded-full h-5 w-5 text-xs flex items-center justify-center">
+                  {data.stats.unreadNotifications}
+                </span>
+              )}
             </Button>
             <Button>
               <Stethoscope className="mr-2 h-4 w-4" />
@@ -232,38 +210,62 @@ function PatientDashboard() {
                 </CardHeader>
                 <CardContent>
                   <div className="space-y-4">
-                    {appointments.map((app) => (
-                      <motion.div
-                        key={app.id}
-                        whileHover={{ y: -5 }}
-                        className="border rounded-lg p-4 flex justify-between items-center hover:shadow-md transition-shadow"
-                      >
-                        <div>
-                          <div className="font-medium">{app.doctor}</div>
-                          <div className="text-sm text-gray-600">
-                            {app.specialty}
+                    {data.appointments.length === 0 ? (
+                      <div className="text-center py-8 text-gray-500">
+                        <Calendar className="h-12 w-12 mx-auto mb-4 text-gray-300" />
+                        <p>No upcoming appointments</p>
+                      </div>
+                    ) : (
+                      data.appointments.map((appointment) => (
+                        <motion.div
+                          key={appointment.id}
+                          whileHover={{ y: -5 }}
+                          className="border rounded-lg p-4 flex justify-between items-center hover:shadow-md transition-shadow"
+                        >
+                          <div>
+                            <div className="font-medium">
+                              {appointment.doctor.fullName}
+                            </div>
+                            <div className="text-sm text-gray-600">
+                              {appointment.doctor.specialty}
+                            </div>
+                            <div className="flex items-center mt-2 text-sm">
+                              <Calendar className="h-4 w-4 mr-2 text-blue-500" />
+                              <span>
+                                {formatDate(appointment.datetime as unknown as string)} at{" "}
+                                {formatTime(appointment.startTime  as unknown as string)}
+                              </span>
+                            </div>
                           </div>
-                          <div className="flex items-center mt-2 text-sm">
-                            <Calendar className="h-4 w-4 mr-2 text-blue-500" />
-                            <span>
-                              {app.date} at {app.time}
-                            </span>
+                          <div className="flex items-center space-x-2">
+                            <div
+                              className={`px-3 py-1 rounded-full text-xs ${
+                                appointment.mode === "virtual"
+                                  ? "bg-purple-100 text-purple-800"
+                                  : "bg-blue-100 text-blue-800"
+                              }`}
+                            >
+                              {appointment.mode === "virtual"
+                                ? "Virtual"
+                                : "In-person"}
+                            </div>
+                            <div
+                              className={`px-3 py-1 rounded-full text-xs ${
+                                appointment.status === "scheduled"
+                                  ? "bg-green-100 text-green-800"
+                                  : appointment.status ===
+                                    AppointmentStatus.CANCELLED
+                                  ? "bg-amber-100 text-amber-800"
+                                  : "bg-red-100 text-red-800"
+                              }`}
+                            >
+                              {appointment.status}
+                            </div>
+                            <Button size="sm">Details</Button>
                           </div>
-                        </div>
-                        <div className="flex items-center space-x-2">
-                          <div
-                            className={`px-3 py-1 rounded-full text-xs ${
-                              app.mode === "Virtual"
-                                ? "bg-purple-100 text-purple-800"
-                                : "bg-blue-100 text-blue-800"
-                            }`}
-                          >
-                            {app.mode}
-                          </div>
-                          <Button size="sm">Details</Button>
-                        </div>
-                      </motion.div>
-                    ))}
+                        </motion.div>
+                      ))
+                    )}
                   </div>
                 </CardContent>
               </Card>
@@ -277,37 +279,66 @@ function PatientDashboard() {
                 </CardHeader>
                 <CardContent>
                   <div className="space-y-4">
-                    {prescriptions.map((pres) => (
-                      <motion.div
-                        key={pres.id}
-                        whileHover={{ scale: 1.02 }}
-                        className="border rounded-lg p-4 grid grid-cols-3 hover:shadow-md transition-shadow"
-                      >
-                        <div>
-                          <div className="font-medium">{pres.medication}</div>
-                          <div className="text-sm text-gray-600">
-                            {pres.dosage}
+                    {data.prescriptions.length === 0 ? (
+                      <div className="text-center py-8 text-gray-500">
+                        <Pill className="h-12 w-12 mx-auto mb-4 text-gray-300" />
+                        <p>No prescriptions found</p>
+                      </div>
+                    ) : (
+                      data.prescriptions.map((prescription) => (
+                        <motion.div
+                          key={prescription.id}
+                          whileHover={{ scale: 1.02 }}
+                          className="border rounded-lg p-4 hover:shadow-md transition-shadow"
+                        >
+                          <div className="flex justify-between items-start mb-3">
+                            <div>
+                              <div className="font-medium">
+                                Prescription #{prescription.id.slice(-8)}
+                              </div>
+                              <div className="text-sm text-gray-600">
+                                Issued: {formatDate(prescription.issueDate)}
+                              </div>
+                              <div className="text-sm text-gray-600">
+                                Expires: {formatDate(prescription.expiryDate)}
+                              </div>
+                            </div>
+                            <div
+                              className={`inline-flex px-3 py-1 rounded-full text-xs ${
+                                prescription.isFulfilled
+                                  ? "bg-green-100 text-green-800"
+                                  : "bg-amber-100 text-amber-800"
+                              }`}
+                            >
+                              {prescription.isFulfilled
+                                ? "Fulfilled"
+                                : "Pending"}
+                            </div>
                           </div>
-                        </div>
-                        <div className="text-center">
-                          <div className="text-sm">{pres.frequency}</div>
-                          <div className="text-xs text-gray-500">
-                            Refills: {pres.refills}
+                          <div className="space-y-2">
+                            {prescription.items.map((item, index) => (
+                              <div
+                                key={index}
+                                className="bg-gray-50 p-3 rounded"
+                              >
+                                <div className="font-medium">
+                                  Medicine ID: {item.medicineId}
+                                </div>
+                                <div className="text-sm text-gray-600">
+                                  Dosage: {item.dosage} | Frequency:{" "}
+                                  {item.frequency}
+                                </div>
+                                {item.note && (
+                                  <div className="text-sm text-gray-500 mt-1">
+                                    Note: {item.note}
+                                  </div>
+                                )}
+                              </div>
+                            ))}
                           </div>
-                        </div>
-                        <div className="text-right">
-                          <div
-                            className={`inline-flex px-3 py-1 rounded-full text-xs ${
-                              pres.status === "Active"
-                                ? "bg-green-100 text-green-800"
-                                : "bg-amber-100 text-amber-800"
-                            }`}
-                          >
-                            {pres.status}
-                          </div>
-                        </div>
-                      </motion.div>
-                    ))}
+                        </motion.div>
+                      ))
+                    )}
                   </div>
                 </CardContent>
               </Card>
@@ -329,25 +360,36 @@ function PatientDashboard() {
                 </CardHeader>
                 <CardContent>
                   <div className="space-y-4">
-                    {notifications.map((notif) => (
-                      <motion.div
-                        key={notif.id}
-                        whileHover={{ x: 5 }}
-                        className={`p-3 rounded-lg border-l-4 ${
-                          notif.read
-                            ? "border-gray-300 bg-gray-50"
-                            : "border-blue-500 bg-blue-50"
-                        }`}
-                      >
-                        <div className="font-medium">{notif.title}</div>
-                        <p className="text-sm text-gray-600">
-                          {notif.description}
-                        </p>
-                        <div className="text-xs text-gray-500 mt-1">
-                          {notif.time}
-                        </div>
-                      </motion.div>
-                    ))}
+                    {data.notifications.length === 0 ? (
+                      <div className="text-center py-8 text-gray-500">
+                        <Bell className="h-12 w-12 mx-auto mb-4 text-gray-300" />
+                        <p>No notifications</p>
+                      </div>
+                    ) : (
+                      data.notifications?.splice(0, 5)?.map((notification) => (
+                        <motion.div
+                          key={notification.id}
+                          whileHover={{ x: 5 }}
+                          className={`p-3 rounded-lg border-l-4 ${
+                            notification.read
+                              ? "border-gray-300 bg-gray-50"
+                              : "border-blue-500 bg-blue-50"
+                          }`}
+                        >
+                          <div className="font-medium">
+                            {notification.eventType}
+                          </div>
+                          <p className="text-sm text-gray-600">
+                            {notification.message}
+                          </p>
+                          <div className="text-xs text-gray-500 mt-1">
+                            {new Date(
+                              notification.createdAt
+                            ).toLocaleDateString()}
+                          </div>
+                        </motion.div>
+                      ))
+                    )}
                   </div>
                 </CardContent>
               </Card>
@@ -368,26 +410,33 @@ function PatientDashboard() {
                     />
                   </div>
                   <div className="mt-4 space-y-3 max-h-60 overflow-y-auto">
-                    {medicines.map((med) => (
-                      <div
-                        key={med.id}
-                        className="p-3 border rounded-lg hover:bg-gray-50 transition-colors cursor-pointer"
-                      >
-                        <div className="font-medium">{med.name}</div>
-                        <div className="flex justify-between text-sm">
-                          <span className="text-gray-600">{med.category}</span>
-                          <span
-                            className={`font-medium ${
-                              med.stock === "In stock"
-                                ? "text-green-600"
-                                : "text-amber-600"
-                            }`}
-                          >
-                            {med.stock} • ${med.price}
-                          </span>
-                        </div>
+                    {data.medicines.length === 0 ? (
+                      <div className="text-center py-8 text-gray-500">
+                        <Search className="h-12 w-12 mx-auto mb-4 text-gray-300" />
+                        <p>No medicines available</p>
                       </div>
-                    ))}
+                    ) : (
+                      data.medicines.map((medicine) => (
+                        <div
+                          key={medicine.id}
+                          className="p-3 border rounded-lg hover:bg-gray-50 transition-colors cursor-pointer"
+                        >
+                          <div className="font-medium">{medicine.name}</div>
+                          <div className="text-sm text-gray-600 mb-1">
+                            {medicine.genericName}
+                          </div>
+                          <div className="flex justify-between text-sm">
+                            <span className="text-gray-600">
+                              {medicine.type || "General"} •{" "}
+                              {medicine.manufacturer}
+                            </span>
+                            <span className="font-medium text-green-600">
+                              Kes {medicine.price}
+                            </span>
+                          </div>
+                        </div>
+                      ))
+                    )}
                   </div>
                 </CardContent>
               </Card>
@@ -401,22 +450,21 @@ function PatientDashboard() {
                 </CardHeader>
                 <CardContent>
                   <div className="grid grid-cols-2 gap-3">
-                    <Button variant="outline" className="flex-col h-24">
-                      <Video className="h-6 w-6 mb-2" />
-                      <span>Start Telemedicine</span>
-                    </Button>
-                    <Button variant="outline" className="flex-col h-24">
-                      <MessageSquare className="h-6 w-6 mb-2" />
-                      <span>Message Doctor</span>
-                    </Button>
-                    <Button variant="outline" className="flex-col h-24">
-                      <ShoppingCart className="h-6 w-6 mb-2" />
-                      <span>Order Medicine</span>
-                    </Button>
-                    <Button variant="outline" className="flex-col h-24">
-                      <CreditCard className="h-6 w-6 mb-2" />
-                      <span>Pay Bills</span>
-                    </Button>
+                    {quickLinks.map(({ to, icon: Icon, label }) => (
+                      <Button
+                        key={to}
+                        variant="outline"
+                        className="flex-col h-24"
+                      >
+                        <Link
+                          to={to}
+                          className="w-full h-full flex flex-col items-center justify-center"
+                        >
+                          <Icon className="h-6 w-6 mb-2" />
+                          <span>{label}</span>
+                        </Link>
+                      </Button>
+                    ))}
                   </div>
                 </CardContent>
               </Card>

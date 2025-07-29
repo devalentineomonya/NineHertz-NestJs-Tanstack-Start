@@ -6,6 +6,11 @@ export const baseStyles = {
     'padding:5px 0;font-weight:600;color:#4b5563;text-align:left;width:40%;',
   valueCell:
     'padding:5px 0;color:#000;text-align:right;width:60%;font-weight:500',
+  headerCell:
+    'padding: 10px 8px; font-weight: 700; color: #111827; background-color: #f9fafb; text-align: left; border-bottom: 1px solid #e5e7eb;',
+  subHeading:
+    'font-size: 18px; font-weight: 600; color: #1a1a1a; margin: 20px 0 10px 0; line-height: 1.3; text-align: left;',
+
   logoSection: 'text-align:center;margin-bottom:40px;',
   logo: 'font-size:24px;font-weight:700;color:#00d4ff;margin:0;letter-spacing:-0.5px;',
   mainCard:

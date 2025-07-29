@@ -10,7 +10,9 @@ import {
   appointmentCancelledEmail,
   appointmentCreatedEmail,
   appointmentReminderEmail,
+  prescriptionEmail,
 } from './templates/appointment.templates';
+import { orderEmail } from './templates/order-email';
 
 @Injectable()
 export class MailService {
@@ -107,6 +109,48 @@ export class MailService {
       data.isDoctor
         ? 'Appointment Cancellation Notification'
         : 'Your Appointment Has Been Cancelled',
+      html,
+    );
+  }
+  async sendPrescriptionEmail(
+    email: string,
+    data: {
+      patientName: string;
+      doctorName: string;
+      items: Array<{
+        name: string;
+        dosage: string;
+        frequency: string;
+        instructions?: string;
+      }>;
+      issueDate: string;
+      expiryDate: string;
+      action: 'created' | 'updated' | 'fulfilled';
+    },
+  ) {
+    const html = prescriptionEmail({
+      patientName: data.patientName,
+      doctorName: data.doctorName,
+      items: data.items,
+      issueDate: data.issueDate,
+      expiryDate: data.expiryDate,
+      action: data.action,
+    });
+
+    await this.sendEmail(
+      email,
+      `Prescription ${data.action === 'created' ? 'Created' : data.action === 'updated' ? 'Updated' : 'Fulfilled'}`,
+      html,
+    );
+  }
+  async sendOrderEmail(email: string, data: Parameters<typeof orderEmail>[0]) {
+    const html = orderEmail(data);
+
+    await this.sendEmail(
+      email,
+      data.action
+        ? `Order ${data.action.charAt(0).toUpperCase() + data.action.slice(1)}`
+        : 'Order Update',
       html,
     );
   }

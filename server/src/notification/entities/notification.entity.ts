@@ -10,7 +10,8 @@ export class Notification {
   message: string;
 
   @Column()
-  eventType: 'appointment' | 'reminder' | 'system';
+  eventType: 'appointment' | 'reminder' | 'system' | 'prescription' | 'order';
+
   @Column()
   eventId: string;
 

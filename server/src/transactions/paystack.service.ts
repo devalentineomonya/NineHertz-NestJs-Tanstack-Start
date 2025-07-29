@@ -45,7 +45,7 @@ export class PaystackService {
   }) {
     try {
       const response = await this.paystack.transaction.initialize(data);
-      return response.data; // returns authorization_url, access_code, reference
+      return response.data;
     } catch (error: unknown) {
       const errorMessage =
         error instanceof Error

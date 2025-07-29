@@ -13,6 +13,8 @@ import { NotificationModule } from 'src/notification/notification.module';
 import { ChatModule } from 'src/chat/chat.module';
 import { PushSubscription } from 'src/notification/entities/push-subscription.entity';
 import { Review } from './entities/review.entity';
+import { MessagingService } from 'src/messaging/messaging.service';
+import { User } from 'src/user/entities/user.entity';
 
 @Module({
   imports: [
@@ -23,12 +25,18 @@ import { Review } from './entities/review.entity';
       Appointment,
       Notification,
       PushSubscription,
+      User,
     ]),
     MailModule,
     NotificationModule,
     ChatModule,
   ],
   controllers: [AppointmentController],
-  providers: [AppointmentService, StreamService, NotificationService],
+  providers: [
+    AppointmentService,
+    StreamService,
+    NotificationService,
+    MessagingService,
+  ],
 })
 export class AppointmentModule {}

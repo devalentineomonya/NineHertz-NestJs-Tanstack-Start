@@ -55,13 +55,6 @@ const rowVariants = {
   }),
 };
 
-const gradientVariants = {
-  hover: {
-    backgroundPosition: ["0% 50%", "100% 50%", "0% 50%"],
-  },
-  initial: { backgroundPosition: "0% 50%" },
-};
-
 export const patientColumns: ColumnDef<PatientResponseDto>[] = [
   {
     id: "select",
@@ -90,11 +83,7 @@ export const patientColumns: ColumnDef<PatientResponseDto>[] = [
     id: "fullName",
     accessorKey: "fullName",
     header: ({ column }) => (
-      <DataTableColumnHeader
-        column={column}
-        title="Patient"
-        className="bg-gradient-to-r from-indigo-500/10 to-purple-500/10"
-      />
+      <DataTableColumnHeader column={column} title="Patient" />
     ),
     cell: ({ row }) => {
       const patient = row.original;
@@ -150,11 +139,7 @@ export const patientColumns: ColumnDef<PatientResponseDto>[] = [
     id: "phone",
     accessorKey: "phone",
     header: ({ column }) => (
-      <DataTableColumnHeader
-        column={column}
-        title="Phone"
-        className="bg-gradient-to-r from-cyan-500/10 to-blue-500/10"
-      />
+      <DataTableColumnHeader column={column} title="Phone" />
     ),
     cell: ({ cell }) => (
       <motion.div
@@ -178,11 +163,7 @@ export const patientColumns: ColumnDef<PatientResponseDto>[] = [
     id: "status",
     accessorKey: "status",
     header: ({ column }) => (
-      <DataTableColumnHeader
-        column={column}
-        title="Status"
-        className="bg-gradient-to-r from-emerald-500/10 to-green-500/10"
-      />
+      <DataTableColumnHeader column={column} title="Status" />
     ),
     cell: ({ cell }) => {
       const status = cell.getValue();
@@ -219,11 +200,7 @@ export const patientColumns: ColumnDef<PatientResponseDto>[] = [
     accessorFn: (row) =>
       row.dateOfBirth ? new Date(row.dateOfBirth).getTime() : null,
     header: ({ column }) => (
-      <DataTableColumnHeader
-        column={column}
-        title="Date of Birth"
-        className="bg-gradient-to-r from-amber-500/10 to-orange-500/10"
-      />
+      <DataTableColumnHeader column={column} title="Date of Birth" />
     ),
     cell: ({ row }) => {
       const dob = row.original.dateOfBirth;
@@ -248,11 +225,7 @@ export const patientColumns: ColumnDef<PatientResponseDto>[] = [
     accessorKey: "medicalHistory",
     accessorFn: (row) => row.appointments?.length || 0,
     header: ({ column }) => (
-      <DataTableColumnHeader
-        column={column}
-        title="Medical History"
-        className="bg-gradient-to-r from-violet-500/10 to-fuchsia-500/10"
-      />
+      <DataTableColumnHeader column={column} title="Medical History" />
     ),
     cell: ({ row }) => {
       const count = row.original.medicalHistory?.allergies?.length ?? 0;

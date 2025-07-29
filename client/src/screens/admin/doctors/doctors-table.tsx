@@ -9,10 +9,13 @@ import { parseAsArrayOf, parseAsString, useQueryState } from "nuqs";
 import * as React from "react";
 import { doctorColumns } from "./doctor-table-columns";
 import { DataTableSkeleton } from "@/components/data-table/data-table-skeleton";
-import { DeleteDoctorConfirmModal } from "./delete-doctor-confimation-modal";
+import { DeleteDoctorConfirmModal } from "./delete-doctor-confirmation-modal";
+import { useUserSessionStore } from "@/stores/user-session-store";
 
 export function AdminDoctors() {
   const { onOpen } = useAddDoctorStore();
+  const { getCurrentUser } = useUserSessionStore();
+  const currentUser = getCurrentUser();
   const { data, isLoading } = useGetDoctors();
   const [fullName] = useQueryState("fullName", parseAsString.withDefault(""));
   const [specialty] = useQueryState(
@@ -78,12 +81,14 @@ export function AdminDoctors() {
 
   return (
     <div className="data-table-container">
-      <div className="w-fit min-w-56 mb-2">
-        <Button variant={"primary"} onClick={onOpen}>
-          <PlusSquare />
-          Add Doctor
-        </Button>
-      </div>
+      {currentUser?.role === "admin" && (
+        <div className="w-fit min-w-56 mb-2">
+          <Button variant={"primary"} onClick={onOpen}>
+            <PlusSquare />
+            Add Doctor
+          </Button>
+        </div>
+      )}
       <DataTable table={table}>
         <DataTableToolbar table={table} />
       </DataTable>

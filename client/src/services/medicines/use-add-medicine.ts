@@ -1,18 +1,17 @@
 import { useMutation, useQueryClient } from "@tanstack/react-query";
-import { DataServices } from "../data/data-service";
+import { dataServices } from "../data/data-service";
 
 export const useAddMedicineService = () => {
-  const dataService = new DataServices();
   const queryClient = useQueryClient();
   return useMutation({
     mutationFn: async (data: CreateMedicineDto) => {
-      const response = await dataService.api.medicines.post.call({
-      json: data,
+      const response = await dataServices.api.medicines.post.call({
+        json: data,
       });
       return response.data;
     },
-    onSuccess:  () => {
-       queryClient.invalidateQueries({ queryKey: ["medicines"] });
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["medicines"] });
     },
   });
 };

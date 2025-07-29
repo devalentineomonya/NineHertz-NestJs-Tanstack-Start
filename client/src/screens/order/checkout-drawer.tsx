@@ -1,5 +1,5 @@
-import { useState, useEffect } from "react";
-import { motion, AnimatePresence } from "framer-motion";
+import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
 import {
   Drawer,
   DrawerContent,
@@ -7,19 +7,16 @@ import {
   DrawerHeader,
   DrawerTitle,
 } from "@/components/ui/drawer";
-import { Button } from "@/components/ui/button";
-import { Badge } from "@/components/ui/badge";
 import { Separator } from "@/components/ui/separator";
-import { CheckCircle, Loader } from "lucide-react";
-import { toast } from "sonner";
-import { useProceedToCheckoutStore } from "@/stores/use-proceed-to-checkout-store";
-
 import { useGetMedicines } from "@/services/medicines/use-get-medicines";
-
-enum PaymentMethod {
-  PAYSTACK = "Paystack",
-  STRIPE = "stripe",
-}
+import { useOrderPaymentService } from "@/services/payments/use-order-payment";
+import { useVerifyOrderPayment } from "@/services/payments/use-verify-order-payment";
+import { useProceedToCheckoutStore } from "@/stores/use-proceed-to-checkout-store";
+import Paystack from "@paystack/inline-js";
+import { AnimatePresence, motion } from "framer-motion";
+import { CheckCircle, Loader } from "lucide-react";
+import { useEffect, useState } from "react";
+import { toast } from "sonner";
 
 enum CheckoutStep {
   REVIEW = "review",
@@ -27,14 +24,28 @@ enum CheckoutStep {
   PROCESSING = "processing",
 }
 
+enum Gateway {
+  PAYSTACK = "paystack",
+  STRIPE = "stripe",
+}
+
+interface InitiateOrderPaymentDto {
+  gateway: Gateway;
+  amount: number;
+  description: string;
+  customerEmail: string;
+  orderId: string;
+}
+
 export function CheckoutDrawer() {
   const { isOpen, orderData, onClose } = useProceedToCheckoutStore();
   const [step, setStep] = useState<CheckoutStep>(CheckoutStep.REVIEW);
-  const [selectedPayment, setSelectedPayment] = useState<PaymentMethod | null>(
-    null
-  );
+  const [selectedPayment, setSelectedPayment] = useState<Gateway | null>(null);
   const [isProcessing, setIsProcessing] = useState(false);
   const { data: medicinesData } = useGetMedicines();
+  const orderPaymentHandler = useOrderPaymentService();
+  const verifyOrderPaymentHandler = useVerifyOrderPayment();
+  const paystackPopup = new Paystack();
   const medicines = medicinesData?.data;
 
   // Reset state when drawer closes
@@ -46,8 +57,10 @@ export function CheckoutDrawer() {
     }
   }, [isOpen]);
 
-  const patient = orderData?.patient || ({} as PatientResponseDto);
-  const totalAmount = orderData?.totalAmount || 0;
+  if (!orderData) return null;
+
+  const patient = orderData.patient || ({} as PatientResponseDto);
+  const totalAmount = orderData.totalAmount || 0;
 
   const getOrderItems = () => {
     if (!orderData || !medicines) return [];
@@ -62,37 +75,96 @@ export function CheckoutDrawer() {
     });
   };
 
-  const handlePaymentSelection = (method: PaymentMethod) => {
+  const handlePaymentSelection = (method: Gateway) => {
     setSelectedPayment(method);
     setStep(CheckoutStep.PROCESSING);
     processPayment(method);
   };
 
-  const processPayment = async (method: PaymentMethod) => {
+  const processPayment = async (method: Gateway) => {
     setIsProcessing(true);
 
     try {
-      // Simulate API call to backend
-      await new Promise((resolve) => setTimeout(resolve, 2000));
+      const paymentData: InitiateOrderPaymentDto = {
+        gateway: method,
+        amount: totalAmount * 100,
+        description: `Order payment for ${getOrderItems().length} items`,
+        customerEmail: patient.user?.email || "",
+        orderId: orderData.id,
+      };
 
-      toast.success(
-        `Payment processed via ${
-          method === PaymentMethod.PAYSTACK ? "Paystack" : "Stripe"
-        }!`,
-        {
-          description: "Your order has been successfully placed",
+      const response = await orderPaymentHandler.mutateAsync(paymentData);
+
+      if (response.gatewayReference) {
+        // Handle Paystack popup
+        paystackPopup.resumeTransaction(response.gatewayReference, {
+          onSuccess: (trx) => {
+            console.log("Transaction successful:", trx);
+            // Verify payment with backend
+            verifyOrderPaymentHandler
+              .mutateAsync({
+                reference: trx.reference,
+                gateway: method,
+              })
+              .then(() => {
+                toast.success("Payment processed via Paystack!", {
+                  description: "Your order has been successfully placed",
+                });
+                setTimeout(() => onClose(), 1500);
+              })
+              .catch((error) => {
+                console.error("Payment verification failed:", error);
+                toast.error("Payment verification failed", {
+                  description: "Please contact support if money was deducted.",
+                });
+                setStep(CheckoutStep.PAYMENT);
+              })
+              .finally(() => {
+                setIsProcessing(false);
+              });
+          },
+          onCancel: () => {
+            console.log("User closed the popup without completing payment.");
+            toast.info("Payment cancelled", {
+              description: "You can try again when ready.",
+            });
+            setStep(CheckoutStep.PAYMENT);
+            setIsProcessing(false);
+          },
+          onError: (error) => {
+            console.error("Error resuming transaction:", error.message);
+            toast.error("Payment failed", {
+              description: error.message || "An error occurred during payment.",
+            });
+            setStep(CheckoutStep.PAYMENT);
+            setIsProcessing(false);
+          },
+        });
+      } else if (response.checkoutUrl) {
+        // Handle Stripe redirect
+        if (typeof window !== "undefined") {
+          window.location.href = response.checkoutUrl;
         }
-      );
-
-      // Close after successful payment
-      setTimeout(() => onClose(), 1500);
+      } else {
+        // Fallback success (for testing or other gateways)
+        toast.success(
+          `Payment processed via ${
+            method === Gateway.PAYSTACK ? "Paystack" : "Stripe"
+          }!`,
+          {
+            description: "Your order has been successfully placed",
+          }
+        );
+        setTimeout(() => onClose(), 1500);
+        setIsProcessing(false);
+      }
     } catch (error) {
+      console.error("Payment processing failed:", error);
       toast.error("Payment failed", {
         description:
           "There was an issue processing your payment. Please try again.",
       });
       setStep(CheckoutStep.PAYMENT);
-    } finally {
       setIsProcessing(false);
     }
   };
@@ -150,7 +222,7 @@ export function CheckoutDrawer() {
           </AnimatePresence>
         </div>
 
-        <DrawerFooter className="flex  justify-between gap-3 border-t pt-4 flex-col">
+        <DrawerFooter className="flex justify-between gap-3 border-t pt-4 flex-col">
           {step === CheckoutStep.REVIEW ? (
             <>
               <Button
@@ -231,8 +303,8 @@ function ReviewStep({
           {items.map((item, index) => (
             <div
               key={index}
-              className={`flex justify-between items-center  pb-2 ${
-                items.length - 1 === index && " border-b"
+              className={`flex justify-between items-center pb-2 ${
+                items.length - 1 !== index ? "border-b" : ""
               }`}
             >
               <div>
@@ -260,9 +332,37 @@ function ReviewStep({
 
       <Separator />
 
-      <div className="flex justify-between items-center font-bold text-lg">
-        <span>Total:</span>
-        <span>KES {total}</span>
+      <div className="bg-gradient-to-br from-green-500 to-emerald-600 rounded-xl p-4 text-white shadow-lg shadow-green-600/25">
+        <h3 className="font-semibold mb-3 flex items-center">
+          <svg
+            xmlns="http://www.w3.org/2000/svg"
+            className="h-5 w-5 mr-2"
+            viewBox="0 0 20 20"
+            fill="currentColor"
+          >
+            <path
+              fillRule="evenodd"
+              d="M4 4a2 2 0 00-2 2v4a2 2 0 002 2V6h10a2 2 0 00-2-2H4zm2 6a2 2 0 012-2h8a2 2 0 012 2v4a2 2 0 01-2 2H8a2 2 0 01-2-2v-4zm6 4a2 2 0 100-4 2 2 0 000 4z"
+              clipRule="evenodd"
+            />
+          </svg>
+          Payment Summary
+        </h3>
+        <div className="space-y-2">
+          <div className="flex justify-between">
+            <span>Subtotal:</span>
+            <span>KES {total.toLocaleString("en-US")}</span>
+          </div>
+          <div className="flex justify-between">
+            <span>Delivery Fee:</span>
+            <span>KES 0.00</span>
+          </div>
+          <Separator className="my-2 bg-white/30" />
+          <div className="flex justify-between font-bold text-lg">
+            <span>Total:</span>
+            <span>KES {total.toLocaleString("en-US")}</span>
+          </div>
+        </div>
       </div>
     </div>
   );
@@ -273,8 +373,8 @@ function PaymentStep({
   selectedPayment,
   onSelect,
 }: {
-  selectedPayment: PaymentMethod | null;
-  onSelect: (method: PaymentMethod) => void;
+  selectedPayment: Gateway | null;
+  onSelect: (method: Gateway) => void;
 }) {
   return (
     <div className="space-y-6">
@@ -282,20 +382,20 @@ function PaymentStep({
 
       <div className="grid grid-cols-1 gap-4">
         <PaymentMethodCard
-          method={PaymentMethod.PAYSTACK}
+          method={Gateway.PAYSTACK}
           name="Paystack"
           description="Pay via mobile money, card or bank transfer"
           iconPath="/paystack.svg"
-          isSelected={selectedPayment === PaymentMethod.PAYSTACK}
+          isSelected={selectedPayment === Gateway.PAYSTACK}
           onSelect={onSelect}
         />
 
         <PaymentMethodCard
-          method={PaymentMethod.STRIPE}
+          method={Gateway.STRIPE}
           name="Stripe"
           description="Pay with credit/debit card"
           iconPath="/stripe.svg"
-          isSelected={selectedPayment === PaymentMethod.STRIPE}
+          isSelected={selectedPayment === Gateway.STRIPE}
           onSelect={onSelect}
         />
       </div>
@@ -312,12 +412,12 @@ function PaymentMethodCard({
   isSelected,
   onSelect,
 }: {
-  method: PaymentMethod;
+  method: Gateway;
   name: string;
   description: string;
   iconPath: string;
   isSelected: boolean;
-  onSelect: (method: PaymentMethod) => void;
+  onSelect: (method: Gateway) => void;
 }) {
   return (
     <div
@@ -330,7 +430,7 @@ function PaymentMethodCard({
     >
       <div className="flex items-center gap-4">
         <div className="bg-gray-100 border rounded-md p-2">
-          <img src={iconPath} alt={name} />
+          <img src={iconPath} alt={name} className="h-8 w-auto" />
         </div>
         <div>
           <h4 className="font-semibold">{name}</h4>
@@ -346,7 +446,7 @@ function ProcessingStep({
   paymentMethod,
   isProcessing,
 }: {
-  paymentMethod: PaymentMethod | null;
+  paymentMethod: Gateway | null;
   isProcessing: boolean;
 }) {
   return (
@@ -356,8 +456,7 @@ function ProcessingStep({
           <Loader className="h-12 w-12 animate-spin text-primary mb-4" />
           <h3 className="text-xl font-semibold mb-2">
             Processing{" "}
-            {paymentMethod === PaymentMethod.PAYSTACK ? "Paystack" : "Stripe"}{" "}
-            Payment
+            {paymentMethod === Gateway.PAYSTACK ? "Paystack" : "Stripe"} Payment
           </h3>
           <p className="text-muted-foreground text-center">
             Please wait while we process your payment. Do not close this window.

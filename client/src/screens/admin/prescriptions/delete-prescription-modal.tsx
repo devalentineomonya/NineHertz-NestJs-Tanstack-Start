@@ -7,20 +7,21 @@ import {
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog";
+import { useDeletePrescriptionService } from "@/services/prescriptions/use-delete-prescription";
 import { useDeletePrescriptionStore } from "@/stores/use-delete-prescription-store";
-// import { useDeletePrescriptionService } from "@/services/prescriptions/use-delete-prescription";
+
 import { Loader } from "lucide-react";
 import { toast } from "sonner";
 
 export function DeletePrescriptionModal() {
   const { isOpen, onClose, prescriptionId } = useDeletePrescriptionStore();
-//   const deleteMutation = useDeletePrescriptionService();
+  const deleteMutation = useDeletePrescriptionService();
 
   const handleDelete = async () => {
     if (!prescriptionId) return;
 
     try {
-    //   await deleteMutation.mutateAsync(prescriptionId);
+      await deleteMutation.mutateAsync(prescriptionId);
       toast.success("Prescription deleted successfully");
       onClose();
     } catch (error) {
@@ -32,9 +33,12 @@ export function DeletePrescriptionModal() {
     <Dialog open={isOpen} onOpenChange={onClose}>
       <DialogContent className="sm:max-w-[425px]">
         <DialogHeader>
-          <DialogTitle className="text-destructive">Delete Prescription</DialogTitle>
+          <DialogTitle className="text-destructive">
+            Delete Prescription
+          </DialogTitle>
           <DialogDescription>
-            This action cannot be undone. This will permanently delete the prescription record.
+            This action cannot be undone. This will permanently delete the
+            prescription record.
           </DialogDescription>
         </DialogHeader>
 
@@ -50,16 +54,16 @@ export function DeletePrescriptionModal() {
           <Button
             variant="outline"
             onClick={onClose}
-            // disabled={deleteMutation.isPending}
+            disabled={deleteMutation.isPending}
           >
             Cancel
           </Button>
           <Button
             variant="destructive"
             onClick={handleDelete}
-            // disabled={deleteMutation.isPending}
+            disabled={deleteMutation.isPending}
           >
-            {true ? (
+            {deleteMutation.isPending ? (
               <div className="flex items-center gap-2">
                 <Loader className="animate-spin h-4 w-4" />
                 Deleting...

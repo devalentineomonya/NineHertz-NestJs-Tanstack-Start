@@ -5,8 +5,11 @@ import {
 } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { OrderStatus } from 'src/enums/order.enum';
+import { NotificationService } from 'src/notification/notification.service';
 import { PaginationDto } from 'src/shared/dto/pagination.dto';
+import { MailService } from 'src/shared/mail/mail.service';
 import { InitiatePaymentDto } from 'src/transactions/dto/initiate-transaction.dto';
+import { RefundTransactionDto } from 'src/transactions/dto/refund-transaction.dto';
 import {
   Gateway,
   TransactionStatus,
@@ -43,6 +46,8 @@ export class OrderService {
     @InjectRepository(Medicine)
     private medicineRepository: Repository<Medicine>,
     private transactionService: TransactionService,
+    private notificationService: NotificationService,
+    private mailService: MailService,
   ) {}
 
   async create(createDto: CreateOrderDto): Promise<OrderResponseDto> {
@@ -69,14 +74,12 @@ export class OrderService {
       );
     }
 
-    // Create order
     const order = this.orderRepository.create({
       status: createDto.status || OrderStatus.PENDING,
       totalAmount: createDto.totalAmount,
       patient,
     });
 
-    // Create order items
     const orderItems = createDto.items.map((itemDto) => {
       const medicine = medicines.find((m) => m.id === itemDto.medicineId);
       return this.orderItemRepository.create({
@@ -88,6 +91,12 @@ export class OrderService {
 
     order.items = orderItems;
     const savedOrder = await this.orderRepository.save(order);
+
+    await this.sendOrderNotifications(
+      savedOrder,
+      'created',
+      OrderStatus.PENDING,
+    );
     return this.mapToResponseDto(savedOrder);
   }
 
@@ -178,28 +187,26 @@ export class OrderService {
     if (!order) {
       throw new NotFoundException(`Order with ID ${id} not found`);
     }
+    const originalStatus = order.status;
 
-    // Update status
     if (updateDto.status) {
       order.status = updateDto.status;
     }
 
-    // Update total amount
     if (updateDto.totalAmount) {
       order.totalAmount = updateDto.totalAmount;
     }
 
-    // Update items if provided
     if (updateDto.items) {
-      // Remove existing items
       await this.orderItemRepository.delete({ order: { id } });
 
-      // Create new items
       const medicineIds = updateDto.items
         .filter((item) => item.medicineId)
         .map((item) => item.medicineId);
 
-      const medicines = await this.medicineRepository.findByIds(medicineIds);
+      const medicines = await this.medicineRepository.findBy({
+        id: In(medicineIds),
+      });
 
       const orderItems = updateDto.items.map((itemDto) => {
         const medicine = medicines.find((m) => m.id === itemDto.medicineId);
@@ -215,6 +222,14 @@ export class OrderService {
     }
 
     const updatedOrder = await this.orderRepository.save(order);
+    if (updateDto.status && updateDto.status !== originalStatus) {
+      await this.sendOrderNotifications(
+        updatedOrder,
+        'updated',
+        updateDto.status,
+      );
+    }
+
     return this.mapToResponseDto(updatedOrder);
   }
 
@@ -235,7 +250,6 @@ export class OrderService {
       throw new BadRequestException('Only pending orders can be paid');
     }
 
-    // Create transaction DTO
     const transactionDto: InitiatePaymentDto = {
       amount: order.totalAmount,
       gateway:
@@ -246,9 +260,7 @@ export class OrderService {
 
     const transaction = await this.transactionService.initiateTransaction(
       order.patient.user.id,
-      {
-        ...transactionDto,
-      },
+      transactionDto,
     );
 
     if (transaction) {
@@ -259,22 +271,65 @@ export class OrderService {
     }
 
     const updatedOrder = await this.orderRepository.save(order);
+    await this.sendOrderNotifications(updatedOrder, 'updated', order.status);
     return this.mapToResponseDto(updatedOrder);
   }
 
   async cancelOrder(id: string): Promise<OrderResponseDto> {
-    const order = await this.orderRepository.findOne({ where: { id } });
+    const order = await this.orderRepository.findOne({
+      where: { id },
+      relations: ['patient', 'patient.user', 'transactions'],
+    });
 
     if (!order) {
       throw new NotFoundException(`Order with ID ${id} not found`);
     }
 
-    if (order.status !== OrderStatus.PENDING) {
-      throw new BadRequestException('Only pending orders can be cancelled');
+    if (
+      order.status !== OrderStatus.PENDING &&
+      order.status !== OrderStatus.PROCESSING
+    ) {
+      throw new BadRequestException(
+        'Only pending or processing orders can be cancelled',
+      );
+    }
+
+    // Check if order has been paid
+    const paidTransaction = order.transactions?.find(
+      (t) => t.status === TransactionStatus.SUCCESS,
+    );
+
+    // Process refund if payment was successful
+    let refundStatus: 'refunded' | 'pending' | 'failed' | 'not_required' =
+      'not_required';
+
+    if (paidTransaction) {
+      try {
+        const refundDto: RefundTransactionDto = {
+          transactionId: paidTransaction.id,
+          reason: 'Order cancellation',
+        };
+
+        await this.transactionService.refundTransaction(refundDto);
+        refundStatus = 'refunded';
+      } catch (error) {
+        refundStatus = 'failed';
+        // Log error but continue with cancellation
+        console.error(`Refund failed for order ${id}:`, error);
+      }
     }
 
     order.status = OrderStatus.CANCELLED;
     const updatedOrder = await this.orderRepository.save(order);
+
+    // Send notifications with refund status
+    await this.sendOrderNotifications(
+      updatedOrder,
+      'cancelled',
+      OrderStatus.CANCELLED,
+      refundStatus,
+    );
+
     return this.mapToResponseDto(updatedOrder);
   }
 
@@ -288,12 +343,11 @@ export class OrderService {
       throw new NotFoundException(`Order with ID ${id} not found`);
     }
 
-    // Delete related entities
-    if (order.items && order.items.length > 0) {
+    if (order.items?.length) {
       await this.orderItemRepository.remove(order.items);
     }
 
-    if (order.transactions && order.transactions.length > 0) {
+    if (order.transactions?.length) {
       await this.transactionService.removeTransactions(order.transactions);
     }
 
@@ -309,12 +363,11 @@ export class OrderService {
     if (!order) return;
 
     for (const item of order.items) {
-      // Inventory update logic
       console.log(`Updating inventory for medicine ${item.medicine.id}`);
     }
   }
 
-  private mapToResponseDto = (order: Order): OrderResponseDto => {
+  private mapToResponseDto(order: Order): OrderResponseDto {
     return {
       id: order.id,
       orderDate: order.orderDate,
@@ -335,22 +388,24 @@ export class OrderService {
           createdAt: order.patient.user.createdAt,
         },
       },
-      items: order.items.map((item) => this.mapItemToResponseDto(item)),
-      transactions: order.transactions?.map((t) => ({
-        id: t.id,
-        reference: t.reference,
-        amount: t.amount,
-        status: t.status,
-        gateway: t.gateway,
-        createdAt: t.createdAt,
-        gatewayReference: t.gatewayReference,
-        updatedAt: t.updatedAt,
-        userId: t.user.id,
-      })),
+      items: order.items?.map((item) => this.mapItemToResponseDto(item)) || [],
+      transactions:
+        order.transactions?.map((t) => ({
+          id: t.id,
+          reference: t.reference,
+          amount: t.amount,
+          status: t.status,
+          gateway: t.gateway,
+          createdAt: t.createdAt,
+          gatewayReference: t.gatewayReference,
+          updatedAt: t.updatedAt,
+          userId: t.user?.id ?? null,
+          checkoutUrl: t.checkoutUrl || '',
+        })) || [],
       createdAt: order.createdAt,
       updatedAt: order.updatedAt,
     };
-  };
+  }
 
   private getPaymentStatus(order: Order): string {
     if (!order.transactions || order.transactions.length === 0) {
@@ -385,5 +440,89 @@ export class OrderService {
         updatedAt: item.medicine.updatedAt,
       },
     };
+  }
+  private async sendOrderNotifications(
+    order: Order,
+    action: 'created' | 'updated' | 'cancelled',
+    status: OrderStatus,
+    refundStatus?: 'refunded' | 'pending' | 'failed' | 'not_required',
+  ) {
+    // Load relations if not already loaded
+    if (!order.patient?.user) {
+      order = await this.orderRepository.findOneOrFail({
+        where: { id: order.id },
+        relations: ['patient', 'patient.user', 'items', 'items.medicine'],
+      });
+    }
+
+    // Prepare notification message
+    const messages = {
+      created: `New order #${order.id} created`,
+      updated: `Order #${order.id} updated to ${status}`,
+      cancelled: `Order #${order.id} cancelled`,
+    };
+
+    let refundMessage = '';
+    if (action === 'cancelled') {
+      switch (refundStatus) {
+        case 'refunded':
+          refundMessage = 'A refund has been processed for your payment.';
+          break;
+        case 'pending':
+          refundMessage = 'Your refund is being processed.';
+          break;
+        case 'failed':
+          refundMessage = 'Refund processing failed. Please contact support.';
+          break;
+        case 'not_required':
+          refundMessage = 'No payment was made for this order.';
+          break;
+      }
+    }
+
+    // Add refund message to notification
+    const fullMessage = `${messages[action]} ${refundMessage}`.trim();
+
+    const userId = order.patient.user.id;
+    const eventType = `order:${action}` as 'order';
+
+    // Send push notification
+    await this.notificationService.triggerNotification(userId, {
+      message: fullMessage,
+      eventType,
+      eventId: order.id,
+      datetime: new Date().toISOString(),
+    });
+    // Trigger real-time update
+    await this.notificationService.triggerPusherEvent(
+      [userId.toString()],
+      eventType,
+      {
+        id: order.id,
+        status,
+        message: fullMessage,
+      },
+    );
+
+    // Prepare email content
+    const emailItems = order.items.map((item) => ({
+      name: item.medicine.name,
+      quantity: item.quantity,
+      pricePerUnit: item.pricePerUnit,
+      total: item.quantity * item.pricePerUnit,
+    }));
+
+    // Send email
+    await this.mailService.sendOrderEmail(order.patient.user.email, {
+      patientName: order.patient.fullName,
+      orderId: order.id,
+      orderDate: order.orderDate.toLocaleDateString(),
+      status,
+      items: emailItems,
+      totalAmount: order.totalAmount,
+      action,
+      refundStatus,
+      refundMessage,
+    });
   }
 }

@@ -19,10 +19,10 @@ import { CreateNotificationDto } from './dto/cerate-notification.dto';
 import { PushSubscriptionDto } from './dto/push-subscription.dto';
 import { Public } from 'src/auth/decorators/public.decorators';
 
-@Roles(Role.ADMIN, Role.PATIENT, Role.PHARMACIST, Role.DOCTOR)
 @Controller('notifications')
 export class NotificationController {
   constructor(private readonly notificationService: NotificationService) {}
+  @Roles(Role.ADMIN, Role.PATIENT, Role.PHARMACIST, Role.DOCTOR)
   @Post('push/test')
   async testNotification(
     @Body() dto: TestNotificationDto,
@@ -32,8 +32,8 @@ export class NotificationController {
     return { success: true, message: 'Test notification sent' };
   }
 
-  @Post('push/subscribe')
   @Public()
+  @Post('push/subscribe')
   async subscribeToPush(@Body() dto: PushSubscriptionDto) {
     return this.notificationService.subscribeToPush({
       ...dto,
@@ -50,6 +50,7 @@ export class NotificationController {
   }
 
   // WhatsApp Notification Endpoint
+  @Roles(Role.ADMIN, Role.PATIENT, Role.PHARMACIST, Role.DOCTOR)
   @Post('whatsapp')
   async sendWhatsApp(
     @Body() dto: CreateNotificationDto,
@@ -64,6 +65,7 @@ export class NotificationController {
   }
 
   // Bulk Notification Endpoint
+  @Roles(Role.ADMIN, Role.PATIENT, Role.PHARMACIST, Role.DOCTOR)
   @Post('bulk')
   async sendBulkNotifications(
     @Body() { userIds, ...dto }: { userIds: string[] } & CreateNotificationDto,
@@ -71,6 +73,7 @@ export class NotificationController {
     return this.notificationService.triggerPusherEvents(userIds, dto);
   }
 
+  @Roles(Role.ADMIN, Role.PATIENT, Role.PHARMACIST, Role.DOCTOR)
   @Get()
   async getUserNotifications(
     @Req() req: RequestWithUser,
@@ -83,16 +86,19 @@ export class NotificationController {
       limit,
     );
   }
+  @Roles(Role.ADMIN, Role.PATIENT, Role.PHARMACIST, Role.DOCTOR)
   @Patch('mark-all-read')
   async markAllAsRead(@Req() req: RequestWithUser) {
     return this.notificationService.markAllAsRead(req.user.sub);
   }
 
+  @Roles(Role.ADMIN, Role.PATIENT, Role.PHARMACIST, Role.DOCTOR)
   @Patch(':id/read')
   async markAsRead(@Param('id') id: string, @Req() req: RequestWithUser) {
     return await this.notificationService.markAsRead(id, req.user.sub);
   }
 
+  @Roles(Role.ADMIN, Role.PATIENT, Role.PHARMACIST, Role.DOCTOR)
   @Delete(':id')
   async deleteNotification(
     @Param('id') id: string,

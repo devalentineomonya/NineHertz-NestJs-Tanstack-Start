@@ -58,6 +58,24 @@ export class PharmacistController {
     return this.pharmacistService.findOne(id);
   }
 
+  @Get('user/:userId')
+  @ApiOperation({ summary: 'Get a pharmacist by User ID' })
+  @ApiParam({
+    name: 'userId',
+    description: 'User ID associated with the pharmacist',
+  })
+  @ApiResponse({
+    status: 200,
+    description: 'Pharmacist found',
+    type: PharmacistResponseDto,
+  })
+  @ApiResponse({ status: 404, description: 'Pharmacist not found' })
+  findByUserId(
+    @Param('userId') userId: string,
+  ): Promise<PharmacistResponseDto> {
+    return this.pharmacistService.findByUserId(userId);
+  }
+
   @Put(':id')
   @ApiOperation({ summary: 'Update a pharmacist' })
   @ApiParam({ name: 'id', description: 'Pharmacist ID' })

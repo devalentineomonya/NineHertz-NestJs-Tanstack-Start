@@ -262,7 +262,6 @@ export class DoctorService {
   }
 
   private mapToResponseDto(doctor: Doctor): DoctorResponseDto {
-    console.log(doctor);
     return {
       id: doctor.id,
       fullName: doctor.fullName,

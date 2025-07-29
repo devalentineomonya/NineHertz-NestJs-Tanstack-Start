@@ -71,6 +71,18 @@ export class AdminController {
     return this.adminService.findOne(id);
   }
 
+  @Get('user/:userId')
+  @ApiOperation({ summary: 'Get admin by User ID' })
+  @ApiResponse({
+    status: 200,
+    description: 'Admin details by User ID',
+    type: AdminResponseDto,
+  })
+  @ApiResponse({ status: 404, description: 'Admin not found' })
+  findByUserId(@Param('userId') userId: string) {
+    return this.adminService.findByUserId(userId);
+  }
+
   @Patch(':id')
   @ApiOperation({ summary: 'Update admin profile' })
   @ApiResponse({

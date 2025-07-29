@@ -3,6 +3,7 @@ import { TransactionStatus } from './entities/transaction.entity';
 import { Injectable, InternalServerErrorException } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import { JwtService } from '@nestjs/jwt';
+import axios from 'axios';
 
 interface StripeJwtPayload {
   reference: string;
@@ -45,6 +46,13 @@ export class StripeService {
     metadata?: Record<string, any>;
   }): Promise<{ checkoutUrl: string; sessionId: string }> {
     try {
+      let unitAmount = paymentData.amount;
+
+      if (paymentData.currency.toLowerCase() === 'usd') {
+        const exchangeRate = await this.getUsdKesExchangeRate();
+        unitAmount = Math.round(paymentData.amount / exchangeRate);
+      }
+
       const session = await this.stripe.checkout.sessions.create({
         payment_method_types: ['card'],
         mode: 'payment',
@@ -56,7 +64,7 @@ export class StripeService {
             price_data: {
               currency: paymentData.currency,
               product_data: { name: paymentData.description },
-              unit_amount: paymentData.amount * 100,
+              unit_amount: unitAmount,
             },
             quantity: 1,
           },
@@ -202,5 +210,16 @@ export class StripeService {
       secret: this.configService.getOrThrow('PAYMENT_JWT_SECRET'),
       expiresIn: '14d',
     });
+  }
+
+  private async getUsdKesExchangeRate(): Promise<number> {
+    try {
+      const response = await axios.get<{ rates: { KES: number } }>(
+        'https://api.exchangerate-api.com/v6/latest/USD',
+      );
+      return response.data.rates.KES;
+    } catch {
+      throw new InternalServerErrorException('Failed to get exchange rate');
+    }
   }
 }

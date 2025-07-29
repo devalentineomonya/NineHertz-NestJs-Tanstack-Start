@@ -80,149 +80,141 @@ export const ViewUserSheet = () => {
             </Button>
           )}
         </DrawerHeader>
-
-        <ScrollArea className="px-6 py-4 h-[calc(100dvh-172px)]">
-          <div className="space-y-4">
-            {/* Contact Card */}
-            <Card>
-              <CardHeader>
-                <CardTitle className="flex items-center gap-2 text-gray-700">
-                  <Mail className="h-5 w-5" />
-                  Contact Information
-                </CardTitle>
-              </CardHeader>
-              <CardContent className="space-y-4">
-                <div className="flex items-start gap-3">
-                  <div className="bg-blue-50 rounded-full p-2 mt-0.5">
-                    <Mail className="h-5 w-5 text-blue-600" />
-                  </div>
-                  <div>
-                    <p className="text-sm text-muted-foreground">Email</p>
-                    <p className="font-medium">{selectedUser.email}</p>
-                    <Badge
-                      variant={
-                        selectedUser.isEmailVerified ? "success" : "secondary"
-                      }
-                      className="mt-1"
-                    >
-                      <div className="flex items-center gap-1">
-                        {selectedUser.isEmailVerified ? (
-                          <CheckCircle className="h-4 w-4" />
-                        ) : (
-                          <XCircle className="h-4 w-4" />
-                        )}
-                        {selectedUser.isEmailVerified
-                          ? "Verified"
-                          : "Unverified"}
-                      </div>
-                    </Badge>
-                  </div>
+        <div className="px-6 py-4 overflow-y-auto space-y-4">
+          {/* Contact Card */}
+          <Card>
+            <CardHeader>
+              <CardTitle className="flex items-center gap-2 text-gray-700">
+                <Mail className="h-5 w-5" />
+                Contact Information
+              </CardTitle>
+            </CardHeader>
+            <CardContent className="space-y-4">
+              <div className="flex items-start gap-3">
+                <div className="bg-blue-50 rounded-full p-2 mt-0.5">
+                  <Mail className="h-5 w-5 text-blue-600" />
                 </div>
-
-                <div className="flex items-start gap-3">
-                  <div className="bg-green-50 rounded-full p-2 mt-0.5">
-                    <Phone className="h-5 w-5 text-green-600" />
-                  </div>
-                  <div>
-                    <p className="text-sm text-muted-foreground">Phone</p>
-                    <p className="font-medium">
-                      {selectedUser.profile?.adminType || "Not provided"}
-                    </p>
-                  </div>
-                </div>
-              </CardContent>
-            </Card>
-
-            {/* Account Card */}
-            <Card>
-              <CardHeader>
-                <CardTitle className="flex items-center gap-2 text-gray-700">
-                  <Shield className="h-5 w-5" />
-                  Account Information
-                </CardTitle>
-              </CardHeader>
-              <CardContent className="grid grid-cols-2 gap-4">
                 <div>
-                  <p className="text-sm text-muted-foreground">Role</p>
+                  <p className="text-sm text-muted-foreground">Email</p>
+                  <p className="font-medium">{selectedUser.email}</p>
                   <Badge
                     variant={
-                      selectedUser.role === "admin"
-                        ? "destructive"
-                        : selectedUser.role === "doctor"
-                        ? "default"
-                        : "secondary"
+                      selectedUser.isEmailVerified ? "success" : "secondary"
                     }
-                    className="capitalize mt-1"
+                    className="mt-1"
                   >
-                    <Shield className="size-4 mr-2" />
-                    {selectedUser.role}
+                    <div className="flex items-center gap-1">
+                      {selectedUser.isEmailVerified ? (
+                        <CheckCircle className="h-4 w-4" />
+                      ) : (
+                        <XCircle className="h-4 w-4" />
+                      )}
+                      {selectedUser.isEmailVerified ? "Verified" : "Unverified"}
+                    </div>
                   </Badge>
                 </div>
+              </div>
 
-                <div>
-                  <p className="text-sm text-muted-foreground">User ID</p>
-                  <p className="font-medium text-sm font-mono">{userId}</p>
+              <div className="flex items-start gap-3">
+                <div className="bg-green-50 rounded-full p-2 mt-0.5">
+                  <Phone className="h-5 w-5 text-green-600" />
                 </div>
-
                 <div>
-                  <p className="text-sm text-muted-foreground">Joined Date</p>
+                  <p className="text-sm text-muted-foreground">Phone</p>
                   <p className="font-medium">
-                    {format(new Date(selectedUser.createdAt), "MMM d, yyyy")}
+                    {selectedUser.profile?.adminType || "Not provided"}
                   </p>
                 </div>
+              </div>
+            </CardContent>
+          </Card>
 
+          {/* Account Card */}
+          <Card>
+            <CardHeader>
+              <CardTitle className="flex items-center gap-2 text-gray-700">
+                <Shield className="h-5 w-5" />
+                Account Information
+              </CardTitle>
+            </CardHeader>
+            <CardContent className="grid grid-cols-2 gap-4">
+              <div>
+                <p className="text-sm text-muted-foreground">Role</p>
+                <Badge
+                  variant={
+                    selectedUser.role === "admin"
+                      ? "destructive"
+                      : selectedUser.role === "doctor"
+                      ? "default"
+                      : "secondary"
+                  }
+                  className="capitalize mt-1"
+                >
+                  <Shield className="size-4 mr-2" />
+                  {selectedUser.role}
+                </Badge>
+              </div>
+
+              <div>
+                <p className="text-sm text-muted-foreground">User ID</p>
+                <p className="font-medium text-sm font-mono">{userId}</p>
+              </div>
+
+              <div>
+                <p className="text-sm text-muted-foreground">Joined Date</p>
+                <p className="font-medium">
+                  {format(new Date(selectedUser.createdAt), "MMM d, yyyy")}
+                </p>
+              </div>
+
+              <div>
+                <p className="text-sm text-muted-foreground">Last Active</p>
+                <p className="font-medium">
+                  {format(new Date(selectedUser.createdAt), "MMM d, yyyy")}
+                </p>
+              </div>
+            </CardContent>
+          </Card>
+
+          {/* Activity Card */}
+          <Card>
+            <CardHeader>
+              <CardTitle className="flex items-center gap-2 text-gray-700">
+                <Calendar className="h-5 w-5" />
+                Recent Activity
+              </CardTitle>
+            </CardHeader>
+            <CardContent className="space-y-3">
+              <div className="flex items-start gap-3">
+                <div className="bg-purple-100 rounded-full p-2 mt-0.5">
+                  <Calendar className="h-5 w-5 text-purple-600" />
+                </div>
                 <div>
-                  <p className="text-sm text-muted-foreground">Last Active</p>
-                  <p className="font-medium">
-                    {format(new Date(selectedUser.createdAt), "MMM d, yyyy")}
+                  <p className="font-medium">Account Created</p>
+                  <p className="text-sm text-muted-foreground">
+                    {format(
+                      new Date(selectedUser.createdAt),
+                      "MMMM d, yyyy 'at' h:mm a"
+                    )}
                   </p>
                 </div>
-              </CardContent>
-            </Card>
+              </div>
 
-            {/* Activity Card */}
-            <Card>
-              <CardHeader>
-                <CardTitle className="flex items-center gap-2 text-gray-700">
-                  <Calendar className="h-5 w-5" />
-                  Recent Activity
-                </CardTitle>
-              </CardHeader>
-              <CardContent className="space-y-3">
-                <div className="flex items-start gap-3">
-                  <div className="bg-purple-100 rounded-full p-2 mt-0.5">
-                    <Calendar className="h-5 w-5 text-purple-600" />
-                  </div>
-                  <div>
-                    <p className="font-medium">Account Created</p>
-                    <p className="text-sm text-muted-foreground">
-                      {format(
-                        new Date(selectedUser.createdAt),
-                        "MMMM d, yyyy 'at' h:mm a"
-                      )}
-                    </p>
-                  </div>
+              <div className="flex items-start gap-3">
+                <div className="bg-green-100 rounded-full p-2 mt-0.5">
+                  <CheckCircle className="h-5 w-5 text-green-600" />
                 </div>
-
-                <div className="flex items-start gap-3">
-                  <div className="bg-green-100 rounded-full p-2 mt-0.5">
-                    <CheckCircle className="h-5 w-5 text-green-600" />
-                  </div>
-                  <div>
-                    <p className="font-medium">Last Login</p>
-                    <p className="text-sm text-muted-foreground">
-                      {format(
-                        new Date(selectedUser.createdAt),
-                        "MMM d, h:mm a"
-                      )}{" "}
-                      (Today)
-                    </p>
-                  </div>
+                <div>
+                  <p className="font-medium">Last Login</p>
+                  <p className="text-sm text-muted-foreground">
+                    {format(new Date(selectedUser.createdAt), "MMM d, h:mm a")}{" "}
+                    (Today)
+                  </p>
                 </div>
-              </CardContent>
-            </Card>
-          </div>
-        </ScrollArea>
+              </div>
+            </CardContent>
+          </Card>
+        </div>
 
         <DrawerFooter className="flex flex-row justify-end gap-3 border-t pt-4">
           <Button variant="ghost">Edit Profile</Button>

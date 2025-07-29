@@ -23,8 +23,12 @@ import { RolesGuard } from './auth/guards/roles.guard';
 import { ContactHelper } from './shared/helpers/contact.helper';
 import { AppController } from './app.controller';
 import { NotificationModule } from './notification/notification.module';
-import { DashboardModule } from './dashboard/dashboard.module';
+import { AdminDashboardModule } from './dashboard/admin-dashboard.module';
 import { TransactionsModule } from './transactions/transactions.module';
+import { PatientDashboardModule } from './dashboard/patient-dashboard-module';
+import { DoctorDashboardModule } from './dashboard/doctor-dashboard.module';
+import { PharmacistDashboardModule } from './dashboard/pharmacist-dashboard.module';
+import { MessagingModule } from './messaging/messaging.module';
 
 @Module({
   imports: [
@@ -69,8 +73,13 @@ import { TransactionsModule } from './transactions/transactions.module';
         },
       ],
     }),
-    DashboardModule,
+    PharmacistModule,
     TransactionsModule,
+    AdminDashboardModule,
+    DoctorDashboardModule,
+    PatientDashboardModule,
+    PharmacistDashboardModule,
+    MessagingModule,
   ],
   controllers: [AppController],
   providers: [

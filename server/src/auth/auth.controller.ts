@@ -121,7 +121,6 @@ export class AuthController {
       tokens.accessToken,
       tokens.refreshToken,
     );
-    console.log(isValid);
     if (!isValid) {
       throw new UnauthorizedException('Invalid tokens');
     }

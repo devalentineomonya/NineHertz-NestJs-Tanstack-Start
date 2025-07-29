@@ -1,8 +1,7 @@
 import { useMutation, useQueryClient } from "@tanstack/react-query";
-import { DataServices } from "../data/data-service";
+import { dataServices } from "../data/data-service";
 
 export const useEditMedicineService = () => {
-  const dataService = new DataServices();
   const queryClient = useQueryClient();
   let patientId: string;
   return useMutation({
@@ -14,14 +13,14 @@ export const useEditMedicineService = () => {
       data: CreateMedicineDto;
     }) => {
       patientId = id;
-      const response = await dataService.api.medicines._id(id).patch.call({
+      const response = await dataServices.api.medicines._id(id).patch.call({
         json: data,
       });
       return response.data;
     },
-    onSuccess:  () => {
-       queryClient.invalidateQueries({ queryKey: ["medicines"] });
-       queryClient.invalidateQueries({
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["medicines"] });
+      queryClient.invalidateQueries({
         queryKey: ["medicine", patientId],
       });
     },

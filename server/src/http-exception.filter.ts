@@ -103,7 +103,7 @@ export class AllExceptionsFilter extends BaseExceptionFilter {
     if (responseObj.statusCode >= 500) {
       console.error(`[${responseObj.timestamp}] ERROR:`, exception);
     }
-    console.log(responseObj);
+
     response.status(responseObj.statusCode).json(responseObj);
   }
 }
