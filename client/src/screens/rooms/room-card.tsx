@@ -35,7 +35,6 @@ enum AppointmentStatus {
 const RoomCard = ({ appointment }: { appointment: AppointmentResponseDto }) => {
   const [canJoin, setCanJoin] = useState(false);
   const [timeRemaining, setTimeRemaining] = useState("");
-  const [isFutureAppointment, setIsFutureAppointment] = useState(true);
   const appointmentTime = new Date(appointment.datetime);
   const fee =
     parseFloat(appointment.doctor.appointmentFee as unknown as string) || 0;
@@ -58,9 +57,8 @@ const RoomCard = ({ appointment }: { appointment: AppointmentResponseDto }) => {
     const checkTime = () => {
       const now = new Date();
       const fiveMinutesBefore = new Date(appointmentTime.getTime() - 5 * 60000);
-      const isFuture = now < appointmentTime;
 
-      setIsFutureAppointment(isFuture);
+
 
       // Calculate time remaining using date-fns
       if (now < fiveMinutesBefore) {
@@ -308,7 +306,8 @@ const RoomCard = ({ appointment }: { appointment: AppointmentResponseDto }) => {
               {/* Confirmed Status for Doctor/Admin */}
               {(isDoctor || isAdmin) &&
                 isScheduled &&
-                isFutureAppointment &&
+
+
                 !isCanceled &&
                 hasSuccessfulPayment && (
                   <div className="mb-3 p-2 bg-green-100 dark:bg-green-900/30 rounded-lg text-center">
@@ -327,7 +326,7 @@ const RoomCard = ({ appointment }: { appointment: AppointmentResponseDto }) => {
                     {/* Payment Button */}
                     {!hasSuccessfulPayment &&
                       fee > 0 &&
-                      isFutureAppointment &&
+
                       !isCanceled && (
                         <motion.div
                           variants={buttonVariants}
@@ -347,8 +346,7 @@ const RoomCard = ({ appointment }: { appointment: AppointmentResponseDto }) => {
 
                     {/* Cancel Button */}
                     {hasSuccessfulPayment &&
-                      isScheduled &&
-                      isFutureAppointment && (
+                      isScheduled &&(
                         <motion.div
                           variants={buttonVariants}
                           whileHover="hover"
@@ -367,7 +365,7 @@ const RoomCard = ({ appointment }: { appointment: AppointmentResponseDto }) => {
                       )}
 
                     {/* Reschedule Button */}
-                    {isScheduled && isFutureAppointment && !isCanceled && (
+                    {isScheduled && !isCanceled && (
                       <motion.div
                         variants={buttonVariants}
                         whileHover="hover"
