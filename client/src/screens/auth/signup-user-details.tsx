@@ -25,7 +25,7 @@ export const SignUpUserDataForm: React.FC<SignUpUserDataFormProps> = ({
       phone_number: "",
       password: "",
     },
-
+    
     validators: {
       onSubmit: async ({ value }) => {
         try {

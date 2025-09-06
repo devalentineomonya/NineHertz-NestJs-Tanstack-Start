@@ -116,7 +116,6 @@ export default function ChatBot({
   } = useChat({
     initialMessages,
     keepLastMessageOnError: true,
-    streamProtocol: "text",
     api: `${import.meta.env.VITE_API_BASE_URL}/chat`,
     headers: {
       Authorization: `Bearer ${session?.accessToken}`,

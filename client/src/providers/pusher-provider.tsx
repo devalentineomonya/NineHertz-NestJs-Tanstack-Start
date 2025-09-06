@@ -1,15 +1,15 @@
+import { PushNotification } from "@/screens/notifications/notifications-page";
+import { dataServices } from "@/services/data/data-service";
+import Pusher from "pusher-js";
 import {
   createContext,
+  ReactNode,
   useContext,
   useEffect,
   useRef,
   useState,
-  ReactNode,
 } from "react";
-import Pusher from "pusher-js";
 import { toast } from "sonner";
-import { PushNotification } from "@/screens/notifications/notifications-page";
-import { dataServices } from "@/services/data/data-service";
 
 interface PusherContextType {
   notifications: PushNotification[];
@@ -85,7 +85,7 @@ export const PusherProvider = ({
           config: {
             backendUrl: IS_DEV
               ? "https://nest.dev.lo"
-              : "https://api.mmedic.devalentine.me",
+              : "https://api.mmedic.valentinee.dev",
             vapidKey: VAPID_PUBLIC_KEY,
           },
         });

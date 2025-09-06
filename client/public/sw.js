@@ -314,8 +314,8 @@ self.addEventListener('fetch', (event) => {
     'https://localhost',
     'http://127.0.0.1',
     'https://127.0.0.1',
-    'https://api.medic.devalentine.me',
-    'http://api.medic.devalentine.me',
+    'https://api.medic.valentinee.dev',
+    'http://api.medic.valentinee.dev',
     'https://lrutuciffubddbacxfki.supabase.co'
   ];
 
