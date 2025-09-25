@@ -117,7 +117,7 @@ export class AppointmentService {
       appointmentTime: appointment.datetime.toLocaleString(),
       meetingLink:
         appointment.mode === AppointmentMode.VIRTUAL
-          ? `https://medic.devalentine.me/call/join/${appointment.videoSessionId}`
+          ? `https://medic.valentinee.dev/call/join/${appointment.videoSessionId}`
           : undefined,
     });
 
@@ -529,7 +529,7 @@ export class AppointmentService {
           appointmentTime: appointment.datetime.toLocaleString(),
           meetingLink:
             appointment.mode === AppointmentMode.VIRTUAL
-              ? `https://medic.devalentine.me/call/join/${appointment.videoSessionId}`
+              ? `https://medic.valentinee.dev/call/join/${appointment.videoSessionId}`
               : undefined,
         },
       );
@@ -577,7 +577,7 @@ export class AppointmentService {
         appointmentTime: appointment.datetime.toLocaleString(),
         meetingLink:
           appointment.mode === AppointmentMode.VIRTUAL
-            ? `https://medic.devalentine.me/call/join/${appointment.videoSessionId}`
+            ? `https://medic.valentinee.dev/call/join/${appointment.videoSessionId}`
             : undefined,
       },
     );

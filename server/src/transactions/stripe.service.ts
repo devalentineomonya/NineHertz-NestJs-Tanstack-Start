@@ -215,7 +215,7 @@ export class StripeService {
   private async getUsdKesExchangeRate(): Promise<number> {
     try {
       const response = await axios.get<{ rates: { KES: number } }>(
-        'https://api.exchangerate-api.com/v6/latest/USD',
+        'https://api.exchangerate-api.com/v4/latest/USD',
       );
       return response.data.rates.KES;
     } catch {
